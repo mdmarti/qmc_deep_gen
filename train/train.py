@@ -32,7 +32,7 @@ def test_epoch(model,loader,base_sequence,loss_function):
             data = data.to(device)
             samples = model(base_sequence)
             loss = loss_function(samples, data)
-            train_loss += loss.item()
+            test_loss += loss.item()
             epoch_losses.append(loss.item())
 
     return epoch_losses
