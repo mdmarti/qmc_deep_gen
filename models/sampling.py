@@ -64,7 +64,7 @@ def gen_korobov_basis(a,
     this is a fibonacci lattice for num_dims = 2, a = Fib(m-1), n = Fib(m) for m >= 3
     """
 
-    z = torch.tensor([a**k % n for k in range(num_dims)])
+    z = torch.tensor([a**k % num_points for k in range(num_dims)])
     base_pts = torch.arange(0,num_points)[:,None] * z[None,:]/num_points
     return base_pts
 
