@@ -10,7 +10,7 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function):
     train_loss = 0
     epoch_losses = []
     for batch_idx, (data, _) in enumerate(tqdm(loader)):
-        data = data.to(model.device)
+        data = data.to(device)
         optimizer.zero_grad()
         samples = model(base_sequence)
         loss = loss_function(samples, data)
