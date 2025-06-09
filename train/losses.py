@@ -27,7 +27,7 @@ def gaussian_lp(samples,data,var=1.):
                             -torch.nn.functional.gaussian_nll_loss(samples.swapaxes(0,1).tile((data.shape[0],1,1,1)),
                                                 data.tile(1,samples.shape[0],1,1),
                                                 var=var,
-                                                reduction=None
+                                                reduction='none',
                                                 ),
                             axis=(2,3)
                         ),
