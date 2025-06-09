@@ -67,3 +67,4 @@ def gen_korobov_basis(a,
     z = torch.tensor([a**k % n for k in range(num_dims)])
     base_pts = torch.arange(0,num_points)[:,None] * z[None,:]/num_points
     return base_pts
+
