@@ -62,7 +62,7 @@ class QMCLVM(nn.Module):
         x = (r + eval_grid) % 1
         return self.decoder(x)
 
-    def latent_density(self,eval_grid,sample,batch_size=-1,softmax=False):
+    def latent_density(self,eval_grid,sample,lp_func,batch_size=-1,softmax=False):
         """
         eval_grid should be an n_grid_points x latent_dim sequence of latnet points,
         while sample should be n_data_points x n_channels x height x width
@@ -72,20 +72,20 @@ class QMCLVM(nn.Module):
         if batch_size == -1:
             batch_size = sample.shape[0]
 
-        binom_lps = []
+        lps = []
         for on in range(0,sample.shape[0],batch_size):
             off = on + batch_size
             
             s = sample[on:off].tile(1,decoded.shape[0],1,1)
             d = decoded.swapaxes(0,1).tile(s.shape[0],1,1,1)
             
-            binomLP = -1 * binary_cross_entropy(d,
-                                                s,
-                                                reduction='none'
-                                               ).sum(axis=(2,3))
-            binom_lps.append(binomLP)
-        binom_lps = torch.cat(binom_lps,axis=0)
+            lp = lp_func(d,s) #-1 * binary_cross_entropy(d,
+                                    #            s,
+                                    #            reduction='none'
+                                    #           ).sum(axis=(2,3))
+            lps.append(lp)
+        lps = torch.cat(lps,axis=0)
         if softmax:
-            return nn.Softmax(binom_lps)
+            return nn.Softmax(lps)
         
-        return binom_lps
+        return lps
