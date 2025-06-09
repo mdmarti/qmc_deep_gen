@@ -1,9 +1,12 @@
 import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
+import torch
 
 
 def train_epoch(model,optimizer,loader,base_sequence,loss_function):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     train_loss = 0
     epoch_losses = []
     for batch_idx, (data, _) in enumerate(tqdm(loader)):
