@@ -4,7 +4,7 @@ from torch.optim import Adam
 import torch
 
 
-def train_epoch(model,optimizer,loader,base_sequence,loss_function):
+def train_epoch(model,optimizer,loader,loss_function):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loss = 0
@@ -12,8 +12,8 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function):
     for batch_idx, (data, _) in enumerate(tqdm(loader)):
         data = data.to(device)
         optimizer.zero_grad()
-        samples = model(base_sequence)
-        loss = loss_function(samples, data)
+        recons,distribution = model(data)
+        loss = loss_function(recons,distribution, data)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -21,7 +21,7 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function):
 
     return epoch_losses,model,optimizer
 
-def test_epoch(model,loader,base_sequence,loss_function):
+def test_epoch(model,loader,loss_function):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -30,20 +30,20 @@ def test_epoch(model,loader,base_sequence,loss_function):
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(tqdm(loader)):
             data = data.to(device)
-            samples = model(base_sequence)
-            loss = loss_function(samples, data)
+            recons,distribution = model(data)
+            loss = loss_function(recons,distribution, data)
             test_loss += loss.item()
             epoch_losses.append(loss.item())
 
     return epoch_losses
 
-def train_loop(model,loader,base_sequence,loss_function,nEpochs=100):
+def train_loop(model,loader,loss_function,nEpochs=100):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
     for epoch in range(nEpochs):
 
-        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function)
+        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,loss_function)
 
         losses += batch_loss
 

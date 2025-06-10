@@ -30,7 +30,7 @@ class FourierBasis(nn.Module):
     
 
 class QMCLVM(nn.Module):
-    def __init__(self, latent_dim=2, num_freqs=16, device=None):
+    def __init__(self, latent_dim=2, num_freqs=16, device=None,decoder=None):
         super(QMCLVM, self).__init__()
 
         self.latent_dim = latent_dim
@@ -51,7 +51,7 @@ class QMCLVM(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(32, 1, 3, stride=2, padding=1, output_padding=1),#nn.Linear(32*14*14,1*28*28),
             nn.Sigmoid(),
-        ).to(device)
+        ).to(device) if decoder is None else decoder.to(device)
 
     def forward(self, eval_grid):
         """
