@@ -51,18 +51,22 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True):
 
 
 
-def class_density_plot(grid,density,figname,fn='',show=True):
+def class_density_plot(grid,density,figname,fn='',show=True,ax=None):
 
-    fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(10,10))
+    if ax is None:
+        fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(10,10))
 
     ax.scatter(grid[:,0],grid[:,1],c=density)
     ax.set_title(figname)
 
-    if show:
-        plt.show()
-    else:
-        plt.savefig(fn)
-    plt.close()
+    if ax is None:
+        if show:
+            plt.show()
+        else:
+            plt.savefig(fn)
+        plt.close()
+        return
+    return ax
 
 
 
