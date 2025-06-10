@@ -15,14 +15,14 @@ class VAE(nn.Module):
         self.to(device)
 
     def forward(self,data):
-
+        data = data.to(torch.float32)
         params = self.encoder(data)
 
         dist = self.distribution(*params)
         z = dist.rsample()
-        recons = self.encoder(z)
+        recons = self.decoder(z)
 
-        return params,recons
+        return recons,params
     
     def encode(self,data):
 
@@ -32,8 +32,15 @@ class VAE(nn.Module):
 
         return self.decoder(z)
     
+class Print(nn.Module):
+    def __init__(self):
+        super(Print, self).__init__()
 
-class Encoder(nn.module):
+    def forward(self, x):
+        print(x.shape)
+        return x
+        
+class Encoder(nn.Module):
 
 
     def __init__(self,net=None,mu_net=None,l_net=None,d_net=None,latent_dim=2):
@@ -47,15 +54,21 @@ class Encoder(nn.module):
             self.shared_net = nn.Sequential(
                 nn.Conv2d(1,8,3,stride=2,padding=1), #B x  8 x 64 x 64
                 nn.ReLU(),
+                #Print(),
                 nn.Conv2d(8,16,3,stride=2,padding=1), #B x 16 x 32 x 32
                 nn.ReLU(),
+                #Print(),
                 nn.Conv2d(16,32,3,stride=2,padding=1), #B x 32 x 16 x 16
                 nn.ReLU(),
-                nn.Conv2d(32,64,3,stride=2,padding=1), #B x 8 x 64 x 64,
+                #Print(),
+                nn.Conv2d(32,64,3,stride=2,padding=1), #B x 64 x 8 x 8,
                 nn.ReLU(),
-                nn.Flatten(start_dim=1,end_dim=-1), # B x 8*64*64,
-                nn.Linear(8*64*64,2**11),
-                nn.ReLU()
+                #Print(),
+                nn.Flatten(start_dim=1,end_dim=-1), # B x 8*8*64,
+                #Print(),
+                nn.Linear(8*8*64,2**11),
+                nn.ReLU(),
+                #Print(),
             )
             self.mu_net = nn.Linear(2**11,latent_dim)
             self.l_net = nn.Linear(2**11,latent_dim)
@@ -68,9 +81,9 @@ class Encoder(nn.module):
 
 
     def forward(self,data):
-
+        #print(data.shape)
         intermediate = self.shared_net(data)
-
+        #assert False
         mu = self.mu_net(intermediate)
         l = self.mu_net(intermediate).unsqueeze(-1)
         d = self.mu_net(intermediate).exp()

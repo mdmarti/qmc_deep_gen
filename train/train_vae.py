@@ -29,7 +29,7 @@ def test_epoch(model,loader,loss_function):
     epoch_losses = []
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(tqdm(loader)):
-            data = data.to(device)
+            data = data.to(device).to(torch.float32)
             recons,distribution = model(data)
             loss = loss_function(recons,distribution, data)
             test_loss += loss.item()
