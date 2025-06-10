@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 
-def model_grid_plot(model,n_samples_dim,fn='',show=True):
+def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #n_samples_dim = 10
@@ -27,19 +27,19 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True):
                
     
 
-    fig, axes = plt.subplot_mosaic(mosaic,figsize=(10,10))
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20))
 
     for ii in range(n_samples):
         ax = axes[f"sample {ii}"]
-        ax.imshow(sample[ii, 0, :, :], cmap='grey')
+        ax.imshow(sample[ii, 0, :, :], cmap=cm,origin=origin)
         ax.spines[['right','left','top','bottom']].set_color(cmap(norm(ii)))
         ax.spines[['right','left','top','bottom']].set_linewidth(4)
         ax.set_yticks([])
         ax.set_xticks([])
 
     axes['scatter grid'].scatter(z[:,0],z[:,1],c=cs)
-    axes['scatter grid'].set_xlim([-0.05,0.9])
-    axes['scatter grid'].set_ylim([-0.05,0.9])
+    axes['scatter grid'].set_xlim([-0.05,1-0.01*n_samples_dim])
+    axes['scatter grid'].set_ylim([-0.05,1-0.01*n_samples_dim])
     axes['scatter grid'].set_xticks([])
     axes['scatter grid'].set_yticks([])
     axes['scatter grid'].spines[['right','left','top','bottom']].set_visible(False)
@@ -48,6 +48,7 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True):
     else:
         plt.savefig(fn)
     plt.close()
+
 
 
 
