@@ -29,6 +29,7 @@ def gaussian_lp(samples,data,var=1.):
                                                 data.tile(1,samples.shape[0],1,1),
                                                 var=var,
                                                 reduction='none',
+                                                full=True
                                                 ),
                             axis=(2,3)
                         ),
