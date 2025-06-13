@@ -3,16 +3,12 @@ from torch.nn.functional import binary_cross_entropy
 from torchvision.transforms import GaussianBlur
 import numpy as np
 
-def binary_lp(samples, data):
-
+def binary_evidence(samples, data):
+    # (should be sum for full, joint evidence)
+    # but we can also do expected evidence per sample
     recon_loss = -1 * torch.mean(
         torch.special.logsumexp(
-            torch.sum(
-                -1 * binary_cross_entropy(
-                    samples.swapaxes(0, 1).tile((data.shape[0], 1, 1, 1)),
-                    data.tile(1, samples.shape[0], 1, 1),
-                    reduction="none"
-                ),
+            torch.sum(binary_lp(samples,data),
                 axis=(2, 3)
             ),
             axis=1
@@ -20,17 +16,11 @@ def binary_lp(samples, data):
     )
     return recon_loss
 
-def gaussian_lp(samples,data,var=1.):
+def gaussian_evidence(samples,data,var=1.):
 
     recon_loss = - torch.mean(
                     torch.special.logsumexp(
-                        torch.sum(
-                            -torch.nn.functional.gaussian_nll_loss(samples.swapaxes(0,1).tile((data.shape[0],1,1,1)),
-                                                data.tile(1,samples.shape[0],1,1),
-                                                var=var,
-                                                reduction='none',
-                                                full=True
-                                                ),
+                        torch.sum(gaussian_lp(samples,data,var),
                             axis=(2,3)
                         ),
                         axis=1
@@ -38,13 +28,42 @@ def gaussian_lp(samples,data,var=1.):
                 )
     return recon_loss
 
-def gaussian_lp_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
+def gaussian_evidence_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
 
     blur = GaussianBlur(kernel_size,sigma)
 
     blur_samples,blur_data = blur(samples),blur(data)
 
-    return gaussian_lp(blur_samples,blur_data,var)
+    return gaussian_evidence(blur_samples,blur_data,var)
+
+def binary_lp(samples,data):
+
+    """
+    expects data to be:
+    B x 1 x H x W
+    expects samples to be:
+    1 X S x H x W
+    """
+    -1 * binary_cross_entropy(
+                    samples.swapaxes(0, 1).tile((data.shape[0], 1, 1, 1)),
+                    data.tile(1, samples.shape[0], 1, 1),
+                    reduction="none"
+                )
+
+def gaussian_lp(samples,data,var=1):
+    """
+    expects data to be:
+    B x 1 x H x W
+    expects samples to be:
+    1 X S x H x W
+    """
+
+    return -torch.nn.functional.gaussian_nll_loss(samples.swapaxes(0,1).tile((data.shape[0],1,1,1)),
+                                                data.tile(1,samples.shape[0],1,1),
+                                                var=var,
+                                                reduction='none',
+                                                full=True
+                                                )
 
 
 def gaussian_ELBO(reconstructions,distribution,targets,recon_precision=1e-2):

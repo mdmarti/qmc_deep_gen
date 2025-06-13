@@ -62,30 +62,24 @@ class QMCLVM(nn.Module):
         x = (r + eval_grid) % 1
         return self.decoder(x)
 
-    def latent_density(self,eval_grid,sample,lp_func,batch_size=-1,softmax=False):
-        """
-        eval_grid should be an n_grid_points x latent_dim sequence of latnet points,
-        while sample should be n_data_points x n_channels x height x width
-        """
+    def posterior_probability(self,grid,data,log_likelihood,batch_size=32):
 
-        decoded = self.decoder(eval_grid %1)
-        if batch_size == -1:
-            batch_size = sample.shape[0]
+        preds = self.forward(grid)
 
-        lps = []
-        for on in range(0,sample.shape[0],batch_size):
-            off = on + batch_size
+        model_grid_lls = []
+        N = data.shape[0]
+        for on_ind in range(0,N,batch_size):
+
+            off_ind = min(N,on_ind + batch_size)
+            sample = data[on_ind:off_ind]
+            model_grid_lls.append(log_likelihood(preds,sample))
             
-            s = sample[on:off].tile(1,decoded.shape[0],1,1)
-            d = decoded.swapaxes(0,1).tile(s.shape[0],1,1,1)
-            
-            lp = lp_func(d,s) #-1 * binary_cross_entropy(d,
-                                    #            s,
-                                    #            reduction='none'
-                                    #           ).sum(axis=(2,3))
-            lps.append(lp)
-        lps = torch.cat(lps,axis=0)
-        if softmax:
-            return nn.Softmax(lps)
-        
-        return lps
+        model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
+        ## as such, model_Grid_array should be n_data x n_grid points
+        ll_per_grid = model_grid_lls.sum(dim=0)
+        evidence = torch.special.logsumexp(model_grid_lls,dim=1).sum(dim=0)
+
+        posterior = ll_per_grid - evidence
+
+        return nn.Softmax(posterior)
+    
