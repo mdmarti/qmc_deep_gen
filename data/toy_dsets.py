@@ -1,5 +1,5 @@
 import torch
-from torch.data.utils import Dataset,DataLoader
+from torch.utils.data import Dataset,DataLoader
 
 class CelebADsetIms(Dataset):
 
