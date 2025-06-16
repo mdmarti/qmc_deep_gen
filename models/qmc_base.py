@@ -91,7 +91,7 @@ class Torus_QMCLVM(QMCLVM):
 
     def __init__(self, latent_dim=2,device=None,decoder=None):
 
-        self.latent_dim = 2*latent_dim
+        self.latent_dim = latent_dim
         super(Torus_QMCLVM,self).__init__(latent_dim=latent_dim,device=device,decoder=decoder)
 
     def forward(self,eval_grid):
