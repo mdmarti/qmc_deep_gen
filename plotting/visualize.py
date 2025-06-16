@@ -3,6 +3,7 @@ import matplotlib as mpl
 import numpy as np
 
 import torch
+import gc
 
 
 def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
@@ -68,6 +69,24 @@ def class_density_plot(grid,density,figname,fn='',show=True,ax=None):
         plt.close()
         return
     return ax
+
+def round_trip(model,grid,data,log_density,device='cuda'):
+    #grid = grid.to(device)
+    
+
+    posterior = model.posterior_probability(grid.to(device),data.to(device),log_density).detach().cpu()
+    data = data.detach().cpu()
+    gc.collect()
+    torch.cuda.empty_cache()
+    gc.collect()
+    preds = model.decoder(grid.to(device)).detach().cpu()
+    #print(posterior.shape)
+    #print(preds.shape)
+    most_likely_grid = torch.argmax(posterior)
+
+    recon = preds[most_likely_grid]
+
+    return data,recon
 
 
 
