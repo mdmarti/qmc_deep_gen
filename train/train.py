@@ -9,7 +9,7 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function):
 
     train_loss = 0
     epoch_losses = []
-    for batch_idx, (data, _) in enumerate(tqdm(loader)):
+    for batch_idx, (data, _) in enumerate(loader):
         data = data.to(model.device)
         optimizer.zero_grad()
         samples = model(base_sequence)
@@ -28,7 +28,7 @@ def test_epoch(model,loader,base_sequence,loss_function):
     test_loss = 0
     epoch_losses = []
     with torch.no_grad():
-        for batch_idx, (data, _) in enumerate(loader):
+        for batch_idx, (data, _) in enumerate(tqdm(loader)):
             data = data.to(model.device)
             samples = model(base_sequence)
             loss = loss_function(samples, data)
