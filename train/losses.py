@@ -69,13 +69,17 @@ def gaussian_lp(samples,data,var=1):
 def gaussian_ELBO(reconstructions,distribution,targets,recon_precision=1e-2):
 
 
+    """
+    to do: error proof this
+    """
+
     B,c,h,w = reconstructions.shape
     d = c*h*w
     (mu,L,D) = distribution
     L = L.squeeze(-1) # goes from B x d x 1 -> B x d
 
     z_dim = mu.shape[1]
-    err = targets - reconstructions
+    #err = targets - reconstructions
     neg_lp = torch.nn.functional.gaussian_nll_loss(targets,
                                                    reconstructions,
                                                    var=1/recon_precision,
