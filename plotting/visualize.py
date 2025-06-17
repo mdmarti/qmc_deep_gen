@@ -15,7 +15,7 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
     norm = mpl.colors.Normalize(-1,n_samples)
     with torch.no_grad():
         #z = torch.rand(n_samples, 2).to(device)
-        xx,yy = torch.meshgrid([torch.arange(int(np.sqrt(n_samples)))/int(np.sqrt(n_samples))]*2,indexing='ij')
+        xx,yy = torch.meshgrid([torch.linspace(0,1,n_samples_dim)]*2,indexing='ij')
         z = torch.stack([xx.flatten(),yy.flatten()],axis=-1).to(device)
         sample = model.decoder(z).detach().cpu()
     z = z.detach().cpu().numpy()
@@ -89,6 +89,28 @@ def round_trip_qmc(model,grid,data,log_density,device='cuda'):
 
     return data,recon
 
+
+def format_img_axis(ax,xlabel='',ylabel=''):
+
+    ax.set_yticks([])
+    ax.set_xtciks([])
+
+
+def format_plot_axis(ax,xlabel='',ylabel='',xticks=[],yticks=[],xlim=(),ylim=()):
+
+    ax.spines[['right','top']].set_visible(False)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+    if len(xlim) == 2:
+        ax.set_xlim(xlim)
+    if len(ylim) == 2: 
+        ax.set_ylim(ylim)
+
+
+    return ax
 
 
 

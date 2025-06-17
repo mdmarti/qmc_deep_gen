@@ -47,7 +47,7 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100):
 
         losses += batch_loss
 
-        print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
+        #print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
 
 
     return model, optimizer,losses
