@@ -5,51 +5,56 @@ import torch
 
 
 def train_epoch(model,optimizer,loader,loss_function):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.train()
     train_loss = 0
-    epoch_losses = []
+    epoch_nlps,epoch_kls = [],[]
     for batch_idx, (data, _) in enumerate(tqdm(loader)):
-        data = data.to(device)
+        data = data.to(model.device)
         optimizer.zero_grad()
         recons,distribution = model(data)
-        loss = loss_function(recons,distribution, data)
+        neg_lp,kl = loss_function(recons,distribution, data)
+        loss = neg_lp + kl
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
-        epoch_losses.append(loss.item())
+        epoch_nlps.append(neg_lp.item())
+        epoch_kls.append(kl.item())
 
-    return epoch_losses,model,optimizer
+    return model,optimizer,epoch_nlps,epoch_kls
 
 def test_epoch(model,loader,loss_function):
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.eval()
     test_loss = 0
-    epoch_losses = []
+    epoch_nlps,epoch_kls = [],[]
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(tqdm(loader)):
-            data = data.to(device).to(torch.float32)
+            data = data.to(model.device).to(torch.float32)
             recons,distribution = model(data)
-            loss = loss_function(recons,distribution, data)
+            neg_lp,kl = loss_function(recons,distribution, data)
+            loss = neg_lp + kl
             test_loss += loss.item()
-            epoch_losses.append(loss.item())
+            epoch_nlps.append(neg_lp.item())
+            epoch_kls.append(kl.item())
 
-    return epoch_losses
+    return epoch_nlps,epoch_kls
 
 def train_loop(model,loader,loss_function,nEpochs=100):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
-    losses = []
+    recons,kls = [],[]
     for epoch in range(nEpochs):
 
-        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,loss_function)
+        model,optimizer,batch_recon,batch_kl = train_epoch(model,optimizer,loader,loss_function)
 
-        losses += batch_loss
+        recons += batch_recon
+        kls += batch_kl
 
-        print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
+        print(f'Epoch {epoch + 1} Average loss: {(np.sum(batch_recon) + np.sum(batch_kl))/len(loader.dataset):.4f}')
 
-
+    losses = [recons,kls]
     return model, optimizer,losses
 
 
