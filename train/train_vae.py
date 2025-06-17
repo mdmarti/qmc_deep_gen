@@ -9,7 +9,7 @@ def train_epoch(model,optimizer,loader,loss_function):
     model.train()
     train_loss = 0
     epoch_nlps,epoch_kls = [],[]
-    for batch_idx, (data, _) in enumerate(tqdm(loader)):
+    for batch_idx, (data, _) in enumerate(loader):
         data = data.to(model.device)
         optimizer.zero_grad()
         recons,distribution = model(data)
@@ -45,14 +45,14 @@ def train_loop(model,loader,loss_function,nEpochs=100):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     recons,kls = [],[]
-    for epoch in range(nEpochs):
+    for epoch in tqdm(range(nEpochs)):
 
         model,optimizer,batch_recon,batch_kl = train_epoch(model,optimizer,loader,loss_function)
 
         recons += batch_recon
         kls += batch_kl
 
-        print(f'Epoch {epoch + 1} Average loss: {(np.sum(batch_recon) + np.sum(batch_kl))/len(loader.dataset):.4f}')
+        #print(f'Epoch {epoch + 1} Average loss: {(np.sum(batch_recon) + np.sum(batch_kl))/len(loader.dataset):.4f}')
 
     losses = [recons,kls]
     return model, optimizer,losses

@@ -11,12 +11,13 @@ class VAE(nn.Module):
         self.decoder = decoder
         self.encoder = encoder
         self.distribution = distribution
+        self.device=device
 
         self.to(device)
 
-    def forward(self,data):
-        data = data.to(torch.float32)
-        params = self.encoder(data)
+    def forward(self,x):
+        x = x.to(torch.float32)
+        params = self.encoder(x)
 
         dist = self.distribution(*params)
         z = dist.rsample()
@@ -24,13 +25,20 @@ class VAE(nn.Module):
 
         return recons,params
     
-    def encode(self,data):
+    def encode(self,x):
 
-        return self.encoder(data)
+        return self.encoder(x)
     
     def decode(self,z):
 
         return self.decoder(z)
+    
+    def round_trip(self,x):
+
+        (mu,_,_) = self.encoder(x)
+        return self.decoder(mu)
+
+
     
 class Print(nn.Module):
     def __init__(self):

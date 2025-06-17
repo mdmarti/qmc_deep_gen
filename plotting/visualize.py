@@ -70,9 +70,9 @@ def class_density_plot(grid,density,figname,fn='',show=True,ax=None):
         return
     return ax
 
-def round_trip(model,grid,data,log_density,device='cuda'):
+def round_trip_qmc(model,grid,data,log_density,device='cuda'):
     #grid = grid.to(device)
-    
+    ### make this a model method
 
     posterior = model.posterior_probability(grid.to(device),data.to(device),log_density).detach().cpu()
     data = data.detach().cpu()
