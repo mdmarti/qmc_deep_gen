@@ -23,12 +23,12 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
     cs = cmap(norm(inds))
 
     
-    mosaic = [['scatter grid']*n_samples_dim]*n_samples_dim +\
-              [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]
-               
+    mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]
+    # [['scatter grid']*n_samples_dim]*n_samples_dim +\
+                
     
 
-    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20))
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.01})
 
     for ii in range(n_samples):
         ax = axes[f"sample {ii}"]
@@ -38,12 +38,12 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
         ax.set_yticks([])
         ax.set_xticks([])
 
-    axes['scatter grid'].scatter(z[:,0],z[:,1],c=cs)
-    axes['scatter grid'].set_xlim([-0.05,1-0.01*n_samples_dim])
-    axes['scatter grid'].set_ylim([-0.05,1-0.01*n_samples_dim])
-    axes['scatter grid'].set_xticks([])
-    axes['scatter grid'].set_yticks([])
-    axes['scatter grid'].spines[['right','left','top','bottom']].set_visible(False)
+    #axes['scatter grid'].scatter(z[:,0],z[:,1],c=cs)
+    #axes['scatter grid'].set_xlim([-0.05,1-0.01*n_samples_dim])
+    #axes['scatter grid'].set_ylim([-0.05,1-0.01*n_samples_dim])
+    #axes['scatter grid'].set_xticks([])
+    #axes['scatter grid'].set_yticks([])
+    #axes['scatter grid'].spines[['right','left','top','bottom']].set_visible(False)
     if show:
         plt.show()
     else:
