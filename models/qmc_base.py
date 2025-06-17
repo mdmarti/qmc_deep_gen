@@ -75,7 +75,7 @@ class QMCLVM(nn.Module):
         log likelihood should include the summation over data dimensions
         """
         grid = grid.to(self.device)
-        preds = self.decoder(grid)
+        preds = self.decoder(grid %1)
 
         model_grid_lls = []
         N = data.shape[0]
@@ -83,7 +83,7 @@ class QMCLVM(nn.Module):
 
             off_ind = min(N,on_ind + batch_size)
             sample = data[on_ind:off_ind]
-            model_grid_lls.append(log_likelihood(preds,sample))
+            model_grid_lls.append(log_likelihood(preds,sample).sum(axis=(2,3)))
             
         model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
         ## as such, model_Grid_array should be n_data x n_grid points
@@ -93,6 +93,19 @@ class QMCLVM(nn.Module):
         posterior = ll_per_grid - evidence
 
         return nn.Softmax(dim=0)(posterior)
+    
+    def round_trip(self,grid,data,log_likelihood,recon_type='posterior'):
+
+        posterior = self.posterior_probability(grid,data,log_likelihood,batch_size=32)
+        if recon_type == 'posterior':
+            posterior_grid = ((grid % 1)*posterior[:,None]).sum(dim=0,keepdims=True)
+        elif recon_type == 'argmax':
+            posterior_grid = grid[torch.argmax(posterior)][None,:] % 1
+        else:
+            raise NotImplementedError
+        recon = self.decoder(posterior_grid)
+
+        return recon
     
 
 
