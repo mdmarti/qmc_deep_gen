@@ -29,20 +29,26 @@ class FourierBasis(nn.Module):
         )
     
 
+class TorusBasis(nn.Module):
+
+    def __init__(self):
+
+        super(TorusBasis,self)._init__()
+        
+    def forward(self,data):
+        
+        return torch.cat([torch.cos(2*torch.pi*data),torch.sin(2*torch.pi*data)],dim=1)
+
 class QMCLVM(nn.Module):
     def __init__(self, latent_dim=2,device=None,decoder=None):
         super(QMCLVM, self).__init__()
+        """
+        if you want a fourier basis, you'd better put it in the gosh dang de coder!
+        """
+        self.device=device
 
         self.latent_dim = latent_dim
-        #self.fourier_basis = FourierBasis(
-        #    num_dims=latent_dim, num_freqs=num_freqs, device=device
-        #)
 
-        # Decoder.
-        #nn.Unflatten(1, (64, 7, 7)),
-        #nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
-        #nn.ConvTranspose2d(32, 1, 3, stride=2, padding=1, output_padding=1),
-        #self.fourier_basis,
         self.decoder = nn.Sequential(
             nn.Linear(self.latent_dim,2048),
             nn.Linear(2048, 64*7*7),
@@ -58,7 +64,7 @@ class QMCLVM(nn.Module):
         eval_grid should be a sequence of `z`s that uniformly tile the latent space,
         and should be n_grid_points x latent_dim
         """
-        r = torch.rand(1, self.latent_dim, device=eval_grid.device) if random else torch.zeros((1,self.latent_dim),device=eval_grid.device)
+        r = torch.rand(1, self.latent_dim, device=self.device) if random else torch.zeros((1,self.latent_dim),device=self.device)
         x = (r + eval_grid) % 1
         return self.decoder(x)
 
@@ -68,6 +74,7 @@ class QMCLVM(nn.Module):
         """
         log likelihood should include the summation over data dimensions
         """
+        grid = grid.to(self.device)
         preds = self.decoder(grid)
 
         model_grid_lls = []
@@ -87,20 +94,7 @@ class QMCLVM(nn.Module):
 
         return nn.Softmax(dim=0)(posterior)
     
-class Torus_QMCLVM(QMCLVM):
 
-    def __init__(self, latent_dim=2,device=None,decoder=None):
-
-        self.latent_dim = latent_dim
-        super(Torus_QMCLVM,self).__init__(latent_dim=latent_dim,device=device,decoder=decoder)
-
-    def forward(self,eval_grid):
-
-        r = torch.rand(1, self.latent_dim, device=eval_grid.device)
-        x = (r + eval_grid) % 1
-        theta_x = 2*torch.pi * x 
-        torus_basis = torch.cat([torch.cos(theta_x),torch.sin(theta_x)],dim=-1)
-        return self.decoder(torus_basis)/2 + self.decoder(2 * torch.pi - torus_basis)/2 
 
 
     
