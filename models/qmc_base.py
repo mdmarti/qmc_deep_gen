@@ -33,7 +33,7 @@ class TorusBasis(nn.Module):
 
     def __init__(self):
 
-        super(TorusBasis,self)._init__()
+        super(TorusBasis,self).__init__()
         
     def forward(self,data):
         

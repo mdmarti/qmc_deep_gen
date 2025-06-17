@@ -79,12 +79,13 @@ def round_trip(model,grid,data,log_density,device='cuda'):
     gc.collect()
     torch.cuda.empty_cache()
     gc.collect()
-    preds = model.decoder(grid.to(device)).detach().cpu()
+    #+preds = model.decoder(grid.to(device)).detach().cpu()
     #print(posterior.shape)
     #print(preds.shape)
-    most_likely_grid = torch.argmax(posterior)
+    assert torch.sum(posterior) == 1, print(torch.sum(posterior))
+    most_likely_grid = (grid * posterior[:,None]).sum(dim=0)
 
-    recon = preds[most_likely_grid]
+    recon = model(most_likely_grid,random=False)
 
     return data,recon
 
