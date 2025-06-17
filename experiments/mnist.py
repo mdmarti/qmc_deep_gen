@@ -160,4 +160,4 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
 
 if __name__ == '__main__':
 
-    fire.fire(run_mnist_experiments)
+    fire.Fire(run_mnist_experiments)
