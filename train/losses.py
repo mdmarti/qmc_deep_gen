@@ -16,6 +16,20 @@ def binary_evidence(samples, data):
     )
     return recon_loss
 
+def binary_lp(samples,data):
+
+    """
+    expects data to be:
+    B x 1 x H x W
+    expects samples to be:
+    1 X S x H x W
+    """
+    return -1 * binary_cross_entropy(
+                    samples.swapaxes(0, 1).tile((data.shape[0], 1, 1, 1)),
+                    data.tile(1, samples.shape[0], 1, 1),
+                    reduction="none"
+                )
+
 def gaussian_evidence(samples,data,var=1.):
 
     recon_loss = - torch.mean(
@@ -36,19 +50,7 @@ def gaussian_evidence_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
 
     return gaussian_evidence(blur_samples,blur_data,var)
 
-def binary_lp(samples,data):
 
-    """
-    expects data to be:
-    B x 1 x H x W
-    expects samples to be:
-    1 X S x H x W
-    """
-    -1 * binary_cross_entropy(
-                    samples.swapaxes(0, 1).tile((data.shape[0], 1, 1, 1)),
-                    data.tile(1, samples.shape[0], 1, 1),
-                    reduction="none"
-                )
 
 def gaussian_lp(samples,data,var=1):
     """
