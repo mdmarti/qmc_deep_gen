@@ -6,7 +6,6 @@ from train.losses import binary_lp,binary_evidence,binary_elbo
 from models.vae_base import *
 import train.train_vae as train_vae
 import train.train as train_qmc
-from tqdm import tqdm 
 from torchvision import datasets,transforms
 from torch.utils.data import DataLoader
 import os
@@ -17,18 +16,23 @@ import fire
 
 
 
-def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n_recons=50):
+def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n_recons=50,nEpochs=300):
+
 
     ############ shared model setup ###############################
+    n_workers = len(os.sched_getaffinity(0))
+
+    #############################
+    print("loading data...")
     transform = transforms.ToTensor()
     train_data = datasets.MNIST(dataloc, train=True, download=True, transform=transform)
-    train_loader = DataLoader(train_data, batch_size=256, shuffle=True,num_workers=16)
+    train_loader = DataLoader(train_data, batch_size=256, shuffle=True,num_workers=n_workers)
     test_data = datasets.MNIST(dataloc, train=False, download=True, transform=transform)
-    test_loader = DataLoader(test_data, batch_size=1, shuffle=False,num_workers=16)
+    test_loader = DataLoader(test_data, batch_size=1, shuffle=False,num_workers=n_workers)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     qmc_latent_dim=2
-
+    print("done!")
     ############## Set up qmc model, training ###################################
 
     decoder_qmc = nn.Sequential(
@@ -50,7 +54,8 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
 
     save_qmc = os.path.join(save_location,'qmc_train_mnist_experiment.tar')
     if not os.path.isfile(save_qmc):
-        qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_base_sequence.to(device),qmc_loss_function,nEpochs=300)
+        print("now training qmc model")
+        qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_base_sequence.to(device),qmc_loss_function,nEpochs=nEpochs)
         save(qmc_model.to('cpu'),qmc_opt,qmc_losses,fn=save_qmc)
         qmc_model.to(device)
     else:
@@ -99,7 +104,8 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
 
     save_vae = os.path.join(save_location,'vae_train_mnist_experiment.tar')
     if not os.path.isfile(save_vae):
-        vae_model,vae_opt,vae_losses = train_vae.train_loop(vae_model,train_loader,vae_loss_function,nEpochs=100)
+        print("now training vae model")
+        vae_model,vae_opt,vae_losses = train_vae.train_loop(vae_model,train_loader,vae_loss_function,nEpochs=nEpochs)
         save(vae_model.to('cpu'),vae_opt,vae_losses,fn=save_vae)
         vae_model.to(device)
     else:
