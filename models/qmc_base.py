@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn.functional import binary_cross_entropy
+from tqdm import tqdm
 
 class FourierBasis(nn.Module):
 
@@ -75,24 +75,26 @@ class QMCLVM(nn.Module):
         log likelihood should include the summation over data dimensions
         """
         grid = grid.to(self.device)
-        preds = self.decoder(grid %1)
+        with torch.no_grad():
+            preds = self.decoder(grid %1)
 
         model_grid_lls = []
         N = data.shape[0]
-        for on_ind in range(0,N,batch_size):
+        with torch.no_grad():
+            for on_ind in tqdm(range(0,N,batch_size)):
 
-            off_ind = min(N,on_ind + batch_size)
-            sample = data[on_ind:off_ind].to(self.device)
-            model_grid_lls.append(log_likelihood(preds,sample).sum(axis=(2,3)))
-            
-        model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
-        ## as such, model_Grid_array should be n_data x n_grid points
-        ll_per_grid = model_grid_lls.sum(dim=0)
-        evidence = torch.special.logsumexp(model_grid_lls,dim=1).sum(dim=0)
+                off_ind = min(N,on_ind + batch_size)
+                sample = data[on_ind:off_ind].to(self.device)
+                model_grid_lls.append(log_likelihood(preds,sample).sum(axis=(2,3)).detach().cpu())
+                
+            model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
+            ## as such, model_Grid_array should be n_data x n_grid points
+            ll_per_grid = model_grid_lls.sum(dim=0)
+            evidence = torch.special.logsumexp(model_grid_lls,dim=1).sum(dim=0)
 
-        posterior = ll_per_grid - evidence
+            posterior = ll_per_grid - evidence
 
-        return nn.Softmax(dim=0)(posterior)
+            return nn.Softmax(dim=0)(posterior)
     
     def round_trip(self,grid,data,log_likelihood,recon_type='posterior'):
 
