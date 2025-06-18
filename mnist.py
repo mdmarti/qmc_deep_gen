@@ -55,6 +55,7 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
     save_qmc = os.path.join(save_location,'qmc_train_mnist_experiment.tar')
     if not os.path.isfile(save_qmc):
         print("now training qmc model")
+        ## starting this run takes a little while for some reason...
         qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_base_sequence.to(device),qmc_loss_function,nEpochs=nEpochs)
         save(qmc_model.to('cpu'),qmc_opt,qmc_losses,fn=save_qmc)
         qmc_model.to(device)
@@ -137,6 +138,7 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
     sample_inds = np.random.choice(len(test_loader.dataset),n_recons,replace=False)
     for ii in range(n_recons):
 
+
         sample_ind = sample_inds[ii]
         save_fig = os.path.join(save_location,'qmc_vae_round_trips_sample_{sample_ind}.png')
 
@@ -159,7 +161,7 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
             ax.set_yticks([])
             ax.set_title(label)
         plt.tight_layout()
-        plt.show()
+        plt.savefig(save_fig)
         plt.close()
 
 
