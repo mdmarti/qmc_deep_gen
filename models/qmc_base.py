@@ -82,7 +82,7 @@ class QMCLVM(nn.Module):
         for on_ind in range(0,N,batch_size):
 
             off_ind = min(N,on_ind + batch_size)
-            sample = data[on_ind:off_ind]
+            sample = data[on_ind:off_ind].to(self.device)
             model_grid_lls.append(log_likelihood(preds,sample).sum(axis=(2,3)))
             
         model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
