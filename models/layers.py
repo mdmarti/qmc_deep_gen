@@ -1,4 +1,10 @@
 import torch.nn as nn
+from collections import OrderedDict
+import torch.nn.functional as F
+import torch
+import torch.distributed as dist
+from third_party.inplace_sync_batchnorm import SyncBatchNormSwish
+
 
 class LinearResBlock(nn.Module):
 
@@ -31,3 +37,42 @@ class ConvResBlock(nn.Module):
     def forward(self,x):
 
         return x + self.hidden(x)
+
+class ResCellNVAESimple(nn.Module):
+
+    def __init__(self,in_size,expand_factor=4):
+
+        super(ResCellNVAESimple,self).__init__()
+        self.ops = nn.ModuleList()
+
+        op1 = nn.BatchNorm2d(num_features=in_size)
+        op2 = nn.Conv2d(in_size,expand_factor*in_size,1)
+        op3_1 = nn.BatchNorm2d(num_features=expand_factor*in_size)
+        op3_2 = nn.SiLU()
+        op4 = nn.Conv2d(expand_factor*in_size,expand_factor*in_size,5,groups=expand_factor*in_size,padding=2)
+        op5_1 = nn.BatchNorm2d(num_features=expand_factor*in_size)
+        op5_2 = nn.SiLU()
+        op6= nn.Conv2d(expand_factor*in_size,in_size,1)
+        op7 = nn.BatchNorm2d(num_features=in_size)
+        op8 = SE(in_size,in_size)
+
+        self.ops = nn.Sequential(op1,op2,op3_1,op3_2,op4,op5_1,op5_2,op6,op7,op8)
+
+    def forward(self,x):
+
+        return x + self.ops(x)
+    
+#### from https://github.com/NVlabs/NVAE/tree/master
+class SE(nn.Module):
+    def __init__(self, Cin, Cout):
+        super(SE, self).__init__()
+        num_hidden = max(Cout // 16, 4)
+        self.se = nn.Sequential(nn.Linear(Cin, num_hidden), nn.ReLU(inplace=True),
+                                nn.Linear(num_hidden, Cout), nn.Sigmoid())
+
+    def forward(self, x):
+        se = torch.mean(x, dim=[2, 3])
+        se = se.view(se.size(0), -1)
+        se = self.se(se)
+        se = se.view(se.size(0), -1, 1, 1)
+        return x * se
