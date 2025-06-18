@@ -68,7 +68,7 @@ def gaussian_lp(samples,data,var=1):
                                                 )
 
 
-def gaussian_ELBO(reconstructions,distribution,targets,recon_precision=1e-2):
+def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
 
 
     """
