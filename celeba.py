@@ -68,6 +68,7 @@ def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,
             nn.Conv2d(4,1,1),
             nn.Sigmoid(),
         )
+    qmc_model = QMCLVM(latent_dim=qmc_latent_dim, device=device,decoder=decoder_qmc)
     qmc_loss_function = lambda samples,data: gaussian_evidence(samples,data,var=.1)
     
     train_base_sequence = gen_fib_basis(m=train_grid_m)
