@@ -140,7 +140,7 @@ def run_mnist_experiments(save_location,dataloc,train_grid_m=15,test_grid_m=20,n
 
 
         sample_ind = sample_inds[ii]
-        save_fig = os.path.join(save_location,'qmc_vae_round_trips_sample_{sample_ind}.png')
+        save_fig = os.path.join(save_location,f'qmc_vae_round_trips_sample_{sample_ind}.png')
 
         sample = test_loader.dataset.data[sample_ind].to(torch.float32).to(device).view(1,1,28,28)/256
         recon_qmc1 = qmc_model.round_trip(test_base_sequence.to(device),sample,binary_lp)
