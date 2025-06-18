@@ -43,7 +43,7 @@ class ResCellNVAESimple(nn.Module):
     def __init__(self,in_size,expand_factor=4):
 
         super(ResCellNVAESimple,self).__init__()
-        self.ops = nn.ModuleList()
+        #self.ops = nn.ModuleList()
 
         op1 = nn.BatchNorm2d(num_features=in_size)
         op2 = nn.Conv2d(in_size,expand_factor*in_size,1)
