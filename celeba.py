@@ -35,7 +35,7 @@ def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,
     print(f"using {n_workers} workers") 
     train_data = CelebADsetIms(train_ims)
     test_data = CelebADsetIms(test_ims)
-    train_loader = DataLoader(train_data,batch_size=128,num_workers=n_workers,shuffle=True)
+    train_loader = DataLoader(train_data,batch_size=64,num_workers=n_workers,shuffle=True)
     test_loader = DataLoader(test_data,batch_size=1,num_workers=n_workers,shuffle=False)
     #####################################################
 
@@ -78,7 +78,7 @@ def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,
     if not os.path.isfile(save_qmc):
         print("now training qmc model")
         ## starting this run takes a little while for some reason...
-        qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_base_sequence.to(device),qmc_loss_function,nEpochs=nEpochs)
+        qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_base_sequence.to(device),qmc_loss_function,nEpochs=nEpochs,print_losses=True)
         save(qmc_model.to('cpu'),qmc_opt,qmc_losses,fn=save_qmc)
         qmc_model.to(device)
     else:

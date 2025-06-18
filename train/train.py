@@ -37,7 +37,7 @@ def test_epoch(model,loader,base_sequence,loss_function):
 
     return epoch_losses
 
-def train_loop(model,loader,base_sequence,loss_function,nEpochs=100):
+def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,print_losses=False):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
@@ -46,8 +46,8 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100):
         batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function)
 
         losses += batch_loss
-
-        #print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
+        if print_losses:
+            print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
 
 
     return model, optimizer,losses
