@@ -198,7 +198,9 @@ def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,
         sample_ind = sample_inds[ii]
         save_fig = os.path.join(save_location,f'qmc_vae_round_trips_sample_{sample_ind}.png')
 
-        sample = test_loader.dataset.ims[sample_ind].to(torch.float32).to(device).view(1,1,28,28)/256
+        sample = test_loader.dataset.ims[sample_ind].to(torch.float32).to(device).view(1,1,80,80)
+        if torch.argmax(sample) > 1: 
+            sample /= 256
         recon_qmc1 = qmc_model.round_trip(test_base_sequence.to(device),sample, lambda samples,data: gaussian_lp(samples,data,var=.1))
         recon_vae = vae_model.round_trip(sample)
         recon_qmc1 = recon_qmc1.detach().cpu()
