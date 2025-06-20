@@ -85,6 +85,7 @@ def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,
     else:
         qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
         qmc_model,qmc_opt,qmc_losses = load(qmc_model,qmc_opt,save_qmc)
+        qmc_model.to(device)
 
     qmc_losses = np.array(qmc_losses)
     ax = plt.gca()
@@ -164,6 +165,7 @@ def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,
     else:
         vae_opt = Adam(vae_model.parameters(),lr=1e-3)
         vae_model,vae_opt,vae_losses = load(vae_model,vae_opt,save_vae)
+        vae_model.to(device)
 
     [vae_recons,vae_kls] = vae_losses
     vae_recons,vae_kls = np.array(vae_recons),np.array(vae_kls)
