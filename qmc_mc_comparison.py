@@ -130,7 +130,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300):
         
         qmc_loss_function = binary_evidence
 
-        qmc_model = make_qmc_model(2)
+        qmc_model = make_qmc_model(qmc_latent_dim,device=device)
         save_qmc = os.path.join(save_location,f'rqmc_{n_train}_points_train.tar')
         if not os.path.isfile(save_qmc):
             print("now training qmc model")
