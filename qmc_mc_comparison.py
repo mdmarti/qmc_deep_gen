@@ -97,9 +97,9 @@ def evidence_plot(qmc_est,rqmc_est,mc_est,n_lattice_points,title,save_loc='ev_pl
     plot_order = np.random.choice(len(qmc_est[0]),n_plot,replace=False).squeeze()
     for n,q,r,m in zip(n_lattice_points,qmc_est,rqmc_est,mc_est):
 
-        g1 = ax.scatter([n]*n_plot+np.random.randn(len(q))*.05,q[plot_order],s=3,color='tab:blue')
-        g2 = ax.scatter([n]*n_plot+np.random.randn(len(q))*.05,r[plot_order],s=2,color='tab:orange')
-        g3 = ax.scatter([n]*n_plot+np.random.randn(len(q))*.05,m[plot_order],s=1, color='tab:green')
+        g1 = ax.scatter([n]*n_plot+np.random.randn(n_plot)*.05,q[plot_order],s=3,color='tab:blue')
+        g2 = ax.scatter([n]*n_plot+np.random.randn(n_plot)*.05,r[plot_order],s=2,color='tab:orange')
+        g3 = ax.scatter([n]*n_plot+np.random.randn(n_plot)*.05,m[plot_order],s=1, color='tab:green')
         if ii == 0:
             lines.append(g1)
             lines.append(g2)
