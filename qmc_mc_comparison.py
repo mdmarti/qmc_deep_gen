@@ -122,7 +122,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
 
     ############ shared model setup ###############################
     n_workers = len(os.sched_getaffinity(0))
-    save_location += train_mode
+    #save_location += train_mode
     #############################
     print("loading data...")
     transform = transforms.ToTensor()
@@ -152,7 +152,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
         qmc_loss_function = lambda x,y: binary_evidence(x,y,reduce=True,batch_size=1000)
 
         qmc_model = make_qmc_model(qmc_latent_dim,device=device)
-        save_qmc = os.path.join(save_location,f'rqmc_{n_train}_points_train.tar')
+        save_qmc = os.path.join(save_location,f'rqmc_{n_train}_points_train_{train_mode}.tar')
         if not os.path.isfile(save_qmc):
             print("now training qmc model")
             ## starting this run takes a little while for some reason...
@@ -170,14 +170,14 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
             ax = plt.gca()
             ax.plot(-np.array(qmc_losses))
             ax =  format_plot_axis(ax,ylabel='log evidence',xlabel='update number',xticks=ax.get_xticks(),yticks=ax.get_yticks())
-            plt.savefig(os.path.join(save_location,f'qmc_{n_train}_points_train_stats.svg'))
+            plt.savefig(os.path.join(save_location,f'qmc_{n_train}_points_{train_mode}_train_stats.svg'))
             plt.close()
             
         else:
             qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
             qmc_model,qmc_opt,qmc_losses = load(qmc_model,qmc_opt,save_qmc)
         
-        stats_save_path = os.path.join(save_location,f"model_evidence_{n_train}_points_values.json")
+        stats_save_path = os.path.join(save_location,f"model_evidence_{n_train}_points_{train_mode}_values.json")
         ev_fnc = lambda x,y: binary_evidence(x,y,reduce=False,batch_size=fib(12))
         if not os.path.isfile(stats_save_path):
             qmce,rqmce,mce = generate_test_evidence(test_base_sequences,qmc_model,test_loader,ev_fnc,mc_fnc)
@@ -188,7 +188,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
             with open(stats_save_path,'r') as f:
                 ev_stats = json.load(f)
             qmce,rqmce,mce =  [np.array(q) for q in ev_stats['qmc']],[np.array(r) for r in ev_stats['rqmc']],[np.array(m) for m in ev_stats['mc']]   
-        ev_plot_save_fn = os.path.join(save_location,f'model_evidence_comparison_{n_train}_points_train.png')
+        ev_plot_save_fn = os.path.join(save_location,f'model_evidence_comparison_{n_train}_points_{train_mode}_train.png')
         evidence_plot(qmce,rqmce,mce,n_lattice_points,title=f"Model evidence estimates, trained with {n_train} lattice points",save_loc=ev_plot_save_fn)
     
 if __name__ == '__main__':
