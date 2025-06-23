@@ -163,13 +163,13 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300):
         ev_fnc = lambda x,y: binary_evidence(x,y,reduce=False,batch_size=fib(12))
         if not os.path.isfile(stats_save_path):
             qmce,rqmce,mce = generate_test_evidence(test_base_sequences,qmc_model,test_loader,ev_fnc,mc_fnc)
-            ev_stats = {'qmc': qmce.tolist(),'rqmc':rqmce.tolist(),'mc':mce.tolist()}
+            ev_stats = {'qmc': [q.tolist() for q in qmce],'rqmc':[r.tolist() for r in rqmce],'mc':[m.tolist() for m in mce]}
             with open(stats_save_path,'w') as f:
                 json.dump(ev_stats,f)
         else:
             with open(stats_save_path,'r') as f:
                 ev_stats = json.load(f)
-            qmce,rqmce,mce =  np.array(ev_stats['qmc']),np.array(ev_stats['rqmc']),np.array(ev_stats['mc'])   
+            qmce,rqmce,mce =  [np.array(q) for q in ev_stats['qmc']],[np.array(r) for r in ev_stats['rqmc']],[np.array(m) for m in ev_stats['mc']]   
         ev_plot_save_fn = os.path.join(save_location,f'model_evidence_comparison_{n_train}_points_train.png')
         evidence_plot(qmce,rqmce,mce,n_lattice_points,title=f"Model evidence estimates, trained with {f_num} lattice points",save_loc=ev_plot_save_fn)
     
