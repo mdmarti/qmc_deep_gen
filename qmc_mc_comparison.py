@@ -158,11 +158,11 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
             print("now training qmc model")
             ## starting this run takes a little while for some reason...
             if train_mode == 'mc':
-                qmc_model,qmc_opt,qmc_losses,labels = train_qmc.train_loop_mc(qmc_model,train_loader,
+                qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop_mc(qmc_model,train_loader,
                                                                           qmc_loss_function,mc_fnc,
                                                                            nEpochs=nEpochs)
             else:
-                qmc_model,qmc_opt,qmc_losses,labels = train_qmc.train_loop(qmc_model,train_loader,
+                qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,
                                                                            train_base_sequence.to(device),qmc_loss_function,
                                                                            nEpochs=nEpochs,random=random)
             save(qmc_model.to('cpu'),qmc_opt,qmc_losses,fn=save_qmc)
