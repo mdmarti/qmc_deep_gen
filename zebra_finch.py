@@ -152,6 +152,7 @@ def run_zebrafinch_experiments(save_location,dataloc,train_grid_m=15,test_grid_m
     plt.close()
 
     sample_inds = np.random.choice(len(test_loader.dataset),n_recons,replace=False)
+    lp_fnc = lambda x,y: gaussian_lp(x,y,var=0.1)
     for ii in range(n_recons):
 
 
