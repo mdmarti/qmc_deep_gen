@@ -149,7 +149,8 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
     for n_train,f_num in zip(n_lattice_points,fib_number):
         print(f"now training on {f_num},{n_train} points")
         train_base_sequence = gen_fib_basis(m=f_num)
-        mc_fnc = lambda: mc_unif(n_train,2)
+        mc_fnc_train = lambda: mc_unif(n_train,2)
+        mc_fnc_test = lambda n: mc_unif(n,2)
         
         qmc_loss_function = lambda x,y: binary_evidence(x,y,reduce=True,batch_size=1000)
 
@@ -160,7 +161,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
             ## starting this run takes a little while for some reason...
             if train_mode == 'mc':
                 qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop_mc(qmc_model,train_loader,
-                                                                          qmc_loss_function,mc_fnc,
+                                                                          qmc_loss_function,mc_fnc_train,
                                                                            nEpochs=nEpochs)
             else:
                 qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,
@@ -182,7 +183,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
         stats_save_path = os.path.join(save_location,f"model_evidence_{n_train}_points_{train_mode}_values.json")
         ev_fnc = lambda x,y: binary_evidence(x,y,reduce=False,batch_size=fib(12))
         if not os.path.isfile(stats_save_path):
-            qmce,rqmce,mce,labels = generate_test_evidence(test_base_sequences,qmc_model,test_loader,ev_fnc,mc_fnc)
+            qmce,rqmce,mce,labels = generate_test_evidence(test_base_sequences,qmc_model,test_loader,ev_fnc,mc_fnc_test)
             ev_stats = {'qmc': [q.tolist() for q in qmce],'rqmc':[r.tolist() for r in rqmce],'mc':[m.tolist() for m in mce]}
             with open(stats_save_path,'w') as f:
                 json.dump(ev_stats,f)
