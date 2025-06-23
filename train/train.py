@@ -78,8 +78,7 @@ def train_loop_mc(model,loader,loss_function,mc_func,nEpochs=100,print_losses=Fa
     losses = []
     for epoch in tqdm(range(nEpochs)):
 
-        batch_loss,model,optimizer = train_epoch_mc(model,optimizer,loader,mc_func,loss_function,
-                                                 random=False,mod=False)
+        batch_loss,model,optimizer = train_epoch_mc(model,optimizer,loader,mc_func,loss_function)
 
         losses += batch_loss
         if print_losses:
