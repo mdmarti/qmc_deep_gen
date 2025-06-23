@@ -59,13 +59,13 @@ class QMCLVM(nn.Module):
             nn.Sigmoid(),
         ).to(device) if decoder is None else decoder.to(device)
 
-    def forward(self, eval_grid,random=True):
+    def forward(self, eval_grid,random=True,mod=True):
         """
         eval_grid should be a sequence of `z`s that uniformly tile the latent space,
         and should be n_grid_points x latent_dim
         """
         r = torch.rand(1, self.latent_dim, device=self.device) if random else torch.zeros((1,self.latent_dim),device=self.device)
-        x = (r + eval_grid) % 1
+        x = (r + eval_grid) % 1 if mod else r+eval_grid
         return self.decoder(x)
 
 
