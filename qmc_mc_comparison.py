@@ -138,7 +138,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300):
         print(f"now training on {f_num},{n_train} points")
         train_base_sequence = gen_fib_basis(m=f_num)
         
-        qmc_loss_function = binary_evidence
+        qmc_loss_function = lambda x,y: binary_evidence(x,y,reduce=True,batch_size=1000)
 
         qmc_model = make_qmc_model(qmc_latent_dim,device=device)
         save_qmc = os.path.join(save_location,f'rqmc_{n_train}_points_train.tar')
