@@ -54,6 +54,40 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,print_losses
 
     return model, optimizer,losses
 
+def train_epoch_mc(model,optimizer,loader,mc_func,loss_function):
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_loss = 0
+    epoch_losses = []
+    for batch_idx, (data, _) in enumerate(loader):
+        base_sequence=mc_func().to(model.device)
+        data = data.to(model.device)
+        optimizer.zero_grad()
+        samples = model(base_sequence,random=False,mod=False)
+        loss = loss_function(samples, data)
+        loss.backward()
+        train_loss += loss.item()
+        optimizer.step()
+        epoch_losses.append(loss.item())
+
+    return epoch_losses,model,optimizer
+
+def train_loop_mc(model,loader,loss_function,mc_func,nEpochs=100,print_losses=False):
+
+    optimizer = Adam(model.parameters(),lr=1e-3)
+    losses = []
+    for epoch in tqdm(range(nEpochs)):
+
+        batch_loss,model,optimizer = train_epoch_mc(model,optimizer,loader,mc_func,loss_function,
+                                                 random=False,mod=False)
+
+        losses += batch_loss
+        if print_losses:
+            print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
+
+
+    return model, optimizer,losses
+
 
         
 
