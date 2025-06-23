@@ -168,10 +168,10 @@ def run_zebrafinch_experiments(save_location,dataloc,train_grid_m=15,test_grid_m
         sample = sample.detach().cpu().squeeze()
 
         fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
-        axs[0].imshow(recon_qmc1.squeeze(),cmap='gray')
+        axs[0].imshow(recon_qmc1.squeeze(),cmap='viridis',origin='lower')
         #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
-        axs[1].imshow(sample.squeeze(),cmap='gray')
-        axs[2].imshow(recon_vae.squeeze(),cmap='gray')
+        axs[1].imshow(sample.squeeze(),cmap='viridis',origin='lower')
+        axs[2].imshow(recon_vae.squeeze(),cmap='viridis',origin='lower')
         labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
         for ax,label in zip(axs,labels):
             ax.set_xticks([])
