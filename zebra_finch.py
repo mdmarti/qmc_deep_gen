@@ -75,7 +75,8 @@ def run_zebrafinch_experiments(save_location,dataloc,train_grid_m=15,test_grid_m
     plt.savefig(os.path.join(save_location,'qmc_train_stats.svg'))
     plt.close()
 
-    model_grid_plot(qmc_model.to(device),n_samples_dim=20,show=False,fn=os.path.join(save_location,'qmc_grid.png'))
+    model_grid_plot(qmc_model.to(device),n_samples_dim=20,show=False,fn=os.path.join(save_location,'qmc_grid.png'),
+                    origin='lower',cm='viridis')
 
     ######################################################
 
