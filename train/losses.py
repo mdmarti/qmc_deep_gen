@@ -3,7 +3,7 @@ from torch.nn.functional import binary_cross_entropy,gaussian_nll_loss
 from torchvision.transforms import GaussianBlur
 import numpy as np
 
-def binary_evidence(samples, data,reduce=True,batch_size=-1):
+def binary_evidence(samples, data,reduce=True,batch_size=-1,calc_device=torch.device('cuda')):
 
     B = samples.shape[0]
     if batch_size == -1:
@@ -15,7 +15,7 @@ def binary_evidence(samples, data,reduce=True,batch_size=-1):
     for start_ind in range(0,B,batch_size):
         end_ind = min(start_ind + batch_size,B)
 
-        rl = torch.sum(binary_lp(samples[start_ind:end_ind],data),
+        rl = torch.sum(binary_lp(samples[start_ind:end_ind].to(calc_device),data.to(calc_device)),
                 axis=(2, 3)
             )
         recon_loss.append(rl)
@@ -45,7 +45,7 @@ def binary_lp(samples,data):
                     reduction="none"
                 )
 
-def gaussian_evidence(samples,data,var=1.,reduce=True,batch_size=-1):
+def gaussian_evidence(samples,data,var=1.,reduce=True,batch_size=-1,calc_device=torch.device('cuda')):
 
     B = samples.shape[0]
     if batch_size == -1:
