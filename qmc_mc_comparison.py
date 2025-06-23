@@ -144,11 +144,12 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
         random=False
     ############## Set up qmc model, training ###################################
 
-    mc_fnc = lambda n: mc_unif(n,2)
+    
     test_base_sequences = [gen_fib_basis(m) for m in fib_number]
     for n_train,f_num in zip(n_lattice_points,fib_number):
         print(f"now training on {f_num},{n_train} points")
         train_base_sequence = gen_fib_basis(m=f_num)
+        mc_fnc = lambda: mc_unif(n_train,2)
         
         qmc_loss_function = lambda x,y: binary_evidence(x,y,reduce=True,batch_size=1000)
 
