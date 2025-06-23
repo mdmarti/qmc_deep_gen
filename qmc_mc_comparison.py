@@ -90,6 +90,7 @@ def mc_unif(n_points,dim):
 
 def evidence_plot(qmc_est,rqmc_est,mc_est,n_lattice_points,title,save_loc='ev_plot.png',n_plot=35):
 
+
     ax = plt.gca()
     ii = 0
     labels = ['QMC Evidence estimate','RQMC Evidence estimate', 'MC Evidence estimate']
@@ -97,9 +98,9 @@ def evidence_plot(qmc_est,rqmc_est,mc_est,n_lattice_points,title,save_loc='ev_pl
     plot_order = np.random.choice(len(qmc_est[0]),n_plot,replace=False).squeeze()
     for n,q,r,m in zip(n_lattice_points,qmc_est,rqmc_est,mc_est):
 
-        g1 = ax.scatter([n]*n_plot+np.random.randn(n_plot)*.05,q[plot_order],s=3,color='tab:blue')
-        g2 = ax.scatter([n]*n_plot+np.random.randn(n_plot)*.05,r[plot_order],s=2,color='tab:orange')
-        g3 = ax.scatter([n]*n_plot+np.random.randn(n_plot)*.05,m[plot_order],s=1, color='tab:green')
+        g1 = ax.scatter([n]*n_plot+np.random.randn(n_plot),q[plot_order],s=6,color='tab:blue')
+        g2 = ax.scatter([n]*n_plot+np.random.randn(n_plot),r[plot_order],s=3,color='tab:orange')
+        g3 = ax.scatter([n]*n_plot+np.random.randn(n_plot),m[plot_order],s=1, color='tab:green')
         if ii == 0:
             lines.append(g1)
             lines.append(g2)
@@ -117,7 +118,7 @@ def evidence_plot(qmc_est,rqmc_est,mc_est,n_lattice_points,title,save_loc='ev_pl
     plt.close()
 
 
-def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mode='rqmc'):
+def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mode='rqmc',n_plot=10):
 
 
     ############ shared model setup ###############################
@@ -189,7 +190,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300,train_mo
                 ev_stats = json.load(f)
             qmce,rqmce,mce =  [np.array(q) for q in ev_stats['qmc']],[np.array(r) for r in ev_stats['rqmc']],[np.array(m) for m in ev_stats['mc']]   
         ev_plot_save_fn = os.path.join(save_location,f'model_evidence_comparison_{n_train}_points_{train_mode}_train.png')
-        evidence_plot(qmce,rqmce,mce,n_lattice_points,title=f"Model evidence estimates, trained with {n_train} lattice points",save_loc=ev_plot_save_fn)
+        evidence_plot(qmce,rqmce,mce,n_lattice_points,title=f"Model evidence estimates, trained with {n_train} lattice points",save_loc=ev_plot_save_fn,n_plot=n_plot)
     
 if __name__ == '__main__':
 
