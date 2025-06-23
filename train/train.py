@@ -4,7 +4,7 @@ from torch.optim import Adam
 import torch
 
 
-def train_epoch(model,optimizer,loader,base_sequence,loss_function):
+def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True):
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loss = 0
@@ -12,7 +12,7 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function):
     for batch_idx, (data, _) in enumerate(loader):
         data = data.to(model.device)
         optimizer.zero_grad()
-        samples = model(base_sequence)
+        samples = model(base_sequence,random,mod)
         loss = loss_function(samples, data)
         loss.backward()
         train_loss += loss.item()
@@ -37,13 +37,15 @@ def test_epoch(model,loader,base_sequence,loss_function):
 
     return epoch_losses
 
-def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,print_losses=False):
+def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,print_losses=False,
+               random=True,mod=True):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
     for epoch in tqdm(range(nEpochs)):
 
-        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function)
+        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,
+                                                 random=random,mod=mod)
 
         losses += batch_loss
         if print_losses:
