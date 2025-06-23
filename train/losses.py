@@ -3,18 +3,32 @@ from torch.nn.functional import binary_cross_entropy,gaussian_nll_loss
 from torchvision.transforms import GaussianBlur
 import numpy as np
 
-def binary_evidence(samples, data):
+def binary_evidence(samples, data,reduce=True,batch_size=-1):
+
+    B = samples.shape[0]
+    if batch_size == -1:
+        batch_size=B
     # (should be sum for full, joint evidence)
     # but we can also do expected evidence per sample
-    recon_loss = -1 * torch.mean(
-        torch.special.logsumexp(
-            torch.sum(binary_lp(samples,data),
+
+    recon_loss = []
+    for start_ind in range(0,B,batch_size):
+        end_ind = min(start_ind + batch_size,B)
+
+        rl = torch.sum(binary_lp(samples[start_ind:end_ind],data),
                 axis=(2, 3)
-            ),
+            )
+        recon_loss.append(rl)
+
+    recon_loss = torch.cat(recon_loss,axis=1) 
+    recon_loss = torch.special.logsumexp(
+            recon_loss,
             axis=1
         )
-    )
-    return recon_loss
+    if reduce:
+        return -1 * torch.mean(recon_loss)
+
+    return -1* recon_loss
 
 def binary_lp(samples,data):
 
@@ -24,23 +38,47 @@ def binary_lp(samples,data):
     expects samples to be:
     1 X S x H x W
     """
+
     return -1 * binary_cross_entropy(
                     samples.swapaxes(0, 1).tile((data.shape[0], 1, 1, 1)),
                     data.tile(1, samples.shape[0], 1, 1),
                     reduction="none"
                 )
 
-def gaussian_evidence(samples,data,var=1.):
+def gaussian_evidence(samples,data,var=1.,reduce=True,batch_size=-1):
 
-    recon_loss = - torch.mean(
-                    torch.special.logsumexp(
-                        torch.sum(gaussian_lp(samples,data,var),
-                            axis=(2,3)
-                        ),
-                        axis=1
-                    )
-                )
-    return recon_loss
+    B = samples.shape[0]
+    if batch_size == -1:
+        batch_size=B
+    # (should be sum for full, joint evidence)
+    # but we can also do expected evidence per sample
+
+    recon_loss = []
+    for start_ind in range(0,B,batch_size):
+        end_ind = min(start_ind + batch_size,B)
+
+        rl = torch.sum(gaussian_lp(samples[start_ind:end_ind],data,var),
+                axis=(2, 3)
+            )
+        recon_loss.append(rl)
+
+    recon_loss = torch.cat(recon_loss,axis=1) 
+    recon_loss = torch.special.logsumexp(
+            recon_loss,
+            axis=1
+        )
+    #recon_loss = - torch.mean(
+    #                torch.special.logsumexp(
+    #                    torch.sum(gaussian_lp(samples,data,var),
+    #                        axis=(2,3)
+    #                    ),
+    #                    axis=1
+    #                )
+    #            )
+    if reduce:
+        return -1 * torch.mean(recon_loss)
+
+    return -1* recon_loss
 
 def gaussian_evidence_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
 

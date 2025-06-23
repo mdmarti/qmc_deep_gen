@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 import fire
 from torch.optim import Adam
 from train.model_saving_loading import *
+import json
 
 
 latent_dim = 2
@@ -85,18 +86,27 @@ def mc_unif(n_points,dim):
 def evidence_plot(qmc_est,rqmc_est,mc_est,n_lattice_points,title,save_loc='ev_plot.png'):
 
     ax = plt.gca()
+    ii = 0
+    labels = ['QMC Evidence estimate','RQMC Evidence estimate', 'MC Evidence estimate']
+    lines = []
     for n,q,r,m in zip(n_lattice_points,qmc_est,rqmc_est,mc_est):
 
-        ax.scatter([n]*len(q)+np.random.randn(len(q))*.05,q,s=3,color='tab:blue',label='QMC Evidence estimate')
-        ax.scatter([n]*len(q)+np.random.randn(len(q))*.05,r,s=2,color='tab:orange',label='RQMC Evidence estimate')
-        ax.scatter([n]*len(q)+np.random.randn(len(q))*.05,m,s=1, color='tab:green',label = 'MC Evidence estimate')
+        g1 = ax.scatter([n]*len(q)+np.random.randn(len(q))*.05,q,s=3,color='tab:blue')
+        g2 = ax.scatter([n]*len(q)+np.random.randn(len(q))*.05,r,s=2,color='tab:orange')
+        g3 = ax.scatter([n]*len(q)+np.random.randn(len(q))*.05,m,s=1, color='tab:green')
+        if ii == 0:
+            lines.append(g1)
+            lines.append(g2)
+            lines.append(g3)
 
     ax.set_ylabel('Negative marginal log likelihood')
     ax.set_xlabel("Number of probe lattice points")
 
     ax.spines[['right','top']].set_visible(False)
-    ax.legend(frameon=False)
+    ax.legend(lines,labels,frameon=False)
     ax.set_title(title)
+    ax.set_xscale('log')
+    ax.set_yscale('log')
     plt.savefig(save_loc)
     plt.close()
 
@@ -113,7 +123,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300):
     train_data = datasets.MNIST(dataloc, train=True, download=True, transform=transform)
     train_loader = DataLoader(train_data, batch_size=256, shuffle=True,num_workers=n_workers)
     test_data = datasets.MNIST(dataloc, train=False, download=True, transform=transform)
-    test_loader = DataLoader(test_data, batch_size=1, shuffle=False,num_workers=n_workers)
+    test_loader = DataLoader(test_data, batch_size=256, shuffle=False,num_workers=n_workers)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     fib_number = [7,11,12,16,21]
@@ -144,11 +154,22 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300):
             ax =  format_plot_axis(ax,ylabel='log evidence',xlabel='update number',xticks=ax.get_xticks(),yticks=ax.get_yticks())
             plt.savefig(os.path.join(save_location,f'qmc_{n_train}_points_train_stats.svg'))
             plt.close()
+            
         else:
             qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
             qmc_model,qmc_opt,qmc_losses = load(qmc_model,qmc_opt,save_qmc)
-        qmce,rqmce,mce = generate_test_evidence(test_base_sequences,qmc_model,test_loader,binary_evidence,mc_fnc)
-
+        
+        stats_save_path = os.path.join(save_location,f"model_evidence_{n_train}_points_values.json")
+        ev_fnc = lambda x,y: binary_evidence(x,y,reduce=False,batch_size=fib(12))
+        if not os.path.isfile(stats_save_path):
+            qmce,rqmce,mce = generate_test_evidence(test_base_sequences,qmc_model,test_loader,binary_evidence,mc_fnc)
+            ev_stats = {'qmc': qmce,'rqmc':rqmce,'mc':mce}
+            with open(stats_save_path,'w') as f:
+                json.dump(ev_stats,f)
+        else:
+            with open(stats_save_path,'r') as f:
+                ev_stats = json.load(f)
+            qmce,rqmce,mce =  ev_stats['qmc'],ev_stats['rqmc'],ev_stats['mc']   
         ev_plot_save_fn = os.path.join(save_location,f'model_evidence_comparison_{n_train}_points_train.png')
         evidence_plot(qmce,rqmce,mce,n_lattice_points,title=f"Model evidence estimates, trained with {f_num} lattice points",save_loc=ev_plot_save_fn)
     
