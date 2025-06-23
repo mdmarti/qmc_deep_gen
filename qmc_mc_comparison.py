@@ -71,9 +71,9 @@ def generate_test_evidence(lattices,model,loader,evidence,mc_func):
             rqmce.append(rqmc_evidence)
             mce.append(mc_evidence)
 
-        qe.append(np.array(qmce))
-        rqe.append(np.array(rqmce))
-        me.append(np.array(mce))
+        qe.append(np.hstack(qmce))
+        rqe.append(np.hstack(rqmce))
+        me.append(np.hstack(mce))
 
     return qe,rqe,me
 
