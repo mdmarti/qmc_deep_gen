@@ -162,7 +162,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,nEpochs=300):
         stats_save_path = os.path.join(save_location,f"model_evidence_{n_train}_points_values.json")
         ev_fnc = lambda x,y: binary_evidence(x,y,reduce=False,batch_size=fib(12))
         if not os.path.isfile(stats_save_path):
-            qmce,rqmce,mce = generate_test_evidence(test_base_sequences,qmc_model,test_loader,binary_evidence,mc_fnc)
+            qmce,rqmce,mce = generate_test_evidence(test_base_sequences,qmc_model,test_loader,ev_fnc,mc_fnc)
             ev_stats = {'qmc': qmce,'rqmc':rqmce,'mc':mce}
             with open(stats_save_path,'w') as f:
                 json.dump(ev_stats,f)
