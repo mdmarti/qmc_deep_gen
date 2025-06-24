@@ -2,6 +2,7 @@ import torch
 from models.layers import ResCellNVAESimple
 import torch.nn as nn
 from models.qmc_base import TorusBasis
+from models.vae_base import Encoder
 
 def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
 
@@ -14,7 +15,20 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
 
     if dataset_name.lower() == 'mnist':
 
-        layers = []
+        layers = [nn.ReLU(),
+            nn.Linear(2048,64*7*7),
+            nn.Unflatten(1, (64, 7, 7)),
+            ResCellNVAESimple(64,expand_factor=2),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*7*7,32*14*14),
+            nn.Conv2d(64,32,1),
+            ResCellNVAESimple(32,expand_factor=4),#nn.ReLU(),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*14*14,1*28*28),
+            nn.Conv2d(32,16,1),
+            ResCellNVAESimple(16,expand_factor=4),
+            ResCellNVAESimple(16,expand_factor=2),
+            ResCellNVAESimple(16,expand_factor=1),
+            nn.Conv2d(16,1,1),
+            nn.Sigmoid()]
 
     elif dataset_name.lower() == 'celeba':
 
@@ -66,12 +80,53 @@ def get_encoder_arch(dataset_name,latent_dim):
 
     if dataset_name.lower() == 'mnist':
 
-        pass 
+        encoder_net =nn.Sequential(nn.Conv2d(1,16,1),
+                           ResCellNVAESimple(16,expand_factor=1),
+                            ResCellNVAESimple(16,expand_factor=2),
+                            ResCellNVAESimple(16,expand_factor=4),
+                           nn.Conv2d(16,32,1),#,stride=2,padding=1),
+                           nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
+                           ResCellNVAESimple(32,expand_factor=4),
+                           nn.Conv2d(32,64,1),
+                           nn.Conv2d(64,64,3,stride=2,padding=1,groups=64),
+                           ResCellNVAESimple(64,expand_factor=2),
+                           nn.Flatten(start_dim=1,end_dim=-1),
+                           nn.Linear(64*7*7,2048),
+                          nn.Tanh())
+        mu_net = nn.Linear(2048,latent_dim)
+        L_net = nn.Linear(2048,latent_dim)
+        d_net = nn.Linear(2048,latent_dim) 
+
+        enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
 
     elif dataset_name.lower() == 'celeba':
 
-        pass 
+        encoder_net =nn.Sequential(nn.Conv2d(1,4,1),#,stride=2,padding=1),
+                            ResCellNVAESimple(4,expand_factor=2),
+                            ResCellNVAESimple(4,expand_factor=4),
+                            ResCellNVAESimple(4,expand_factor=8),
+                            nn.Conv2d(4,8,1),
+                            nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
+                            ResCellNVAESimple(8,expand_factor=8),
+                            nn.Conv2d(8,16,1),
+                            nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
+                            ResCellNVAESimple(16,expand_factor=8),
+                            nn.Conv2d(16,32,1),
+                            nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
+                            ResCellNVAESimple(32,expand_factor=4),
+                            nn.Conv2d(32,64,1),
+                            nn.Conv2d(64,64,3,stride=2,padding=1,groups=64),
+                            ResCellNVAESimple(64,expand_factor=2),
+                            nn.Flatten(start_dim=1,end_dim=-1),
+                            nn.Linear(64*5*5,2048),
+                            nn.Tanh())
+        mu_net = nn.Linear(2048,latent_dim)
+        L_net = nn.Linear(2048,latent_dim)
+        d_net = nn.Linear(2048,latent_dim)
+
+        encoder_vae = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
     elif dataset_name.lower() == 'finch':
-        pass
-    return 
+        enc = Encoder(latent_dim=latent_dim)
+    
+    return enc

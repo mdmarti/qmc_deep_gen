@@ -68,3 +68,18 @@ def gen_korobov_basis(a,
     base_pts = torch.arange(0,num_points)[:,None] * z[None,:]/num_points
     return base_pts
 
+EPS = 1e-6
+def box_muller(unif_2d_vars):
+    
+    """
+    implements Box-Muller transform to turn two independent uniform random variables into two
+    independent standard normal random variables. (See Art Owens Practical Monte Carlo eq. 4.9)
+    
+    oh and everything is in pytorch
+    assumes 2d vars are in the shape B(atch size) x D(imension)
+    """
+
+    z1 = torch.sqrt(-2 * torch.log(unif_2d_vars[:,0]+EPS)) * torch.cos(2*torch.pi*unif_2d_vars[:,1])
+    z2 = torch.sqrt(-2 * torch.log(unif_2d_vars[:,0]+EPS)) * torch.sin(2*torch.pi*unif_2d_vars[:,1])
+
+    return torch.stack([z1,z2],dim=1)
