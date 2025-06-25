@@ -41,6 +41,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
     qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
     qmc_loss_func = binary_evidence if dataset.lower() == 'mnist' else lambda samples,data: gaussian_evidence(samples,data,var=0.1)
+    qmc_lp = binary_lp if dataset.lower() == 'mnist' else lambda samples,data: gaussian_lp(samples,data,var=0.1)
     qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison.tar')
 
     if not os.path.isfile(qmc_save_path):
@@ -96,7 +97,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
         vae_test_recons_all.append(vae_test_recons)
         vae_test_kls_all.append(vae_test_kls)
         recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
-        recon_comparison_plot(qmc_model,vae_model,test_loader,test_lattice.to(device),n_samples=50,save_path=recon_save_loc)
+        recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=50,save_path=recon_save_loc)
 
         if ld == 2:
             posterior_save_loc =os.path.join(save_location,"vae_posterior_comparison_" + str(ld) + 'd_{sample_num}.png')
