@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
+from tqdm import tqdm
 
 import torch
 import gc
@@ -89,11 +90,42 @@ def round_trip_qmc(model,grid,data,log_density,device='cuda'):
 
     return data,recon
 
+def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,n_samples=50,
+                          save_path='recon_{sample_num}.png',cm='gray',origin=None):
 
-def format_img_axis(ax,xlabel='',ylabel=''):
+    n_samples = min(n_samples,len(loader.dataset))
+    sample_inds = np.random.choice(len(loader.dataset),n_samples,replace=False).squeeze()
+    for sample_ind in tqdm(sample_inds):
+
+        save_path = save_path.format(sample_num = sample_ind)
+        sample = loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
+        recon_qmc = qmc_model.round_trip(qmc_lattice,sample,qmc_likelihood,recon_type='argmax').detach().cpu()
+        recon_vae = vae_model.round_trip(sample).detach().cpu()
+        sample = sample.detach().cpu().numpy()
+
+        fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
+        axs[0].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
+        #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
+        axs[1].imshow(sample.squeeze(),cmap=cm,origin=origin)
+        axs[2].imshow(recon_vae.squeeze(),cmap=cm,origin=origin)
+        labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
+        for ax,label in zip(axs,labels):
+            ax = format_img_axis(ax,title=label)
+            
+        plt.tight_layout()
+        plt.savefig(save_path)
+        plt.close()
+
+    return
+
+
+def format_img_axis(ax,xlabel='',ylabel='',title=''):
 
     ax.set_yticks([])
     ax.set_xtciks([])
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
 
 
 def format_plot_axis(ax,xlabel='',ylabel='',xticks=[],yticks=[],xlim=(),ylim=()):

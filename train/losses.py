@@ -4,7 +4,7 @@ from torchvision.transforms import GaussianBlur
 import numpy as np
 
 
-def binary_evidence_einsum(samples, data,reduce=True,batch_size=-1):
+def binary_evidence(samples, data,reduce=True,batch_size=-1):
 
 
     #,calc_device=torch.device('cuda')
