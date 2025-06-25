@@ -12,6 +12,7 @@ from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
 from plotting.visualize import recon_comparison_plot
+import matplotlib.pyplot as plt
 
 
 def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
@@ -31,7 +32,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
 
     qmc_latent_dim=2
 
-    vae_latent_dim = [qmc_latent_dim**ii for ii in range(10)]
+    vae_latent_dim = [qmc_latent_dim**ii for ii in range(1,10)]
 
     ############## QMC Training ########################
 
@@ -55,10 +56,12 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
         qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
         qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
         qmc_model.to(device)
+    
+    qmc_test_losses = -np.array(qmc_test_losses)
 
     ############## VAE Training ######################
 
-    vae_test_losses_all = []
+    vae_test_recons_all,vae_test_kls_all = [],[]
     vae_loss_func = binary_elbo if dataset.lower() == 'mnist' else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=10)
     for ld in vae_latent_dim:
 
@@ -71,6 +74,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
         vae_save_path = os.path.join(save_location,f'vae_train_{dataset}_dim_comparison_{ld}d.tar')
 
         if not os.path.isfile(vae_save_path):
+            print(f"now training VAE with latent dim {ld}")
 
             vae_model,vae_opt,vae_losses = train_vae.train_loop(vae_model,train_loader,vae_loss_func,nEpochs=nEpochs)
             vae_test_losses = train_vae.test_epoch(vae_model,test_loader,vae_loss_func)
@@ -79,17 +83,36 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
             vae_model.to(device)
 
         else:
-
+            print(f"Now loading VAE with latent dim {ld}")
             vae_opt = Adam(vae_model.parameters(),lr=1e-3)
             vae_model,vae_opt,vae_run_info = load(vae_model,vae_opt,vae_save_path)
             vae_losses,vae_test_losses = vae_run_info['train'],vae_run_info['test']
             vae_model.to(device)
 
-        vae_test_losses_all.append(vae_test_losses)
-
+        [vae_test_recons,vae_test_kls] = vae_test_losses
+        vae_test_recons,vae_test_kls = -np.array(vae_test_recons),np.array(vae_test_kls)
+        vae_test_recons_all.append(vae_test_recons)
+        vae_test_kls_all.append(vae_test_kls)
         recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
         recon_comparison_plot(qmc_model,vae_model,test_loader,test_lattice.to(device),n_samples=50,save_path=recon_save_loc)
 
+
+    qmc_mu_ev, qmc_sd_ev = np.nanmean(qmc_test_losses),np.nanstd(qmc_test_losses)
+    vae_mu_recons = np.array([np.nanmean(r) for r in vae_test_recons_all])
+    vae_sd_recons = np.array([np.nanstd(r) for r in vae_test_recons_all])
+    vae_mu_elbos = np.array([np.nanmean(r - k) for r,k in zip(vae_test_recons_all,vae_test_kls_all)])
+    vae_sd_elbos = np.array([np.nanstd(r - k) for r,k in zip(vae_test_recons_all,vae_test_kls_all)])
+
+
+    ax = plt.gca()
+    ax.errorbar(vae_latent_dim,vae_mu_recons,yerr = vae_sd_recons,capsize=12,color='tab:green',fmt='o')
+    ax.errorbar(vae_latent_dim+.1,vae_mu_elbos,yerr = vae_sd_elbos,capsize=12,color='tab:orange',fmt='o')
+    ax.hlines(qmc_mu_ev,xmin=0,xmax=128,color='k')
+    ax.hlines([qmc_mu_ev + qmc_sd_ev,qmc_mu_ev - qmc_sd_ev],xmin=0,xmax=128,color='k',linestyle='--')
+    ax.set_xlim((0,128))
+    ax.set_ylim(-300,0)
+    plt.show()
+    plt.close()
 
         
 

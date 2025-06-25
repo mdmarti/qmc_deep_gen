@@ -25,8 +25,8 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
             nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*14*14,1*28*28),
             nn.Conv2d(32,16,1),
             ResCellNVAESimple(16,expand_factor=4),
-            ResCellNVAESimple(16,expand_factor=2),
-            ResCellNVAESimple(16,expand_factor=1),
+            #ResCellNVAESimple(16,expand_factor=2),
+            #ResCellNVAESimple(16,expand_factor=1),
             nn.Conv2d(16,1,1),
             nn.Sigmoid()]
 
