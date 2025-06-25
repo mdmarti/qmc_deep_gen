@@ -3,7 +3,28 @@ from torch.nn.functional import binary_cross_entropy,gaussian_nll_loss
 from torchvision.transforms import GaussianBlur
 import numpy as np
 
-def binary_evidence(samples, data,reduce=True,batch_size=-1):
+
+def binary_evidence_einsum(samples, data,reduce=True,batch_size=-1):
+
+
+    #,calc_device=torch.device('cuda')
+    B = samples.shape[0]
+    if batch_size == -1:
+        batch_size=B
+    # (should be sum for full, joint evidence)
+    # but we can also do expected evidence per sample
+
+    recon_loss = binary_lp(samples,data) #torch.cat(recon_loss,axis=1) 
+    recon_loss = torch.special.logsumexp(
+            recon_loss,
+            axis=1
+        )
+    if reduce:
+        return -1 * torch.mean(recon_loss)
+
+    return -1* recon_loss
+
+def binary_evidence_old(samples, data,reduce=True,batch_size=-1):
 
     #,calc_device=torch.device('cuda')
     B = samples.shape[0]
@@ -16,7 +37,7 @@ def binary_evidence(samples, data,reduce=True,batch_size=-1):
     for start_ind in range(0,B,batch_size):
         end_ind = min(start_ind + batch_size,B)
 
-        rl = torch.sum(binary_lp(samples[start_ind:end_ind],data),
+        rl = torch.sum(binary_lp_old(samples[start_ind:end_ind],data),
                 axis=(2, 3)
             )
         recon_loss.append(rl)
@@ -33,6 +54,13 @@ def binary_evidence(samples, data,reduce=True,batch_size=-1):
 
 def binary_lp(samples,data):
 
+    t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
+    t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
+
+    return t1 + t2
+
+def binary_lp_old(samples,data):
+
     """
     expects data to be:
     B x 1 x H x W
@@ -46,7 +74,24 @@ def binary_lp(samples,data):
                     reduction="none"
                 )
 
-def gaussian_evidence(samples,data,var=1.,reduce=True,batch_size=-1):
+def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1):
+
+    B = samples.shape[0]
+    if batch_size == -1:
+        batch_size=B
+
+    recon_loss = gaussian_lp(samples,data,var)
+
+    recon_loss = torch.special.logsumexp(
+            recon_loss,
+            axis=1
+        )
+    if reduce:
+        return -1 * torch.mean(recon_loss)
+
+    return -1* recon_loss
+
+def gaussian_evidence_old(samples,data,var=1.,reduce=True,batch_size=-1):
 
     #,calc_device=torch.device('cuda')
     B = samples.shape[0]
@@ -59,7 +104,7 @@ def gaussian_evidence(samples,data,var=1.,reduce=True,batch_size=-1):
     for start_ind in range(0,B,batch_size):
         end_ind = min(start_ind + batch_size,B)
 
-        rl = torch.sum(gaussian_lp(samples[start_ind:end_ind],data,var),
+        rl = torch.sum(gaussian_lp_old(samples[start_ind:end_ind],data,var),
                 axis=(2, 3)
             )
         recon_loss.append(rl)
@@ -82,6 +127,8 @@ def gaussian_evidence(samples,data,var=1.,reduce=True,batch_size=-1):
 
     return -1* recon_loss
 
+
+
 def gaussian_evidence_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
 
     blur = GaussianBlur(kernel_size,sigma)
@@ -91,8 +138,20 @@ def gaussian_evidence_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
     return gaussian_evidence(blur_samples,blur_data,var)
 
 
+def gaussian_lp(samples,data,var):
 
-def gaussian_lp(samples,data,var=1):
+    """
+    expects samples to be 
+    S x 1 x D x D
+    expects data to be
+    B x 1 x D x D
+    """
+    #lambda_lp = lambda samples,data: -torch.nn.functional.gaussian_nll_loss(samples,data,var=var,reduction='sum',full=True)
+    vmapped_lp = torch.vmap(torch.vmap(torch.nn.functional.gaussian_nll_loss,in_dims=(0,None)),in_dims=(None,0))
+    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True)
+
+
+def gaussian_lp_old(samples,data,var=1):
     """
     expects data to be:
     B x 1 x H x W
