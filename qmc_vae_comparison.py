@@ -13,6 +13,7 @@ from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateN
 from torch.optim import Adam
 from plotting.visualize import recon_comparison_plot
 import matplotlib.pyplot as plt
+import fire
 
 
 def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
@@ -113,6 +114,11 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
     ax.set_ylim(-300,0)
     plt.show()
     plt.close()
+
+
+if __name__ =='__main__':
+
+    fire.Fire(run_qmc_vae_experiments)
 
         
 
