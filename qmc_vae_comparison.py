@@ -46,7 +46,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
     if not os.path.isfile(qmc_save_path):
         qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
                                                             nEpochs=nEpochs,print_losses=dataset.lower() == 'celeba')
-        qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice,qmc_loss_func)
+        qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
         qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
         save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
         qmc_model.to(device)
