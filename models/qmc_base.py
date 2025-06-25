@@ -85,7 +85,7 @@ class QMCLVM(nn.Module):
 
                 off_ind = min(N,on_ind + batch_size)
                 sample = data[on_ind:off_ind].to(self.device)
-                model_grid_lls.append(log_likelihood(preds,sample).sum(axis=(2,3)).detach().cpu())
+                model_grid_lls.append(log_likelihood(preds,sample).detach().cpu())
                 
             model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
             ## as such, model_Grid_array should be n_data x n_grid points
