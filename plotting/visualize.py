@@ -122,6 +122,32 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
 
     return
 
+def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50,show=False,save_path='posterior_{sample_num}.png'):
+
+    n_samples = min(n_samples,len(loader.dataset))
+
+    sample_inds = np.random.choice(len(loader.dataset),n_samples,replace=False)
+
+    for sample_ind in tqdm(sample_inds):
+
+        sample = loader.dataset[sample_ind][0]
+        sample = sample.view(1,1,sample.shape[-2],sample.shape[-1]).to(vae_model.device)
+        emp_posterior,enc_posterior,grid = vae_model.posterior(sample,n_points,log_prob)
+
+        fig,(ax1,ax2) = plt.subplots(nrows=1,ncols=2)
+
+        ax1.scatter(grid[:,0],grid[:,1],c=emp_posterior)
+        ax2.scatter(grid[:,0],grid[:,1],c=enc_posterior)
+        ax1.set_title("Empirical posterior\n (based on decoder)")
+        ax2.set_title("Encoder proposal distribution")
+        if show:
+            plt.show()
+        else:
+            plt.savefig(save_path.format(sample_num=sample_ind))
+        plt.close()
+
+
+
 
 def format_img_axis(ax,xlabel='',ylabel='',title=''):
 

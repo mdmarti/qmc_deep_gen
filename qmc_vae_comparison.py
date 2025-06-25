@@ -11,7 +11,7 @@ from train.losses import *
 from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
-from plotting.visualize import recon_comparison_plot
+from plotting.visualize import recon_comparison_plot,posterior_comparison_plot
 import matplotlib.pyplot as plt
 import fire
 
@@ -64,6 +64,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
 
     vae_test_recons_all,vae_test_kls_all = [],[]
     vae_loss_func = binary_elbo if dataset.lower() == 'mnist' else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=10)
+    vae_lp = binary_lp if dataset.lower() == 'mnist' else lambda target,recon: gaussian_lp(recon,target,var=0.1)
     for ld in vae_latent_dim:
 
         vae_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=ld,arch='vae')
@@ -96,6 +97,12 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
         vae_test_kls_all.append(vae_test_kls)
         recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
         recon_comparison_plot(qmc_model,vae_model,test_loader,test_lattice.to(device),n_samples=50,save_path=recon_save_loc)
+
+        if ld == 2:
+            posterior_save_loc =os.path.join(save_location,"vae_posterior_comparison_" + str(ld) + 'd_{sample_num}.png')
+            posterior_comparison_plot(vae_model,test_loader,vae_lp,save_path=posterior_save_loc)
+
+
 
 
     qmc_mu_ev, qmc_sd_ev = np.nanmean(qmc_test_losses),np.nanstd(qmc_test_losses)
