@@ -56,10 +56,12 @@ def binary_lp(samples,data):
 
     ## following the example of torch BCEloss, this clamps the log terms at -100
     ## to prevent bad gradients
-    t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(torch.clamp(samples,min=np.exp(-100))))
-    t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(torch.clamp(1-samples,min=np.exp(-100))))
+    samples = torch.clamp(samples,min=1e-10,max=1-1e-10)
+    t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
+    t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
     #if torch.any(t1 == )
-
+    assert not torch.any(t1 == torch.nan)
+    assert not (torch.any(t2 == torch.nan))
     return t1 + t2
 
 def binary_lp_old(samples,data):
