@@ -11,6 +11,7 @@ from train.losses import *
 from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
+from plotting.visualize import recon_comparison_plot
 
 
 def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
