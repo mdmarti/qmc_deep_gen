@@ -54,8 +54,10 @@ def binary_evidence_old(samples, data,reduce=True,batch_size=-1):
 
 def binary_lp(samples,data):
 
-    t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
-    t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
+    ## following the example of torch BCEloss, this clamps the log terms at -100
+    ## to prevent bad gradients
+    t1 = torch.einsum('bjdl,sjdl->bs',data,torch.clamp(torch.log(samples),min=-100))
+    t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.clmap(torch.log(1-samples),min=-100))
 
     return t1 + t2
 
