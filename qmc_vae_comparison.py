@@ -114,12 +114,12 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
 
 
     ax = plt.gca()
-    r = ax.errorbar(vae_latent_dim,vae_mu_recons,yerr = vae_sd_recons,capsize=12,color='tab:green',fmt='o')
-    e= ax.errorbar(vae_latent_dim,vae_mu_elbos,yerr = vae_sd_elbos,capsize=12,color='tab:orange',fmt='o')
+    r = ax.errorbar(vae_latent_dim,vae_mu_recons,yerr = vae_sd_recons,capsize=12,color='tab:green',fmt='.')
+    e= ax.errorbar(vae_latent_dim,vae_mu_elbos,yerr = vae_sd_elbos,capsize=12,color='tab:orange',fmt='.')
     q = ax.hlines(qmc_mu_ev,xmin=0,xmax=vae_latent_dim[-1]+10,color='k')
-    ax.hlines([qmc_mu_ev + qmc_sd_ev,qmc_mu_ev - qmc_sd_ev],xmin=0,xmax=128,color='k',linestyle='--')
-    ax.set_xlim((0,vae_latent_dim[-1]+10))
-    ax.set_ylim(-300,0)
+    ax.hlines([qmc_mu_ev + qmc_sd_ev,qmc_mu_ev - qmc_sd_ev],xmin=0,xmax=vae_latent_dim[-1]+10,color='k',linestyle='--')
+    ax.set_xlim((-20,vae_latent_dim[-1]+20))
+    ax.set_ylim(-300,-50)
     ax.set_xlabel("VAE latent dimension")
     ax.legend([q,r.lines[0],e.lines[0]],['QMC evidence','VAE likelihood','VAE ELBO'],frameon=False)
     plt.savefig(os.path.join(save_location,'vae_qmc_evidence_elbo_comparison_by_dim.png'))
