@@ -94,7 +94,7 @@ class QMCLVM(nn.Module):
     def round_trip(self,grid,data,log_likelihood,recon_type='posterior'):
 
         grid = grid.to(self.device)
-        posterior = self.posterior_probability(grid,data,log_likelihood,batch_size=32)
+        posterior = self.posterior_probability(grid,data,log_likelihood)
         posterior = posterior.to(self.device)
         
         if recon_type == 'posterior':
