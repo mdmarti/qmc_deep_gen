@@ -98,7 +98,7 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
     
     for sample_ind in tqdm(sample_inds):
 
-        save_path = save_path.format(sample_num = sample_ind)
+        save_path_ind = save_path.format(sample_num = sample_ind)
         sample = loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
         recon_qmc = qmc_model.round_trip(qmc_lattice,sample,qmc_likelihood,recon_type='posterior').detach().cpu()
@@ -118,7 +118,7 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
         if show:
             plt.show()
         else:
-            plt.savefig(save_path)
+            plt.savefig(save_path_ind)
         plt.close()
 
     return
