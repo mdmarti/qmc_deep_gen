@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 """
-The below functions are from https://github.com/CalciferZh/AMCParser, a package for 
+The below functions & Class are from https://github.com/CalciferZh/AMCParser, a package for 
 parsing and visualizing asf/amc files from the CMU MoCap dataset
 """
 
