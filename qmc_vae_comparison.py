@@ -120,7 +120,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
     ax.hlines([qmc_mu_ev + qmc_sd_ev,qmc_mu_ev - qmc_sd_ev],xmin=0,xmax=128,color='k',linestyle='--')
     ax.set_xlim((0,128))
     ax.set_ylim(-300,0)
-    plt.show()
+    plt.savefig(os.path.join(save_location,'vae_qmc_evidence_elbo_comparison_by_dim.png'))
+    #plt.show()
     plt.close()
 
 
