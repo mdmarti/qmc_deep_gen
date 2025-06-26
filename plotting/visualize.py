@@ -131,6 +131,7 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
 
     for sample_ind in tqdm(sample_inds):
 
+        save_path_sample = save_path.format(sample_num=sample_ind)
         sample = loader.dataset[sample_ind][0]
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1]).to(vae_model.device)
         emp_posterior,enc_posterior,grid = vae_model.posterior(sample,n_points,log_prob)
@@ -164,7 +165,7 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
         if show:
             plt.show()
         else:
-            plt.savefig(save_path.format(sample_num=sample_ind))
+            plt.savefig(save_path_sample)
         plt.close()
 
 
