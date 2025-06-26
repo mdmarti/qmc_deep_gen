@@ -115,7 +115,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300):
 
     ax = plt.gca()
     ax.errorbar(vae_latent_dim,vae_mu_recons,yerr = vae_sd_recons,capsize=12,color='tab:green',fmt='o')
-    ax.errorbar(vae_latent_dim+.1,vae_mu_elbos,yerr = vae_sd_elbos,capsize=12,color='tab:orange',fmt='o')
+    ax.errorbar(vae_latent_dim,vae_mu_elbos,yerr = vae_sd_elbos,capsize=12,color='tab:orange',fmt='o')
     ax.hlines(qmc_mu_ev,xmin=0,xmax=128,color='k')
     ax.hlines([qmc_mu_ev + qmc_sd_ev,qmc_mu_ev - qmc_sd_ev],xmin=0,xmax=128,color='k',linestyle='--')
     ax.set_xlim((0,128))

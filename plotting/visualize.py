@@ -95,6 +95,7 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
 
     n_samples = min(n_samples,len(loader.dataset))
     sample_inds = np.random.choice(len(loader.dataset),n_samples,replace=False).squeeze()
+    
     for sample_ind in tqdm(sample_inds):
 
         save_path = save_path.format(sample_num = sample_ind)
@@ -134,12 +135,32 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1]).to(vae_model.device)
         emp_posterior,enc_posterior,grid = vae_model.posterior(sample,n_points,log_prob)
 
-        fig,(ax1,ax2) = plt.subplots(nrows=1,ncols=2)
 
-        ax1.scatter(grid[:,0],grid[:,1],c=emp_posterior)
-        ax2.scatter(grid[:,0],grid[:,1],c=enc_posterior)
-        ax1.set_title("Empirical posterior\n (based on decoder)")
-        ax2.set_title("Encoder proposal distribution")
+        emp_weighted_grid = emp_posterior.T @ grid
+        prop_weighted_grid = enc_posterior.T @ grid
+
+        recon_post_emp = vae_model.decoder(torch.from_numpy(emp_weighted_grid[None,:]).to(torch.float32).to(vae_model.device)).detach().cpu().numpy().squeeze()
+        recon_post_enc = vae_model.decoder(torch.from_numpy(prop_weighted_grid[None,:]).to(torch.float32).to(vae_model.device)).detach().cpu().numpy().squeeze()
+        
+        
+        mosaic = [['.','Sample','Sample','.'],
+            ['Post1','Post1','Post2','Post2'],
+         ['Recon1','Recon1','Recon2','Recon2']]
+
+        fig, axs = plt.subplot_mosaic(mosaic,figsize=(8,10))
+        #fig,(ax1,ax2) = plt.subplots(nrows=1,ncols=2)
+        axs['Sample'].imshow(sample.detach().cpu().numpy().squeeze(),cmap='gray')
+        axs['Sample'] = format_img_axis(axs['Sample'],title="Original sample")
+        axs['Post1'].scatter(grid[:,0],grid[:,1],c=emp_posterior)
+        axs['Post2'].scatter(grid[:,0],grid[:,1],c=enc_posterior)
+        axs['Post1'] = format_plot_axis(axs['Post1'],title="Empirical posterior\n(based on decoder)",xticks=axs['Post1'].get_xticks(),yticks=axs['Post1'].get_yticks())
+        axs['Post2'] = format_plot_axis(axs['Post2'],title="Encoder proposal distribution",xticks=axs['Post2'].get_xticks(),yticks=axs['Post2'].get_yticks())
+
+        axs['Recon1'].imshow(recon_post_emp,cmap='gray')
+        axs['Recon1'] = format_img_axis(axs['Recon1'],title="Recon from\nempirical posterior")
+
+        axs['Recon2'].imshow(recon_post_enc,cmap='gray')
+        axs['Recon2'] = format_img_axis(axs['Recon2'],title="Recon from encoder")
         if show:
             plt.show()
         else:
@@ -158,12 +179,13 @@ def format_img_axis(ax,xlabel='',ylabel='',title=''):
     ax.set_title(title)
 
 
-def format_plot_axis(ax,xlabel='',ylabel='',xticks=[],yticks=[],xlim=(),ylim=()):
+def format_plot_axis(ax,xlabel='',ylabel='',title='',xticks=[],yticks=[],xlim=(),ylim=()):
 
     ax.spines[['right','top']].set_visible(False)
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    ax.set_title(title)
     ax.set_xticks(xticks)
     ax.set_yticks(yticks)
     if len(xlim) == 2:
