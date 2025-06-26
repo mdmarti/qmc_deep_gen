@@ -97,8 +97,9 @@ class QMCLVM(nn.Module):
         posterior = self.posterior_probability(grid,data,log_likelihood)
         posterior = posterior.to(self.device)
         
+        
         if recon_type == 'posterior':
-            posterior_grid = ((grid % 1)*posterior[:,None]).sum(dim=0,keepdims=True)
+            posterior_grid = posterior @ (grid % 1)
         elif recon_type == 'argmax':
             posterior_grid = grid[torch.argmax(posterior)][None,:] % 1
         else:
