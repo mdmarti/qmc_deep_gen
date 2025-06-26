@@ -69,35 +69,31 @@ class QMCLVM(nn.Module):
         return self.decoder(x)
 
 
-    def posterior_probability(self,grid,data,log_likelihood,batch_size=32):
+    def posterior_probability(self,grid,data,log_likelihood):
 
+        """
+        this needs to give posterior for each point individually
+        """
         """
         log likelihood should include the summation over data dimensions
         """
-        grid = grid.to(self.device)
+    
         with torch.no_grad():
             preds = self.decoder(grid %1)
-
-        model_grid_lls = []
-        N = data.shape[0]
-        with torch.no_grad():
-            for on_ind in tqdm(range(0,N,batch_size)):
-
-                off_ind = min(N,on_ind + batch_size)
-                sample = data[on_ind:off_ind].to(self.device)
-                model_grid_lls.append(log_likelihood(preds,sample).detach().cpu())
+    
+            model_grid_lls = log_likelihood(preds,data) #each entry A_ij is log p(x_i|z_j)
                 
-            model_grid_lls = torch.cat(model_grid_lls,dim=0) #each entry A_ij is log p(x_i|z_j)
             ## as such, model_Grid_array should be n_data x n_grid points
-            ll_per_grid = model_grid_lls.sum(dim=0)
-            evidence = torch.special.logsumexp(model_grid_lls,dim=1).sum(dim=0)
+            #ll_per_grid = model_grid_lls.sum(dim=0)
+            evidence = torch.special.logsumexp(model_grid_lls,dim=1,keepdims=True) ## n_data x 1
+            
+            posterior = model_grid_lls - evidence
 
-            posterior = ll_per_grid - evidence
-
-            return nn.Softmax(dim=0)(posterior)
+            return nn.Softmax(dim=1)(posterior) # posterior over grid points for each sample
     
     def round_trip(self,grid,data,log_likelihood,recon_type='posterior'):
 
+        grid = grid.to(self.device)
         posterior = self.posterior_probability(grid,data,log_likelihood,batch_size=32)
         posterior = posterior.to(self.device)
         
@@ -110,6 +106,24 @@ class QMCLVM(nn.Module):
         recon = self.decoder(posterior_grid)
 
         return recon
+    
+    def embed_data(self,grid,loader,log_likelihood):
+
+        latents = []
+        labels = [] 
+        grid = grid.to(self.device)
+        with torch.no_grad():
+            for (data,label) in loader:
+                data = data.to(self.device)
+                labels.append(label.detach().cpu().numpy())
+
+                posterior = self.posterior_probability(grid,data,log_likelihood)
+                # posterior is B x S, convert to B x 2 for weighted grid
+                latents.append((posterior @ (grid%1)).detach().cpu())
+
+        latents = torch.vstack(latents)
+        labels = torch.hstack(labels)
+        return latents,labels
     
 
 
