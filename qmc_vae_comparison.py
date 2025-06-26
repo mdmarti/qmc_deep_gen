@@ -109,21 +109,21 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300,rerun=Fals
 
 
         
-            qmc_mu_ev, qmc_sd_ev = np.nanmean(qmc_test_losses),np.nanstd(qmc_test_losses)
-            vae_mu_recons = np.array([np.nanmean(r) for r in vae_test_recons_all])
-            vae_sd_recons = np.array([np.nanstd(r) for r in vae_test_recons_all])
-            vae_mu_elbos = np.array([np.nanmean(r - k) for r,k in zip(vae_test_recons_all,vae_test_kls_all)])
-            vae_sd_elbos = np.array([np.nanstd(r - k) for r,k in zip(vae_test_recons_all,vae_test_kls_all)])
+        qmc_mu_ev, qmc_sd_ev = np.nanmean(qmc_test_losses),np.nanstd(qmc_test_losses)
+        vae_mu_recons = np.array([np.nanmean(r) for r in vae_test_recons_all])
+        vae_sd_recons = np.array([np.nanstd(r) for r in vae_test_recons_all])
+        vae_mu_elbos = np.array([np.nanmean(r - k) for r,k in zip(vae_test_recons_all,vae_test_kls_all)])
+        vae_sd_elbos = np.array([np.nanstd(r - k) for r,k in zip(vae_test_recons_all,vae_test_kls_all)])
 
-            
-            plot_data = {'recon_mu': vae_mu_recons.tolist(),
-                        'recon_sd': vae_sd_recons.tolist(),
-                        'elbo_mu': vae_mu_elbos.tolist(),
-                        'elbo_sd': vae_sd_elbos.tolist(),
-                        'ev_mu':qmc_mu_ev.tolist(),
-                        'ev_sd':qmc_sd_ev.tolist()}
-            with open(data_save_loc,'w') as f:
-                json.dump(plot_data)
+        
+        plot_data = {'recon_mu': vae_mu_recons.tolist(),
+                    'recon_sd': vae_sd_recons.tolist(),
+                    'elbo_mu': vae_mu_elbos.tolist(),
+                    'elbo_sd': vae_sd_elbos.tolist(),
+                    'ev_mu':qmc_mu_ev.tolist(),
+                    'ev_sd':qmc_sd_ev.tolist()}
+        with open(data_save_loc,'w') as f:
+            json.dump(plot_data,f)
     else:
         with open(data_save_loc,'r') as f:
 
