@@ -32,9 +32,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
 
     elif dataset_name.lower() == 'mnist_simple':
 
-        decoder = nn.Sequential(TorusBasis()) if arch =='qmc' else nn.Sequential()
+        decoder = nn.Sequential(TorusBasis(),
+                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
-                nn.Linear(latent_dim,500),
                 nn.ReLU(),
                 nn.Linear(500,28**2),
                 nn.Sigmoid(),
