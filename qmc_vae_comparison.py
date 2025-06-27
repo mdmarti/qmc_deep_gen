@@ -17,7 +17,7 @@ import fire
 import json
 
 
-def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False):
+def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15):
 
 
 
@@ -29,7 +29,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-    train_lattice = gen_fib_basis(m=16)
+    train_lattice = gen_fib_basis(m=train_lattice_m)
     test_lattice = gen_fib_basis(m=20)
 
     qmc_latent_dim=2
