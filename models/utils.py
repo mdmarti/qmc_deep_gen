@@ -119,7 +119,7 @@ def get_encoder_arch(dataset_name,latent_dim):
         d_net = nn.Sequential(nn.Linear(28**2,500),
                                nn.ReLU(),
                                nn.Linear(500,latent_dim))
-        Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
+        enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
         
 
 
@@ -148,7 +148,7 @@ def get_encoder_arch(dataset_name,latent_dim):
         L_net = nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
 
-        encoder_vae = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
+        enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
     elif dataset_name.lower() == 'finch':
         enc = Encoder(latent_dim=latent_dim)
