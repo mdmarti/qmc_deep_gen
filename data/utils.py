@@ -16,7 +16,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256):
         train_data = datasets.MNIST(dataset_loc, train=True, download=True, transform=transform)
         train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,num_workers=n_workers)
         test_data = datasets.MNIST(dataset_loc, train=False, download=True, transform=transform)
-        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False,num_workers=n_workers)
+        test_loader = DataLoader(test_data, batch_size=batch_size//4, shuffle=False,num_workers=n_workers)
         
         print("done!")
 
@@ -29,7 +29,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256):
         train_data = CelebADsetIms(train_ims)
         test_data = CelebADsetIms(test_ims)
         train_loader = DataLoader(train_data,batch_size=batch_size,num_workers=n_workers,shuffle=True)
-        test_loader = DataLoader(test_data,batch_size=batch_size,num_workers=n_workers,shuffle=False)
+        test_loader = DataLoader(test_data,batch_size=batch_size//4,num_workers=n_workers,shuffle=False)
  
 
     elif dataset_name.lower() == 'finch':
@@ -39,6 +39,6 @@ def load_data(dataset_name,dataset_loc,batch_size=256):
         train_ds = bird_data(train_files,train_ids)
         test_ds = bird_data(test_files,test_ids)
         train_loader = DataLoader(train_ds,num_workers=n_workers,shuffle=True,batch_size=batch_size)
-        test_loader = DataLoader(test_ds,num_workers=n_workers,shuffle=False,batch_size=batch_size)
+        test_loader = DataLoader(test_ds,num_workers=n_workers,shuffle=False,batch_size=batch_size//4)
 
     return train_loader,test_loader
