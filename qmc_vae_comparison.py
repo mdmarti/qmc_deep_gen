@@ -17,14 +17,14 @@ import fire
 import json
 
 
-def run_qmc_vae_experiments(save_location,dataloc,dataset,nEpochs=300,rerun=False):
+def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False):
 
 
 
     ################ Shared Setup ######################################
     #n_workers = len(os.sched_getaffinity(0))
 
-    train_loader,test_loader = load_data(dataset,dataloc)
+    train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
