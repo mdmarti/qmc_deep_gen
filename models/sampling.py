@@ -68,7 +68,7 @@ def gen_korobov_basis(a,
     base_pts = torch.arange(0,num_points)[:,None] * z[None,:]/num_points
     return base_pts
 
-EPS = 1e-6
+EPS = 1e-12
 def box_muller(unif_2d_vars):
     
     """
