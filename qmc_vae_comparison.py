@@ -50,7 +50,9 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         if not os.path.isfile(qmc_save_path):
             qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
                                                                 nEpochs=nEpochs,print_losses=dataset.lower() == 'celeba')
-            qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
+            qmc_model.eval()
+            with torch.no_grad():
+                qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
             qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
             save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
             qmc_model.to(device)
@@ -61,6 +63,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
             qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
             qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
             qmc_model.to(device)
+            qmc_model.eval()
         
         qmc_test_losses = -np.array(qmc_test_losses)
 
@@ -83,10 +86,13 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 print(f"now training VAE with latent dim {ld}")
 
                 vae_model,vae_opt,vae_losses = train_vae.train_loop(vae_model,train_loader,vae_loss_func,nEpochs=nEpochs)
-                vae_test_losses = train_vae.test_epoch(vae_model,test_loader,vae_loss_func)
+                vae_model.eval()
+                with torch.no_grad():
+                    vae_test_losses = train_vae.test_epoch(vae_model,test_loader,vae_loss_func)
                 vae_run_info = {'train':vae_losses,'test':vae_test_losses}
                 save(vae_model.to('cpu'),vae_opt,vae_run_info,fn=vae_save_path)
                 vae_model.to(device)
+
 
             else:
                 print(f"Now loading VAE with latent dim {ld}")
@@ -94,17 +100,20 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 vae_model,vae_opt,vae_run_info = load(vae_model,vae_opt,vae_save_path)
                 vae_losses,vae_test_losses = vae_run_info['train'],vae_run_info['test']
                 vae_model.to(device)
+                vae_model.eval()
 
             [vae_test_recons,vae_test_kls] = vae_test_losses
             vae_test_recons,vae_test_kls = -np.array(vae_test_recons),np.array(vae_test_kls)
             vae_test_recons_all.append(vae_test_recons)
             vae_test_kls_all.append(vae_test_kls)
             recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
-            recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=50,save_path=recon_save_loc)
+            with torch.no_grad():
+                recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=50,save_path=recon_save_loc)
 
             if ld == 2:
-                posterior_save_loc =os.path.join(save_location,"vae_posterior_comparison_" + str(ld) + 'd_{sample_num}.png')
-                posterior_comparison_plot(vae_model,test_loader,vae_lp,save_path=posterior_save_loc)
+                with torch.no_grad():
+                    posterior_save_loc =os.path.join(save_location,"vae_posterior_comparison_" + str(ld) + 'd_{sample_num}.png')
+                    posterior_comparison_plot(vae_model,test_loader,vae_lp,save_path=posterior_save_loc)
 
 
 
