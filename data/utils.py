@@ -9,7 +9,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256):
 
     n_workers = len(os.sched_getaffinity(0))
 
-    if dataset_name.lower() == 'mnist':
+    if 'mnist' in dataset_name.lower():
 
         print("loading data...")
         transform = transforms.ToTensor()
