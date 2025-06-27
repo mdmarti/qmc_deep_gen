@@ -1,5 +1,5 @@
 import torch
-from models.layers import ResCellNVAESimple
+from models.layers import ResCellNVAESimple,ZeroLayer
 import torch.nn as nn
 from models.qmc_base import TorusBasis
 from models.vae_base import Encoder
@@ -29,6 +29,17 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
             #ResCellNVAESimple(16,expand_factor=1),
             nn.Conv2d(16,1,1),
             nn.Sigmoid()]
+
+    elif dataset_name.lower() == 'mnist_simple':
+
+        decoder = nn.Sequential()
+        layers = [
+                nn.Linear(latent_dim,500),
+                nn.ReLU(),
+                nn.Linear(500,28**2),
+                nn.Sigmoid(),
+                nn.Unflatten(1,(1,28,28))
+        ]
 
     elif dataset_name.lower() == 'celeba':
 
@@ -98,6 +109,19 @@ def get_encoder_arch(dataset_name,latent_dim):
         d_net = nn.Linear(2048,latent_dim) 
 
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
+
+    elif dataset_name.lower() == 'mnist_simple':
+        encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
+        mu_net = nn.Sequential(nn.Linear(28**2,500),
+                               nn.ReLU(),
+                               nn.Linear(500,latent_dim))
+        L_net = ZeroLayer()
+        d_net = nn.Sequential(nn.Linear(28**2,500),
+                               nn.ReLU(),
+                               nn.Linear(500,latent_dim))
+        Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
+        
+
 
     elif dataset_name.lower() == 'celeba':
 

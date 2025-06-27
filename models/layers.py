@@ -76,3 +76,12 @@ class SE(nn.Module):
         se = self.se(se)
         se = se.view(se.size(0), -1, 1, 1)
         return x * se
+    
+class ZeroLayer(nn.Module):
+    def __init__(self):
+
+        super(ZeroLayer,self).__init__()
+
+    def forward(self,x):
+
+        return 0 * x
