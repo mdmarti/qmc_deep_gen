@@ -43,8 +43,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim)
         qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
-        qmc_loss_func = binary_evidence if dataset.lower() == 'mnist' else lambda samples,data: gaussian_evidence(samples,data,var=0.1)
-        qmc_lp = binary_lp if dataset.lower() == 'mnist' else lambda samples,data: gaussian_lp(samples,data,var=0.1)
+        qmc_loss_func = binary_evidence if 'mnist' in dataset.lower() else lambda samples,data: gaussian_evidence(samples,data,var=0.1)
+        qmc_lp = binary_lp if 'mnist' in dataset.lower() else lambda samples,data: gaussian_lp(samples,data,var=0.1)
         qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison.tar')
 
         if not os.path.isfile(qmc_save_path):
@@ -70,8 +70,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         ############## VAE Training ######################
 
         vae_test_recons_all,vae_test_kls_all = [],[]
-        vae_loss_func = binary_elbo if dataset.lower() == 'mnist' else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=10)
-        vae_lp = binary_lp if dataset.lower() == 'mnist' else lambda target,recon: gaussian_lp(recon,target,var=0.1)
+        vae_loss_func = binary_elbo if 'mnist' in dataset.lower() else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=10)
+        vae_lp = binary_lp if 'mnist' in dataset.lower() else lambda target,recon: gaussian_lp(recon,target,var=0.1)
         for ld in vae_latent_dim:
 
             vae_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=ld,arch='vae')
