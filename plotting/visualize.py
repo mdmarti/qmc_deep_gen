@@ -68,9 +68,9 @@ def vae_train_plot(vae_train_losses,vae_test_losses,save_fn):
     xticklabels = xax + ['Test']
     xax += [N + 100] 
 
-    ax.errorbar(N+100,np.nanmean(-vae_test_recons),yerr  = np.nanstd(-vae_test_recons),color='tab:blue',capsize=6,linestyle='.')
-    ax.errorbar(N+100,np.nanmean(-vae_test_kls),yerr  = np.nanstd(-vae_test_kls),color='tab:orange',capsize=6,linestyle='.')
-    ax.errorbar(N+100,np.nanmean(-vae_test_recons - vae_test_kls),yerr  = np.nanstd(-vae_test_recons - vae_test_kls),color='tab:green',capsize=6,linestyle='.')
+    ax.errorbar(N+100,np.nanmean(-vae_test_recons),yerr  = np.nanstd(-vae_test_recons),color='tab:blue',capsize=6,linestyle='')
+    ax.errorbar(N+100,np.nanmean(-vae_test_kls),yerr  = np.nanstd(-vae_test_kls),color='tab:orange',capsize=6,linestyle='')
+    ax.errorbar(N+100,np.nanmean(-vae_test_recons - vae_test_kls),yerr  = np.nanstd(-vae_test_recons - vae_test_kls),color='tab:green',capsize=6,linestyle='')
     ax =  format_plot_axis(ax,ylabel='',xlabel='update number',xticks=xax,xticklabels=xticklabels)
     ax.legend([l1,l2,l3],['KL','log likelihood','ELBO'],frameon=False)
     plt.savefig(save_fn)
@@ -88,7 +88,7 @@ def qmc_train_plot(qmc_train_losses,qmc_test_losses,save_fn):
     xax = list(ax.get_xticks()) 
     xticklabels = xax + ['Test']
     xax += [N + 100] 
-    ax.errorbar(N + 100,np.nanmean(-qmc_test_losses),yerr =np.nanstd(-qmc_test_losses),capsize=6,linestyle='.',color='tab:blue')
+    ax.errorbar(N + 100,np.nanmean(-qmc_test_losses),yerr =np.nanstd(-qmc_test_losses),capsize=6,linestyle='',color='tab:blue')
     ax =  format_plot_axis(ax,ylabel='Model evidence',xlabel='update number',xticks=xax,xticklabels=xticklabels)
     plt.savefig(save_fn)
     plt.close()
