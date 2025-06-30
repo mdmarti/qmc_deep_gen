@@ -55,17 +55,17 @@ class VAE(nn.Module):
         # Create 2D grid via tensor product
         x_grid, y_grid = np.meshgrid(nodes_1d, nodes_1d, indexing='ij')
         weights_2d = np.outer(weights_1d, weights_1d)
-        log_prior = torch.from_numpy(weights_2d.flatten()).to(self.device) ## these are approoooximately log p(z)
-        xy_grid = torch.from_numpy(np.stack([x_grid.flatten(),y_grid.flatten()],axis=1)).to(torch.float32).to(self.device)
-        log_likelihood = log_prob_fnc(self.decoder(xy_grid),target) ## these are approooooooxxxxximately log p(x|z)
+        log_prior = torch.from_numpy(weights_2d.flatten()).to(self.device) ## these are approoooximately log p(z), (2500,)
+        xy_grid = torch.from_numpy(np.stack([x_grid.flatten(),y_grid.flatten()],axis=1)).to(torch.float32).to(self.device) #(2500,2)
+        log_likelihood = log_prob_fnc(self.decoder(xy_grid),target) ## these are approooooooxxxxximately log p(x|z) (2500,1)
         (mu,L,d) = self.encoder(target)
         dist = LowRankMultivariateNormal(mu,L,d)
-        lp_grid_encoder = dist.log_prob(xy_grid)
+        lp_grid_encoder = dist.log_prob(xy_grid) #(2500,)
 
         # Evaluate f on grid and compute integral
-        log_evidence = torch.special.logsumexp(log_likelihood + log_prior,dim=1) # this is approoooooooooooxxximately log p(x)
-        log_posterior = log_likelihood + log_prior - log_evidence
-        return nn.Softmax(dim=1)(log_posterior).detach().cpu().numpy().squeeze(),nn.Softmax(dim=0)(lp_grid_encoder).detach().cpu().numpy(),xy_grid.detach().cpu().numpy()
+        log_evidence = torch.special.logsumexp(log_likelihood + log_prior[:,None],dim=0) # this is approoooooooooooxxximately log p(x) #(1,)
+        log_posterior = log_likelihood.squeeze() + log_prior.squeeze() - log_evidence.squeeze() # (2500,)
+        return nn.Softmax(dim=0)(log_posterior).detach().cpu().numpy().squeeze(),nn.Softmax(dim=0)(lp_grid_encoder).detach().cpu().numpy(),xy_grid.detach().cpu().numpy()
 
     
 class Print(nn.Module):
