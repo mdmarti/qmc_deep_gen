@@ -17,7 +17,7 @@ import fire
 import json
 
 
-def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15):
+def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15,make_comparison_plots=True):
 
 
 
@@ -133,11 +133,12 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                                 cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
                                 model_type='vae',show=False)
                 print("done!")
-            recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
-            with torch.no_grad():
-                print(f"comparing {ld}d VAE and QMC reconstructions")
-                recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc)
-                print("done!")
+            if make_comparison_plots:
+                recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
+                with torch.no_grad():
+                    print(f"comparing {ld}d VAE and QMC reconstructions")
+                    recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc)
+                    print("done!")
             if ld == 2:
                 print("comparing true to encoder posteriors (under decoder)")
                 with torch.no_grad():
