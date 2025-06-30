@@ -27,6 +27,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     save_location = os.path.join(save_location,dataset)
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
+
+    print(f"Training on {dataset} data")
     train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
