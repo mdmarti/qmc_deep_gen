@@ -181,8 +181,8 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
         emp_weighted_grid = emp_posterior.T @ grid
         prop_weighted_grid = enc_posterior.T @ grid
 
-        recon_post_emp = vae_model.decoder(torch.from_numpy(emp_weighted_grid[None,:]).to(torch.float32).to(vae_model.device)).detach().cpu().numpy().squeeze()
-        recon_post_enc = vae_model.decoder(torch.from_numpy(prop_weighted_grid[None,:]).to(torch.float32).to(vae_model.device)).detach().cpu().numpy().squeeze()
+        recon_post_emp = vae_model.decoder(torch.from_numpy(emp_weighted_grid).view(1,2).to(torch.float32).to(vae_model.device)).detach().cpu().numpy().squeeze()
+        recon_post_enc = vae_model.decoder(torch.from_numpy(prop_weighted_grid).view(1,2).to(torch.float32).to(vae_model.device)).detach().cpu().numpy().squeeze()
         
         
         mosaic = [['.','Sample','Sample','.'],
