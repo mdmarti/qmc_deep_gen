@@ -126,7 +126,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
             print("making train plot...")
             vae_train_plot(vae_losses,vae_test_losses,save_fn=os.path.join(save_location,f'vae_{dataset}_{ld}d_train_curve.svg'))
             print("done!")
-            if not os.path.isfile(vae_grid_loc):
+            if not os.path.isfile(vae_grid_loc) and ld == 2:
                 print("making model grid plot....")
                 model_grid_plot(vae_model,n_samples_dim=20,fn=vae_grid_loc,
                                 origin='lower' if dataset.lower() == 'finch' else None,
