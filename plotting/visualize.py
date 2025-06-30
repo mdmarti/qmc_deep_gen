@@ -2,12 +2,15 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 from tqdm import tqdm
+import scipy.stats as stats #Normal
 
 import torch
 import gc
 
+EPS1 = 1e-15
+EPS2 = 1e-6
 
-def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
+def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey',model_type='qmc'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #n_samples_dim = 10
@@ -16,17 +19,19 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
     norm = mpl.colors.Normalize(-1,n_samples)
     with torch.no_grad():
         #z = torch.rand(n_samples, 2).to(device)
-        xx,yy = torch.meshgrid([torch.linspace(0,1,n_samples_dim)]*2,indexing='ij')
+        xx,yy = torch.meshgrid([torch.linspace(EPS1,1-EPS2,n_samples_dim)]*2,indexing='ij')
         z = torch.stack([xx.flatten(),yy.flatten()],axis=-1).to(device)
+        if model_type == 'vae':
+
+            dist = stats.norm
+            z = torch.from_numpy(dist.ppf(z.detach().cpu().numpy())).to(torch.float32).to(model.device)
         sample = model.decoder(z).detach().cpu()
     z = z.detach().cpu().numpy()
     inds = np.arange(n_samples)
     cs = cmap(norm(inds))
 
     
-    mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]
-    # [['scatter grid']*n_samples_dim]*n_samples_dim +\
-                
+    mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]                
     
 
     fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.01})
@@ -39,18 +44,54 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey'):
         ax.set_yticks([])
         ax.set_xticks([])
 
-    #axes['scatter grid'].scatter(z[:,0],z[:,1],c=cs)
-    #axes['scatter grid'].set_xlim([-0.05,1-0.01*n_samples_dim])
-    #axes['scatter grid'].set_ylim([-0.05,1-0.01*n_samples_dim])
-    #axes['scatter grid'].set_xticks([])
-    #axes['scatter grid'].set_yticks([])
-    #axes['scatter grid'].spines[['right','left','top','bottom']].set_visible(False)
+
     if show:
         plt.show()
     else:
         plt.savefig(fn)
     plt.close()
 
+def vae_train_plot(vae_train_losses,vae_test_losses,save_fn):
+
+    [vae_train_recons,vae_train_kls] = vae_train_losses
+    vae_train_recons,vae_train_kls = np.array(vae_train_recons),np.array(vae_train_kls)
+    [vae_test_recons,vae_test_kls] = vae_test_losses
+    vae_test_recons,vae_test_kls = np.array(vae_test_recons),np.array(vae_test_kls)
+
+    N = len(vae_train_recons)
+    ax = plt.gca()
+    l1,=ax.plot(vae_train_kls,label='VAE KL',color='tab:orange')
+    l2,=ax.plot(-vae_train_recons,label='VAE reconstruction log probability',color='tab:blue')
+    l3,=ax.plot(-vae_train_recons - vae_train_kls,label='VAE ELBO',color='tab:green')
+
+    xax = list(ax.get_xticks()) 
+    xticklabels = xax + ['Test']
+    xax += [N + 100] 
+
+    ax.errorbar(N+100,np.nanmean(-vae_test_recons),yerr  = np.nanstd(-vae_test_recons),color='tab:blue',capsize=6,linestyle='.')
+    ax.errorbar(N+100,np.nanmean(-vae_test_kls),yerr  = np.nanstd(-vae_test_kls),color='tab:orange',capsize=6,linestyle='.')
+    ax.errorbar(N+100,np.nanmean(-vae_test_recons - vae_test_kls),yerr  = np.nanstd(-vae_test_recons - vae_test_kls),color='tab:green',capsize=6,linestyle='.')
+    ax =  format_plot_axis(ax,ylabel='',xlabel='update number',xticks=xax,xticklabels=xticklabels)
+    ax.legend([l1,l2,l3],['KL','log likelihood','ELBO'],frameon=False)
+    plt.savefig(save_fn)
+    plt.close()
+
+
+def qmc_train_plot(qmc_train_losses,qmc_test_losses,save_fn):
+
+    qmc_train_losses,qmc_test_losses = np.array(qmc_train_losses),np.array(qmc_test_losses)
+
+    ax = plt.gca()
+    N = len(qmc_train_losses)
+
+    ax.plot(-qmc_train_losses,label = 'Model evidence',color='tab:blue')
+    xax = list(ax.get_xticks()) 
+    xticklabels = xax + ['Test']
+    xax += [N + 100] 
+    ax.errorbar(N + 100,np.nanmean(-qmc_test_losses),yerr =np.nanstd(-qmc_test_losses),capsize=6,linestyle='.',color='tab:blue')
+    ax =  format_plot_axis(ax,ylabel='Model evidence',xlabel='update number',xticks=xax,xticklabels=xticklabels)
+    plt.savefig(save_fn)
+    plt.close()
 
 
 
@@ -133,7 +174,7 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
 
         save_path_sample = save_path.format(sample_num=sample_ind)
         sample = loader.dataset[sample_ind][0]
-        sample = sample.view(1,1,sample.shape[-2],sample.shape[-1]).to(vae_model.device)
+        sample = sample.view(1,1,sample.shape[-2],sample.shape[-1]).to(torch.float32).to(vae_model.device)
         emp_posterior,enc_posterior,grid = vae_model.posterior(sample,n_points,log_prob)
 
 
@@ -180,15 +221,21 @@ def format_img_axis(ax,xlabel='',ylabel='',title=''):
     ax.set_title(title)
 
 
-def format_plot_axis(ax,xlabel='',ylabel='',title='',xticks=[],yticks=[],xlim=(),ylim=()):
+def format_plot_axis(ax,xlabel='',ylabel='',title='',xticks=[],yticks=[],xticklabels=[],yticklabels=[],xlim=(),ylim=()):
 
     ax.spines[['right','top']].set_visible(False)
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.set_xticks(xticks)
-    ax.set_yticks(yticks)
+    if len(xticklabels) > 0:
+        ax.set_xticks(xticks,xticklabels)
+    elif len(xticks) > 0:
+        ax.set_xticks(xticks)
+    if len(yticklabels) > 0:
+        ax.set_yticks(yticks,yticklabels)
+    elif len(yticks) > 0:
+        ax.set_yticks(yticks)
     if len(xlim) == 2:
         ax.set_xlim(xlim)
     if len(ylim) == 2: 
