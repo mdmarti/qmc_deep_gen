@@ -168,8 +168,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
             plot_data = json.load(f)
 
-        qmc_mu_ev = np.array(plot_data['ev_mu'])[:len(vae_latent_dim)]
-        qmc_sd_ev = np.array(plot_data['ev_sd'])[:len(vae_latent_dim)]
+        qmc_mu_ev = np.array(plot_data['ev_mu'])#[:len(vae_latent_dim)]
+        qmc_sd_ev = np.array(plot_data['ev_sd'])#[:len(vae_latent_dim)]
         vae_mu_recons = np.array(plot_data['recon_mu'])[:len(vae_latent_dim)]
         vae_sd_recons = np.array(plot_data['recon_sd'])[:len(vae_latent_dim)]
         vae_mu_elbos = np.array(plot_data['elbo_mu'])[:len(vae_latent_dim)]
