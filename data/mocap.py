@@ -7,96 +7,96 @@ import copy
 import matplotlib.pyplot as plt 
 
 def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjoint']):
-	
-	rotations = []
-	globalrots = []
-	jointKey = []
-	#print(len(joints))
-	for j in joints.keys():
-		joint = joints[j]
-		drop = False
-		for kk in excluded:
-			if kk in joint.name:
-				drop = True
-				#print(f'dropping {joint.name}')
-				continue
-		if not drop:
-			if joint.name == 'root':
-				#print(motion['root'])
-				#print(len(motion['root']))
-				print(f"original values {joint.name}: {motion['root'][3:]}")
-				globalRot = np.deg2rad(motion['root'][3:])
-				print(f"updated values {joint.name}: {globalRot}")
-				print(f"untransformed values {joint.name}: {np.rad2deg(globalRot)}")
-				#print(len(rotation))
-				globalrots.append(globalRot)
-				jointKey.append((j,len(globalRot)))
-			else:
-				idx = 0
-				rotation = []
-				for axis, lm in enumerate(joint.limits):
-					if not np.array_equal(lm, np.zeros(2)):
-						rotation.append(motion[joint.name][idx])
-						idx += 1
-				#print(joint.name)
-				rotation = np.hstack(rotation)
-				print(f"original values {joint.name}: {rotation}")
+    
+    rotations = []
+    globalrots = []
+    jointKey = []
+    #print(len(joints))
+    for j in joints.keys():
+        joint = joints[j]
+        drop = False
+        for kk in excluded:
+            if kk in joint.name:
+                drop = True
+                #print(f'dropping {joint.name}')
+                continue
+        if not drop:
+            if joint.name == 'root':
 
-				rotation = np.deg2rad(rotation)
-				print(f"updated values {joint.name}: {rotation}")
-				print(f"untransformed values {joint.name}: {np.rad2deg(rotation)}")
-				rotations.append(rotation)
-				jointKey.append((j,len(rotation)))
-			#jointNames.append(j)
-	#rotations.append(globalRot)
-	assert False
-	return np.hstack(rotations),np.array(globalrots),jointKey
+                globalRot = np.deg2rad(motion['root'][3:])
+
+                globalrots.append(globalRot)
+                jointKey.append((j,len(globalRot)))
+            else:
+                idx = 0
+                rotation = []
+                for axis, lm in enumerate(joint.limits):
+                    if not np.array_equal(lm, np.zeros(2)):
+                        rotation.append(motion[joint.name][idx])
+                        idx += 1
+                #print(joint.name)
+                rotation = np.hstack(rotation)
+                #print(f"original values {joint.name}: {rotation}")
+
+                rotation = np.deg2rad(rotation)
+
+                rotations.append(rotation)
+                jointKey.append((j,len(rotation)))
+
+    return np.hstack(rotations),np.array(globalrots),jointKey
 
 def preprocess_mocap_motion(joints,motion,n_frames_per_sample=3):
 
-	### only process one motion at a time. this is getting too complicated
-	"""
-	this preprocessing follows the steps from "Gaussian Process Dynamical Models for Human Motion" (Wang, Fleet, & Hertzmann 2008)
-	Briefly, we treat each pose a 44 Euler angles for joints, three global (torso) pose angles,
-	and 3 global (torso) translational velocities.
-	All data are then mean-subtracted.
-	we treat each data point as a set of n frames over time, so we stack after mean subtracting
-	"""
+    ### only process one motion at a time. this is getting too complicated
+    """
+    this preprocessing follows the steps from "Gaussian Process Dynamical Models for Human Motion" (Wang, Fleet, & Hertzmann 2008)
+    Briefly, we treat each pose a 44 Euler angles for joints, three global (torso) pose angles,
+    and 3 global (torso) translational velocities.
+    All data are then mean-subtracted.
+    we treat each data point as a set of n frames over time, so we stack after mean subtracting
+    """
 
-	
+    
 
-	rotTrial,globalRotTrial = [],[]
-	for frame in motion:
-		#print(subject,frame)
-		rot,globalrot,jointNames = getRotation(joints,frame)
-		
-		rotTrial.append(rot)
-		globalRotTrial.append(globalrot)
+    rotTrial,globalRotTrial = [],[]
+    for frame in motion:
+        #print(subject,frame)
+        rot,globalrot,jointNames = getRotation(joints,frame)
+        
+        rotTrial.append(rot)
+        globalRotTrial.append(globalrot)
 
-	rotTrial = np.vstack(rotTrial)
-	globalRots = np.vstack(globalRotTrial)
-	globalTranslation = np.diff(globalRots,axis=0)
-	globalTranslation = np.vstack([globalTranslation,globalTranslation[-1:,:]])
-	allRots = np.hstack([globalRots,rotTrial,globalTranslation])
-	muRot = np.nanmean(allRots,axis=0)
+    rotTrial = np.vstack(rotTrial)
+    globalRots = np.vstack(globalRotTrial)
+    globalTranslation = np.diff(globalRots,axis=0)
+    globalTranslation = np.vstack([globalTranslation,globalTranslation[-1:,:]])
+    allRots = np.hstack([globalRots,rotTrial,globalTranslation])
+    muRot = np.nanmean(allRots,axis=0)
+    trial_converted_orig = frames2samples(allRots,n_frames_per_sample)
+    #subjOrig.append(trial_converted_orig)
+    allRots = allRots - muRot
+    #subjMeans.append(muRot)
 
-	allRots = allRots - muRot
+    trial_converted = frames2samples(allRots,n_frames_per_sample)
+    #subjTrajs.append(trial_converted)
+    #subjKeys.append(jointNames)
 
-	trial_converted = frames2samples(allRots,n_frames_per_sample)
-
-	
-	return trial_converted,muRot,jointNames
-
+    #allTrajs = allTrajs + subjTrajs
+    #traj_means = traj_means + subjMeans
+    #conversion_keys = conversion_keys + subjKeys
+    #origTrajs = origTrajs + subjOrig
+    
+    return trial_converted,muRot,jointNames
+    
 def frames2samples(frames,n_frames_per_sample):
-	
-	n_frames = len(frames)
-	samples = []
-	for start in range(0,n_frames - n_frames_per_sample):
-	
-		samples.append(frames[start:start+n_frames_per_sample])
-	
-	return np.stack(samples,axis=0)
-
+    
+    n_frames = len(frames)
+    samples = []
+    for start in range(0,n_frames - n_frames_per_sample):
+    
+        samples.append(frames[start:start+n_frames_per_sample])
+    
+    return np.stack(samples,axis=0)
 
 ##### TO DO: get samples (datapath,subject)
 ##### think about decoder arch for these data
