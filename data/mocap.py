@@ -113,16 +113,18 @@ def get_samples(datapath,subject,n_frames_per_sample=4):
 	frames = [amc.parse_amc(am) for am in amcs]
 	joints = amc.parse_asf(asf) # for asf in asfs]
 	
-	trials,means,keys= [],[], []
+	trials,means,keys,frame_nos,labels = [],[], [],[],[]
 	
-	for trial in tqdm(frames,total=len(frames)):
+	for ii,trial in tqdm(enumerate(frames,total=len(frames))):
 		traj,mean,key = preprocess_mocap_motion(joints,trial,n_frames_per_sample=n_frames_per_sample)
 	
 		trials.append(traj)
 		means.append(mean)
 		keys.append(key)
+		frame_nos.append(np.arange(len(traj)))
+		labels.append(ii * np.ones((len(traj),)))
 		
-	return trials,means,keys,frames,joints
+	return trials,means,keys,frames,joints,frame_nos,labels
 
 		
 		
