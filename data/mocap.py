@@ -223,6 +223,7 @@ class MocapDataset(Dataset):
         self.joints = joints
         self.conversion_keys = conversion_keys
         self.length = len(samples)
+        self.n_per_sample=0
 
     def __len__(self):
 
@@ -232,6 +233,9 @@ class MocapDataset(Dataset):
 
 
         sample = self.samples[index]
+        if self.n_per_sample == 0:
+              self.n_per_sample = sample.shape[0]
+        sample = sample.flatten()
         label = self.labels[index]
 
         if return_all_info:
