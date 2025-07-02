@@ -235,7 +235,7 @@ class MocapDataset(Dataset):
         sample = self.samples[index]
         if self.n_per_sample == 0:
               self.n_per_sample = sample.shape[0]
-        sample = sample.flatten()
+        sample = sample.view(1,sample.shape[0],sample.shape[1])
         label = self.labels[index]
 
         if return_all_info:
