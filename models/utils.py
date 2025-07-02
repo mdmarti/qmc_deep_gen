@@ -4,7 +4,7 @@ import torch.nn as nn
 from models.qmc_base import TorusBasis
 from models.vae_base import Encoder
 
-def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
+def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
 
     decoder = torch.nn.Sequential()
     if arch == 'qmc':
@@ -78,6 +78,17 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
             nn.ConvTranspose2d(8,1,3,stride=2,padding=1,output_padding=1),
             nn.Sigmoid()]
         
+    elif dataset_name.lower() == 'mocap':
+
+         layers = [
+                nn.ReLU(),
+                nn.Linear(2048,2*n_per_sample*50),
+                nn.ReLU(),
+                nn.Linear(2*n_per_sample*50,n_per_sample*50),
+                #nn.Sigmoid(),
+                nn.Unflatten(1,(1,n_per_sample,50))
+        ]
+        
 
     for layer in layers:
         decoder.append(layer)
@@ -86,7 +97,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc'):
     return decoder 
 
 
-def get_encoder_arch(dataset_name,latent_dim):
+def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
 
     if dataset_name.lower() == 'mnist':
@@ -152,5 +163,19 @@ def get_encoder_arch(dataset_name,latent_dim):
 
     elif dataset_name.lower() == 'finch':
         enc = Encoder(latent_dim=latent_dim)
-    
+
+    elif dataset_name.lower() == 'mocap':
+
+        encoder_net = nn.Sequential(nn.Flatten(start_dim=1,end_dim=-1),
+                                    nn.Linear(n_per_sample*50,2*n_per_sample*50),
+                                    nn.ReLU(),
+                                    nn.Linear(2*n_per_sample*50,2048),
+                                    nn.ReLU()
+                                    )
+        mu_net = nn.Linear(2048,latent_dim)
+        L_net = nn.Linear(2048,latent_dim)
+        d_net = nn.Linear(2048,latent_dim)
+
+        enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
+        
     return enc
