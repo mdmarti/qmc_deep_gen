@@ -122,7 +122,7 @@ def get_samples(datapath,subject,n_frames_per_sample=4):
 		means.append(mean)
 		keys.append(key)
 		
-	return trials,means,keys,frames
+	return trials,means,keys,frames,joints
 
 		
 		
