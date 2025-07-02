@@ -5,6 +5,8 @@ import glob
 from tqdm import tqdm 
 import copy 
 import matplotlib.pyplot as plt 
+from torch.utils.data import Dataset
+from sklearn.model_selection import train_test_split
 
 def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjoint']):
     
@@ -101,32 +103,6 @@ def frames2samples(frames,n_frames_per_sample):
 ##### TO DO: get samples (datapath,subject)
 ##### think about decoder arch for these data
 
-def get_samples(datapath,subject,n_frames_per_sample=4):
-	
-	
-	asf = glob.glob(os.path.join(datapath,subject,'*.asf'))[0]
-	amcs = glob.glob(os.path.join(datapath,subject,'*.amc'))
-	file_numbers = [int(a.split('_')[-1].split('.amc')[0]) for a in amcs]
-	order = np.argsort(file_numbers)
-	amcs = [amcs[o] for o in order]
-	
-	frames = [amc.parse_amc(am) for am in amcs]
-	joints = amc.parse_asf(asf) # for asf in asfs]
-	
-	trials,means,keys,frame_nos,labels = [],[], [],[],[]
-	
-	for ii,trial in tqdm(enumerate(frames),total=len(frames)):
-		traj,mean,key = preprocess_mocap_motion(joints,trial,n_frames_per_sample=n_frames_per_sample)
-	
-		trials.append(traj)
-		means.append(mean)
-		keys.append(key)
-		frame_nos.append(np.arange(len(traj)))
-		labels.append(ii * np.ones((len(traj),)))
-		
-	return trials,means,keys,frames,joints,frame_nos,labels
-
-		
 		
 def sample2motion(sample,motion,conversion_key,testing = False):
 
@@ -202,4 +178,71 @@ def plot_sample(sample,joints,motion,conversion_key,n_per_sample=5):
 
 	plt.show()
 	plt.close()
+      
+def get_samples(datapath,subject,n_frames_per_sample=4,test_size=0.2):
+    
+    
+    asf = glob.glob(os.path.join(datapath,subject,'*.asf'))[0]
+    amcs = glob.glob(os.path.join(datapath,subject,'*.amc'))
+    file_numbers = [int(a.split('_')[-1].split('.amc')[0]) for a in amcs]
+    order = np.argsort(file_numbers)
+    amcs = [amcs[o] for o in order]
+    
+    frames = [amc.parse_amc(am) for am in amcs]
+    joints = amc.parse_asf(asf) # for asf in asfs]
+    
+    trials,means,keys,frame_nos,labels = [],[], [],[],[]
+    
+    for ii,trial in tqdm(enumerate(frames),total=len(frames)):
+        traj,mean,key = preprocess_mocap_motion(joints,trial,n_frames_per_sample=n_frames_per_sample)
+    
+        trials.append(traj)
+        means.append(mean)
+        keys.append(key)
+        frame_nos.append(np.arange(len(traj)))
+        labels.append(ii * np.ones((len(traj),),dtype=np.int32))
+    
+    trials,labels,frame_nos =np.vstack(trials),np.hstack(labels),np.hstack(frame_nos)
+    train_trials,test_trials,train_labels,test_labels,train_frames,test_frames = train_test_split(trials,labels,frame_nos,test_size=test_size)
+    
+    
+    return (train_trials,test_trials),(train_labels,test_labels),(train_frames,test_frames),means,keys,frames,joints
+
+class MocapDataset(Dataset):
+
+    def __init__(self,samples,labels,means,motions,frame_nos,joints,conversion_keys):
+        """
+        there should only ever be joints for one (1) individual
+        """
+
+        self.samples = samples
+        self.labels = labels
+        self.means = means
+        self.motions = motions
+        self.frame_nos = frame_nos
+        self.joints = joints
+        self.conversion_keys = conversion_keys
+        self.length = len(samples)
+
+    def __len__(self):
+
+        return self.length
+
+    def __getitem__(self,index,return_all_info=False):
+
+
+        sample = self.samples[index]
+        label = self.labels[index]
+
+        if return_all_info:
+
+            frame_no = self.frame_nos[index]
+            motion = self.motions[label]
+            key = self.conversion_keys[label]
+            mean = self.means[label]
+            return (sample, label), (frame_no,motion,key,mean)
+
+        
+        return sample, label
+
 		
