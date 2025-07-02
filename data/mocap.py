@@ -7,6 +7,7 @@ import copy
 import matplotlib.pyplot as plt 
 from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
+from torchvision import transforms
 
 def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjoint']):
     
@@ -210,7 +211,7 @@ def get_samples(datapath,subject,n_frames_per_sample=4,test_size=0.2):
 
 class MocapDataset(Dataset):
 
-    def __init__(self,samples,labels,means,motions,frame_nos,joints,conversion_keys):
+    def __init__(self,samples,labels,means,motions,frame_nos,joints,conversion_keys,transform=transforms.ToTensor()):
         """
         there should only ever be joints for one (1) individual
         """
@@ -224,6 +225,7 @@ class MocapDataset(Dataset):
         self.conversion_keys = conversion_keys
         self.length = len(samples)
         self.n_per_sample=0
+        self.transform=transform
 
     def __len__(self):
 
@@ -235,7 +237,7 @@ class MocapDataset(Dataset):
         sample = self.samples[index]
         if self.n_per_sample == 0:
               self.n_per_sample = sample.shape[0]
-        sample = sample.view(1,sample.shape[0],sample.shape[1])
+        sample = self.transform(sample).unsqueeze(0)#,(1,sample.shape[0],sample.shape[1])))#.unsqueeze(0)
         label = self.labels[index]
 
         if return_all_info:
