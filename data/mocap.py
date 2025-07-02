@@ -115,7 +115,7 @@ def get_samples(datapath,subject,n_frames_per_sample=4):
 	
 	trials,means,keys,frame_nos,labels = [],[], [],[],[]
 	
-	for ii,trial in tqdm(enumerate(frames,total=len(frames))):
+	for ii,trial in tqdm(enumerate(frames),total=len(frames)):
 		traj,mean,key = preprocess_mocap_motion(joints,trial,n_frames_per_sample=n_frames_per_sample)
 	
 		trials.append(traj)
