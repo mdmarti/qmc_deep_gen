@@ -41,8 +41,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
             if qmc_latent_dim == 1:
 
-                train_lattice = torch.linspace(0,1,fib(train_lattice_m))
-                test_lattice = torch.linspace(0,1,fib(20))
+                train_lattice = torch.linspace(0,1,fib(train_lattice_m))[:,None]
+                test_lattice = torch.linspace(0,1,fib(20))[:,None]
 
 
             elif qmc_latent_dim == 2:
