@@ -1,7 +1,7 @@
 import torch
 import os
 from data.utils import load_data
-from models.sampling import gen_fib_basis
+from models.sampling import gen_fib_basis,fib,gen_korobov_basis
 from models.utils import *
 import train.train as train_qmc 
 import train.train_vae as train_vae
@@ -29,8 +29,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-    train_lattice = gen_fib_basis(m=train_lattice_m)
-    test_lattice = gen_fib_basis(m=20)
+    
 
     qmc_latent_dims = [1,2,3]
 
@@ -39,6 +38,20 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid.png')
     for qmc_latent_dim in qmc_latent_dims:
         if not os.path.isfile(data_save_loc) and not rerun: 
+
+            if qmc_latent_dim == 1:
+
+                train_lattice = np.linspace(0,1,fib(train_lattice_m))
+                test_lattice = np.linspace(0,1,fib(20))
+
+
+            elif qmc_latent_dim == 2:
+
+                train_lattice = gen_fib_basis(m=train_lattice_m)
+                test_lattice = gen_fib_basis(m=20)
+            else:
+                train_lattice = gen_korobov_basis(a=76,num_dims=qmc_latent_dim,num_points=1021)
+                test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
             ############## QMC Training ########################
 
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim)

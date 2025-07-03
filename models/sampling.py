@@ -59,7 +59,7 @@ def gen_korobov_basis(a,
     num_points = 1021, a = 76
     num_points = 2039, a = 1487
     num_points = 4093, a = 1516
-    see table 16.1 of owens for more
+    see table 16.1 of owen for more
     these were constructed for num_dims \in {8,12,24,32}
     this is a fibonacci lattice for num_dims = 2, a = Fib(m-1), n = Fib(m) for m >= 3
     """

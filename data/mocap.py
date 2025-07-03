@@ -214,6 +214,8 @@ class MocapDataset(Dataset):
     def __init__(self,samples,labels,means,motions,frame_nos,joints,conversion_keys,transform=transforms.ToTensor()):
         """
         there should only ever be joints for one (1) individual
+        
+        put transformation to sin(theta), cos(theta) here?
         """
 
         self.samples = samples
