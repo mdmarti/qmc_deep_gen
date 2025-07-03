@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 from torchvision import transforms
+import torch
+from scipy import stats
+import matplotlib as mpl
+from itertools import repeat 
 
 def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjoint']):
     
@@ -253,4 +257,85 @@ class MocapDataset(Dataset):
         
         return sample, label
 
+
+def plot_motion_on_ax(ax,motion,joints):
+
+    joints['root'].set_motion(motion)
+    pts = joints['root'].to_dict()
+
+    xs,ys,zs = [],[],[]
+    ls = []
+    for j in pts.values():
+        xs.append(j.coordinate[0,0])
+        ys.append(j.coordinate[1,0])
+        zs.append(j.coordinate[2,0])
+    ax.plot(zs,xs,ys,'b.')
+    #print(l)
+    #ls.append(l[0])
+    ax.view_init(azim=90,elev=10)
+    for iter,j in enumerate(pts.values()):
+        child = j
+        if child.parent is not None:
+            parent = child.parent
+            xs = [child.coordinate[0, 0], parent.coordinate[0, 0]]
+            ys = [child.coordinate[1, 0], parent.coordinate[1, 0]]
+            zs = [child.coordinate[2, 0], parent.coordinate[2, 0]]
+            l = ax.plot(zs,xs,ys,'-r')
+            ls.append(l[0])
+
+    return ax
+
+EPS1 = 1e-15
+EPS2 = 1e-6
+def model_grid_plot(model,n_samples_dim,base_motion,base_mean,joints,conversion_key,fn='',show=True,model_type='qmc'):
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #n_samples_dim = 10
+    n_samples=n_samples_dim**2
+    cmap=mpl.colormaps['plasma']
+    norm = mpl.colors.Normalize(-1,n_samples)
+    with torch.no_grad():
+        #z = torch.rand(n_samples, 2).to(device)
+        xx,yy = torch.meshgrid([torch.linspace(EPS1,1-EPS2,n_samples_dim)]*2,indexing='ij')
+        z = torch.stack([xx.flatten(),yy.flatten()],axis=-1).to(device)
+        if model_type == 'vae':
+
+            dist = stats.norm
+            z = torch.from_numpy(dist.ppf(z.detach().cpu().numpy())).to(torch.float32).to(model.device)
+        sample = model.decoder(z).detach().cpu().numpy().squeeze()
+
+    sample = np.nanmean(sample,axis=1)
+    #print(sample.shape)
+    #print(base_mean)
+    #print(base_motion)
+    motions = sample2motion(sample + base_mean[None,:],repeat(base_motion),conversion_key)
+    #print(len(motions))
+    #assert False
+    
+    z = z.detach().cpu().numpy()
+    inds = np.arange(n_samples)
+    cs = cmap(norm(inds))
+
+    
+    mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]                
+    
+
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.01},subplot_kw=dict(projection='3d'))
+
+    for ii in range(n_samples):
+        ax = axes[f"sample {ii}"]
+        #ax.imshow(sample[ii, 0, :, :], cmap=cm,origin=origin)
+        ax = plot_motion_on_ax(ax,motions[ii],joints)
+        #ax.spines[['right','left','top','bottom']].set_color(cmap(norm(ii)))
+        #ax.spines[['right','left','top','bottom']].set_linewidth(4)
+        ax.set_yticks([])
+        ax.set_xticks([])
+        ax.set_zticks([])
+
+
+    if show:
+        plt.show()
+    else:
+        plt.savefig(fn)
+    plt.close()
 		
