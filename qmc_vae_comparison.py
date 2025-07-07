@@ -43,7 +43,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
     data_save_loc = os.path.join(save_location,f'vae_qmc_dim_comparison_stats_{dataset}.json')
     qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid.png')
-    print(f"we will{"" if rerun else " not"} be rerunning model analysis")
+    print(f"we will{'' if rerun else ' not'} be rerunning model analysis")
     if not os.path.isfile(data_save_loc) or not rerun: 
         ############## QMC Training ########################
 
