@@ -50,6 +50,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 train_lattice = gen_fib_basis(m=train_lattice_m)
                 test_lattice = gen_fib_basis(m=20)
             else:
+                train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size//2)
+
                 train_lattice = gen_korobov_basis(a=76,num_dims=qmc_latent_dim,num_points=1021)
                 test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
             ############## QMC Training ########################
