@@ -32,8 +32,9 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
 
                 globalRot = np.deg2rad(motion['root'][3:])
 
-                globalrots.append(globalRot)
+                
                 jointKey.append((j,len(globalRot)))
+                globalrots.append(np.hstack([np.sin(globalRot),np.cos(globalRot)])) # SHOULD be size 2xDoF
             else:
                 idx = 0
                 rotation = []
@@ -47,8 +48,8 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
 
                 rotation = np.deg2rad(rotation)
 
-                rotations.append(rotation)
                 jointKey.append((j,len(rotation)))
+                rotations.append(np.hstack([np.sin(rotation),np.cos(rotation)]))
 
     return np.hstack(rotations),np.array(globalrots),jointKey
 
@@ -61,6 +62,8 @@ def preprocess_mocap_motion(joints,motion,n_frames_per_sample=3):
     and 3 global (torso) translational velocities.
     All data are then mean-subtracted.
     we treat each data point as a set of n frames over time, so we stack after mean subtracting
+    
+    SINCE we have the sin and cosine basis now, we shouldn't need to mean subtract....but test out just to be sure 
     """
 
     
@@ -81,7 +84,7 @@ def preprocess_mocap_motion(joints,motion,n_frames_per_sample=3):
     muRot = np.nanmean(allRots,axis=0)
     trial_converted_orig = frames2samples(allRots,n_frames_per_sample)
     #subjOrig.append(trial_converted_orig)
-    allRots = allRots - muRot
+    allRots = allRots# - muRot
     #subjMeans.append(muRot)
 
     trial_converted = frames2samples(allRots,n_frames_per_sample)
@@ -117,33 +120,35 @@ def sample2motion(sample,motion,conversion_key,testing = False):
 	This assumes that trajectories have already been re-meaned.
 	
 	this also only takes one sample, one motion at a time -- and assumes the samples in the motion correspond to the samples in the sample!!
+	"""
 
-	something is going wrong here. not sure what. Return the un-mean-centered data in addition to the mean-centered so we can see what's up
-	"""
-	"""
-	remove the assertions for when 
-	"""
 	#print(
-	traj = np.rad2deg(sample)
+	#traj = np.rad2deg(sample)
 	newMotion = [] #copy.deepcopy(motion)
 	
-	for sampleFrame,motionFrame in zip(traj,motion):
+	for sampleFrame,motionFrame in zip(sample,motion):
 
 		newFrame = copy.deepcopy(motionFrame)
 		start_ind = 0
 		for (jointName,DoF) in conversion_key:
 			# these are added to the list in the same order that joints are added to the sample list, so this should be okay
 			#print(f"replacing {jointName}")
+			sins = sampleFrame[start_ind:start_ind+DoF]
+			coss = sampleFrame[start_ind+DoF:start_ind+2*DoF]
+			rads_recon = np.arctan2(sins,coss)
+			degrees_recon = np.rad2deg(rads_recon)
+			#degrees_recon[degrees_recon <0] = 360 + degrees_recon[degrees_recon < 0]
 			if jointName == 'root':
-				newFrame[jointName] = motionFrame[jointName][:3] + sampleFrame[start_ind:start_ind + DoF].tolist() # unsure if this will work, but it should
+				
+				newFrame[jointName] = motionFrame[jointName][:3] + degrees_recon.tolist() # unsure if this will work, but it should
 				if testing:
-					assert np.all(np.isclose(np.array(motionFrame[jointName][3:]),np.array(sampleFrame[start_ind:start_ind + DoF].tolist()))),print(motionFrame[jointName][3:],sampleFrame[start_ind:start_ind + DoF].tolist(),start_ind,start_ind+DoF)
+					assert np.all(np.isclose(np.array(motionFrame[jointName][3:]),degrees_recon)),print(motionFrame[jointName][3:],degrees_recon.tolist(),start_ind,start_ind+DoF)
 			else:
-				newFrame[jointName] = sampleFrame[start_ind:start_ind + DoF].tolist()
+				newFrame[jointName] = degrees_recon.tolist()
 				if testing:
-					assert np.all(np.isclose(sampleFrame[start_ind:start_ind + DoF],np.array(motionFrame[jointName]))),print(sampleFrame[start_ind:start_ind + DoF],np.array(motionFrame[jointName]),start_ind,start_ind+DoF)
+					assert np.all(np.isclose(degrees_recon,np.array(motionFrame[jointName]))),print(degrees_recon,np.array(motionFrame[jointName]),start_ind,start_ind+DoF)
 
-			start_ind += DoF
+			start_ind += 2*DoF
 		newMotion.append(newFrame)
 
 	return newMotion
@@ -151,38 +156,51 @@ def sample2motion(sample,motion,conversion_key,testing = False):
 def plot_sample(sample,joints,motion,conversion_key,n_per_sample=5):
 
 	
-	predicted_motion = sample2motion(sample,motion,conversion_key)
-	fig,axs = plt.subplots(nrows=1,ncols=n_per_sample,subplot_kw=dict(projection='3d'),figsize=(20,5))
-		
-	for ii,frame in enumerate(predicted_motion):
-		ax = axs[ii]    
-		#ax = fig.add_subplot(111,projection='3d')
-		#ax = plt.gca()
-		joints['root'].set_motion(frame)
-		pts = joints['root'].to_dict()
-	
-		xs,ys,zs = [],[],[]
-		ls = []
-		for j in pts.values():
-			xs.append(j.coordinate[0,0])
-			ys.append(j.coordinate[1,0])
-			zs.append(j.coordinate[2,0])
-		ax.plot(zs,xs,ys,'b.')
-		#print(l)
-		#ls.append(l[0])
-		ax.view_init(azim=90,elev=10)
-		for iter,j in enumerate(pts.values()):
-			child = j
-			if child.parent is not None:
-				parent = child.parent
-				xs = [child.coordinate[0, 0], parent.coordinate[0, 0]]
-				ys = [child.coordinate[1, 0], parent.coordinate[1, 0]]
-				zs = [child.coordinate[2, 0], parent.coordinate[2, 0]]
-				l = ax.plot(zs,xs,ys,'-r')
-				ls.append(l[0])
-
-	plt.show()
-	plt.close()
+    predicted_motion = sample2motion(sample,motion,conversion_key,testing=True)
+    fig,axs = plt.subplots(nrows=1,ncols=n_per_sample,subplot_kw=dict(projection='3d'),figsize=(20,5))
+        
+    for ii,frame in enumerate(predicted_motion):
+        ax = axs[ii]    
+        #ax = fig.add_subplot(111,projection='3d')
+        #ax = plt.gca()
+        joints['root'].set_motion(frame)
+        pts = joints['root'].to_dict()
+    
+        xs,ys,zs = [],[],[]
+        ls = []
+        for j in pts.values():
+            xs.append(j.coordinate[0,0])
+            ys.append(j.coordinate[1,0])
+            zs.append(j.coordinate[2,0])
+        ax.plot(zs,xs,ys,'b.')
+        #print(l)
+        #ls.append(l[0])
+        ax.view_init(azim=90,elev=10)
+        for iter,j in enumerate(pts.values()):
+            child = j
+            if child.parent is not None:
+                parent = child.parent
+                xs = [child.coordinate[0, 0], parent.coordinate[0, 0]]
+                ys = [child.coordinate[1, 0], parent.coordinate[1, 0]]
+                zs = [child.coordinate[2, 0], parent.coordinate[2, 0]]
+                l = ax.plot(zs,xs,ys,'-r')
+                ls.append(l[0])
+    
+        xlims,ylims,zlims = ax.get_xlim(),ax.get_ylim(),ax.get_zlim()
+        ranges = [xlims[1]-xlims[0],ylims[1]-ylims[0],zlims[1]-zlims[0]]
+        max_range = np.amax(ranges)
+        padding = [max_range - ranges[0],max_range - ranges[1],max_range - ranges[2]]
+        xlims = [xlims[0] - padding[0]//2,xlims[1] + padding[0]//2]
+        ylims = [ylims[0] - padding[1]//2,ylims[1] + padding[1]//2]
+        zlims = [zlims[0] - padding[2]//2,zlims[1] + padding[2]//2]
+        ax.set_xlim(xlims)
+        ax.set_ylim(ylims)
+        ax.set_zlim(zlims)
+        
+    
+    
+    plt.show()
+    plt.close()
       
 def get_samples(datapath,subject,n_frames_per_sample=4,test_size=0.2):
     
