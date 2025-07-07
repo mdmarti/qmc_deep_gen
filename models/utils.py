@@ -86,7 +86,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                 nn.ReLU(),
                 nn.Linear(2*n_per_sample*50,n_per_sample*50),
                 #nn.Sigmoid(),
-                nn.Unflatten(1,(1,n_per_sample,50))
+                nn.Unflatten(1,(1,n_per_sample,100))
         ]
         
 
