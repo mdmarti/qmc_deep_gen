@@ -1,7 +1,7 @@
 import torch
 import os
 from data.utils import load_data
-from models.sampling import gen_fib_basis
+from models.sampling import gen_fib_basis, gen_korobov_basis
 from models.utils import *
 import train.train as train_qmc 
 import train.train_vae as train_vae
@@ -31,15 +31,21 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         os.mkdir(save_location)
 
     print(f"Training on {dataset} data")
-    train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size)
+    
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-    train_lattice = gen_fib_basis(m=train_lattice_m)
-    test_lattice = gen_fib_basis(m=20)
-
     qmc_latent_dim=3 if 'celeba' in dataset.lower() else 2
+
+    if qmc_latent_dim == 2:
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size)
+        train_lattice = gen_fib_basis(m=train_lattice_m)
+        test_lattice = gen_fib_basis(m=20)
+    else:
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size//2)
+
+        train_lattice = gen_korobov_basis(a=76,num_dims=qmc_latent_dim,num_points=1021)
+        test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
 
     vae_latent_dim = [qmc_latent_dim**ii for ii in range(1,8)]
 
