@@ -193,7 +193,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
     #
     ax.legend([q,r.lines[0],e.lines[0]],['QMC evidence','VAE likelihood','VAE ELBO'],frameon=False)
-    plt.savefig(os.path.join(save_location,'vae_qmc_evidence_elbo_comparison_by_dim_{dataset}.svg'))
+    plt.savefig(os.path.join(save_location,f'vae_qmc_evidence_elbo_comparison_by_dim_{dataset}.svg'))
     #plt.show()
     plt.close()
 

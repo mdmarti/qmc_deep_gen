@@ -170,9 +170,9 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
     elif dataset_name.lower() == 'mocap':
 
         encoder_net = nn.Sequential(nn.Flatten(start_dim=1,end_dim=-1),
-                                    nn.Linear(n_per_sample*50,2*n_per_sample*50),
+                                    nn.Linear(n_per_sample*100,2*n_per_sample*100),
                                     nn.ReLU(),
-                                    nn.Linear(2*n_per_sample*50,2048),
+                                    nn.Linear(2*n_per_sample*100,2048),
                                     nn.ReLU()
                                     )
         mu_net = nn.Linear(2048,latent_dim)
