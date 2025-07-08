@@ -60,7 +60,7 @@ class ResCellNVAESimple(nn.Module):
 
     def forward(self,x):
 
-        return x + self.ops(x)
+        return x + 0.1*self.ops(x)
     
 #### from https://github.com/NVlabs/NVAE/tree/master
 class SE(nn.Module):
