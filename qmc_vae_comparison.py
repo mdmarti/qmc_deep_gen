@@ -11,7 +11,9 @@ from train.losses import *
 from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
-from plotting.visualize import recon_comparison_plot,posterior_comparison_plot,qmc_train_plot,vae_train_plot,model_grid_plot
+import plotting.visualize as vis2d # recon_comparison_plot,posterior_comparison_plot,qmc_train_plot,vae_train_plot,model_grid_plot
+import plotting.visualize_1d as vis1d
+import plotting.visualize_3d as vis3d
 import matplotlib.pyplot as plt
 import fire
 import json
@@ -37,12 +39,12 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     train_lattice = gen_fib_basis(m=train_lattice_m)
     test_lattice = gen_fib_basis(m=20)
 
-    qmc_latent_dim=2
+    qmc_latent_dim=3 if 'celeba' in dataset.lower() else 2
 
     vae_latent_dim = [qmc_latent_dim**ii for ii in range(1,8)]
 
     data_save_loc = os.path.join(save_location,f'vae_qmc_dim_comparison_stats_{dataset}.json')
-    qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid.png')
+    qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid_{qmc_latent_dim}d.png')
     print(f"we will{'' if rerun else ' not'} be rerunning model analysis")
     if not os.path.isfile(data_save_loc) or not rerun: 
         ############## QMC Training ########################
@@ -73,14 +75,26 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
             qmc_model.to(device)
             qmc_model.eval()
         print("making train plot...")
-        qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{dataset}_train_curve.svg'))
+        vis2d.qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{dataset}_train_curve.svg'))
         print("done!")
         if not os.path.isfile(qmc_grid_loc) and (dataset.lower() != 'mocap'):
             print("making model grid plot....")
-            model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
-                            origin='lower' if dataset.lower() == 'finch' else None,
-                            cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
-                            model_type='qmc',show=False)
+            if qmc_latent_dim == 2:
+                vis2d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
+                                origin='lower' if dataset.lower() == 'finch' else None,
+                                cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                model_type='qmc',show=False)
+            elif qmc_latent_dim == 1:
+                    vis1d.model_grid_plot(qmc_model,n_samples_dim=100,fn=qmc_grid_loc,
+                                        origin='lower' if dataset.lower() == 'finch' else None,
+                                        cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                        model_type='qmc',show=False)
+            elif qmc_latent_dim == 3:
+                qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid')
+                vis3d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
+                                        origin='lower' if dataset.lower() == 'finch' else None,
+                                    cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                    model_type='qmc',show=False)
             print("done!")
         qmc_test_losses = -np.array(qmc_test_losses)
 
@@ -125,11 +139,11 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
             vae_test_recons_all.append(vae_test_recons)
             vae_test_kls_all.append(vae_test_kls)
             print("making train plot...")
-            vae_train_plot(vae_losses,vae_test_losses,save_fn=os.path.join(save_location,f'vae_{dataset}_{ld}d_train_curve.svg'))
+            vis2d.vae_train_plot(vae_losses,vae_test_losses,save_fn=os.path.join(save_location,f'vae_{dataset}_{ld}d_train_curve.svg'))
             print("done!")
             if not os.path.isfile(vae_grid_loc) and ld == 2 and (dataset.lower() != 'mocap'):
                 print("making model grid plot....")
-                model_grid_plot(vae_model,n_samples_dim=20,fn=vae_grid_loc,
+                vis2d.model_grid_plot(vae_model,n_samples_dim=20,fn=vae_grid_loc,
                                 origin='lower' if dataset.lower() == 'finch' else None,
                                 cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
                                 model_type='vae',show=False)
@@ -138,13 +152,13 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
                 with torch.no_grad():
                     print(f"comparing {ld}d VAE and QMC reconstructions")
-                    recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc)
+                    vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc)
                     print("done!")
             if ld == 2 and (dataset.lower() != 'mocap'):
                 print("comparing true to encoder posteriors (under decoder)")
                 with torch.no_grad():
                     posterior_save_loc =os.path.join(save_location,"vae_posterior_comparison_" + str(ld) + 'd_{sample_num}.png')
-                    posterior_comparison_plot(vae_model,test_loader,vae_lp,save_path=posterior_save_loc)
+                    vis2d.posterior_comparison_plot(vae_model,test_loader,vae_lp,save_path=posterior_save_loc)
                 print("Done!")
 
 
