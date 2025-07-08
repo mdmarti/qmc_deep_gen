@@ -13,7 +13,17 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
     else:
         decoder.append(nn.Linear(latent_dim,2048))
 
-    if dataset_name.lower() == 'mnist':
+    if 'mnist_simple' in dataset_name.lower():
+
+        decoder = nn.Sequential(TorusBasis(),
+                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
+        layers = [
+                nn.ReLU(),
+                nn.Linear(500,28**2),
+                nn.Sigmoid(),
+                nn.Unflatten(1,(1,28,28))
+        ]
+    elif 'mnist' in dataset_name.lower():
 
         layers = [nn.ReLU(),
             nn.Linear(2048,64*7*7),
@@ -30,18 +40,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Conv2d(16,1,1),
             nn.Sigmoid()]
 
-    elif dataset_name.lower() == 'mnist_simple':
+    
 
-        decoder = nn.Sequential(TorusBasis(),
-                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
-        layers = [
-                nn.ReLU(),
-                nn.Linear(500,28**2),
-                nn.Sigmoid(),
-                nn.Unflatten(1,(1,28,28))
-        ]
-
-    elif dataset_name.lower() == 'celeba':
+    elif 'celeba' in dataset_name.lower():
 
         layers = [nn.ReLU(),
             nn.Linear(2048,64*5*5),
@@ -65,7 +66,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Sigmoid()]
  
 
-    elif dataset_name.lower() == 'finch':
+    elif 'finch' in dataset_name.lower():
 
         layers = [nn.Linear(2048, 64*8*8),
             nn.Unflatten(1, (64, 8, 8)),
@@ -78,7 +79,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.ConvTranspose2d(8,1,3,stride=2,padding=1,output_padding=1),
             nn.Sigmoid()]
         
-    elif dataset_name.lower() == 'mocap':
+    elif 'mocap' in dataset_name.lower():
 
          layers = [
                 nn.ReLU(),
@@ -100,7 +101,18 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
 def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
 
-    if dataset_name.lower() == 'mnist':
+    if 'mnist_simple' in dataset_name.lower():
+        encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
+        mu_net = nn.Sequential(nn.Linear(28**2,500),
+                               nn.ReLU(),
+                               nn.Linear(500,latent_dim))
+        L_net = ZeroLayer()
+        d_net = nn.Sequential(nn.Linear(28**2,500),
+                               nn.ReLU(),
+                               nn.Linear(500,latent_dim))
+        enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
+        
+    if 'mnist' in dataset_name.lower():
 
         encoder_net =nn.Sequential(nn.Conv2d(1,16,1),
                            ResCellNVAESimple(16,expand_factor=1),
@@ -121,20 +133,8 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
 
-    elif dataset_name.lower() == 'mnist_simple':
-        encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
-        mu_net = nn.Sequential(nn.Linear(28**2,500),
-                               nn.ReLU(),
-                               nn.Linear(500,latent_dim))
-        L_net = ZeroLayer()
-        d_net = nn.Sequential(nn.Linear(28**2,500),
-                               nn.ReLU(),
-                               nn.Linear(500,latent_dim))
-        enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
-        
 
-
-    elif dataset_name.lower() == 'celeba':
+    elif 'celeba' in dataset_name.lower():
 
         encoder_net =nn.Sequential(nn.Conv2d(1,4,1),#,stride=2,padding=1),
                             ResCellNVAESimple(4,expand_factor=2),
@@ -164,10 +164,10 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
-    elif dataset_name.lower() == 'finch':
+    elif 'finch' in dataset_name.lower():
         enc = Encoder(latent_dim=latent_dim)
 
-    elif dataset_name.lower() == 'mocap':
+    elif 'mocap' in  dataset_name.lower():
 
         encoder_net = nn.Sequential(nn.Flatten(start_dim=1,end_dim=-1),
                                     nn.Linear(n_per_sample*100,2*n_per_sample*100),
