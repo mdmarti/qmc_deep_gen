@@ -19,7 +19,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sampl
         test_data = datasets.MNIST(dataset_loc, train=False, download=True, transform=transform)
         #test_loader = DataLoader(test_data, batch_size=batch_size//4, shuffle=False,num_workers=n_workers)
         
-    elif dataset_name.lower() == 'celeba':
+    elif 'celeba' in dataset_name.lower():
 
         print('loading celeba...')
         train_ims = torch.load(os.path.join(dataset_loc,'train_80x80.pt'))
@@ -31,7 +31,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sampl
         #test_loader = DataLoader(test_data,batch_size=batch_size//4,num_workers=n_workers,shuffle=False)
  
 
-    elif dataset_name.lower() == 'finch':
+    elif 'finch' in dataset_name.lower():
 
         print("loading bird....")
 
@@ -41,7 +41,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sampl
         #train_loader = DataLoader(train_data,num_workers=n_workers,shuffle=True,batch_size=batch_size)
         #test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=batch_size//4)
 
-    elif dataset_name.lower() == 'mocap':
+    elif 'mocap' in dataset_name.lower():
 
         print('loading mocap...')
 
