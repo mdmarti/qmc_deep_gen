@@ -44,8 +44,8 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
                     if not np.array_equal(lm, np.zeros(2)):
                         rotation.append(motion[joint.name][idx])
                         idx += 1
-                    else:
-                         rotation.append(0)
+                    #else:
+                    #     rotation.append(0)
                     
                 #print(joint.name)
                 #if len(rotation) > 0:
@@ -77,7 +77,7 @@ def preprocess_mocap_motion(joints,motion,n_frames_per_sample=3):
     rotTrial,globalRotTrial = [],[]
     for frame in motion:
         #print(subject,frame)
-        rot,globalrot,jointNames = getRotation(joints,frame,excluded=['nothing'])
+        rot,globalrot,jointNames = getRotation(joints,frame)
         
         rotTrial.append(rot)
         globalRotTrial.append(globalrot)
