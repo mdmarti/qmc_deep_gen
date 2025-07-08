@@ -71,7 +71,7 @@ def preprocess_mocap_motion(joints,motion,n_frames_per_sample=3):
     rotTrial,globalRotTrial = [],[]
     for frame in motion:
         #print(subject,frame)
-        rot,globalrot,jointNames = getRotation(joints,frame,excluded=[])
+        rot,globalrot,jointNames = getRotation(joints,frame,excluded=[''])
         
         rotTrial.append(rot)
         globalRotTrial.append(globalrot)
