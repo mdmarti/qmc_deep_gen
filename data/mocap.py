@@ -19,10 +19,10 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
     globalrots = []
     jointKey = []
     #print(len(joints))
-    print(len(joints.keys()))
+    #print(len(joints.keys()))
     for j in joints.keys():
         joint = joints[j]
-        print(j)
+        #print(j)
         drop = False
         for kk in excluded:
             if kk in joint.name:
@@ -41,11 +41,12 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
                 idx = 0
                 rotation = []
                 for axis, lm in enumerate(joint.limits):
-                    if not np.array_equal(lm, np.zeros(2)):
-                        rotation.append(motion[joint.name][idx])
-                        idx += 1
+                    #if not np.array_equal(lm, np.zeros(2)):
+                    rotation.append(motion[joint.name][idx])
+                    idx += 1
                 #print(joint.name)
-                rotation = np.hstack(rotation)
+                #if len(rotation) > 0:
+                #rotation = np.hstack(rotation)
                 #print(f"original values {joint.name}: {rotation}")
 
                 rotation = np.deg2rad(rotation)
