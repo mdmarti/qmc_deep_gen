@@ -41,8 +41,10 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
                 idx = 0
                 rotation = []
                 for axis, lm in enumerate(joint.limits):
-                    #if not np.array_equal(lm, np.zeros(2)):
-                    rotation.append(motion[joint.name][idx])
+                    if not np.array_equal(lm, np.zeros(2)):
+                        rotation.append(motion[joint.name][idx])
+                    else:
+                         rotation.append(0)
                     idx += 1
                 #print(joint.name)
                 #if len(rotation) > 0:
