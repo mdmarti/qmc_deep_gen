@@ -4,17 +4,17 @@ from data.utils import load_data
 from models.sampling import gen_fib_basis,fib,gen_korobov_basis
 from models.utils import *
 import train.train as train_qmc 
-import train.train_vae as train_vae
-from models.vae_base import VAE 
 from models.qmc_base import QMCLVM
 from train.losses import *
 from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
-from plotting.visualize import recon_comparison_plot,posterior_comparison_plot,qmc_train_plot,vae_train_plot,model_grid_plot
+import plotting.visualize as vis2d # recon_comparison_plot,posterior_comparison_plot,qmc_train_plot,vae_train_plot,model_grid_plot
+import plotting.visualize_1d as vis1d
+import plotting.visualize_3d as vis3d
 import matplotlib.pyplot as plt
 import fire
-import json
+import mocap
 
 
 def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15,make_comparison_plots=True):
@@ -82,15 +82,32 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 qmc_model.to(device)
                 qmc_model.eval()
             print("making train plot...")
-            qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{qmc_latent_dim}d_{dataset}_train_curve.svg'))
+            vis2d.qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{qmc_latent_dim}d_{dataset}_train_curve.svg'))
             print("done!")
-            if not os.path.isfile(qmc_grid_loc) and (dataset.lower() != 'mocap') and (qmc_latent_dim == 2):
+            if not os.path.isfile(qmc_grid_loc) and (dataset.lower() != 'mocap'):
                 print("making model grid plot....")
-                model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
+                if qmc_latent_dim == 2:
+                    vis2d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
                                 origin='lower' if dataset.lower() == 'finch' else None,
                                 cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
                                 model_type='qmc',show=False)
+                elif qmc_latent_dim == 1:
+                    vis1d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
+                                        origin='lower' if dataset.lower() == 'finch' else None,
+                                        cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                        model_type='qmc',show=False)
+                elif qmc_latent_dim == 3:
+                    qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid')
+                    vis3d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
+                                          origin='lower' if dataset.lower() == 'finch' else None,
+                                        cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                        model_type='qmc',show=False)
                 print("done!")
+            elif not os.path.isfile(qmc_grid_loc) and (qmc_latent_dim == 2):
+
+                mocap.model_grid_plot(qmc_model,n_samples_dim=20,base_motion=test_loader.dataset.motions[0][0],
+                                      joints = test_loader.dataset.joints,conversion_key=test_loader.dataset.conversion_keys[0],
+                                      fn = qmc_grid_loc,show=False,model_type='qmc')
             qmc_test_losses = -np.array(qmc_test_losses)
 
 
