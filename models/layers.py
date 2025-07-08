@@ -37,6 +37,30 @@ class ConvResBlock(nn.Module):
     def forward(self,x):
 
         return x + self.hidden(x)
+    
+class MLPResCellNVAESimple(nn.Module):
+
+    def __init__(self,in_size,expand_factor=4):
+
+        super(ResCellNVAESimple,self).__init__()
+        #self.ops = nn.ModuleList()
+
+        op1 = nn.BatchNorm1d(num_features=in_size)
+        op2 = nn.Linear(in_size,expand_factor*in_size)
+        op3_1 = nn.BatchNorm1d(num_features=expand_factor*in_size)
+        op3_2 = nn.SiLU()
+        op4 = nn.Linear(expand_factor*in_size,expand_factor*in_size)
+        op5_1 = nn.BatchNorm1d(num_features=expand_factor*in_size)
+        op5_2 = nn.SiLU()
+        op6= nn.Linear(expand_factor*in_size,in_size,1)
+        op7 = nn.BatchNorm1d(num_features=in_size)
+        op8 = SE(in_size,in_size)
+
+        self.ops = nn.Sequential(op1,op2,op3_1,op3_2,op4,op5_1,op5_2,op6,op7,op8)
+
+    def forward(self,x):
+
+        return x + 0.1*self.ops(x)
 
 class ResCellNVAESimple(nn.Module):
 
