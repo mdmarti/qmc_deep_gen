@@ -305,7 +305,7 @@ def plot_motion_on_ax(ax,motion,joints):
 
 EPS1 = 1e-15
 EPS2 = 1e-6
-def model_grid_plot(model,n_samples_dim,base_motion,base_mean,joints,conversion_key,fn='',show=True,model_type='qmc'):
+def model_grid_plot(model,n_samples_dim,base_motion,joints,conversion_key,fn='',show=True,model_type='qmc'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #n_samples_dim = 10
@@ -326,7 +326,7 @@ def model_grid_plot(model,n_samples_dim,base_motion,base_mean,joints,conversion_
     #print(sample.shape)
     #print(base_mean)
     #print(base_motion)
-    motions = sample2motion(sample + base_mean[None,:],repeat(base_motion),conversion_key)
+    motions = sample2motion(sample,repeat(base_motion),conversion_key)
     #print(len(motions))
     #assert False
     
