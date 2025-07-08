@@ -22,6 +22,7 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
     print(len(joints.keys()))
     for j in joints.keys():
         joint = joints[j]
+        print(j)
         drop = False
         for kk in excluded:
             if kk in joint.name:
