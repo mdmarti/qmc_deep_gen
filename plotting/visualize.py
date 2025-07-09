@@ -214,6 +214,7 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
 
 def format_img_axis(ax,xlabel='',ylabel='',title=''):
 
+    ax.spines[['left','right','top','bottom']].set_visible(False)
     ax.set_yticks([])
     ax.set_xticks([])
     ax.set_xlabel(xlabel)
