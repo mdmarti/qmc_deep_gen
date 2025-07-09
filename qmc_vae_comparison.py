@@ -64,7 +64,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
         if not os.path.isfile(qmc_save_path):
             qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
-                                                                nEpochs=nEpochs,print_losses=dataset.lower() == 'celeba')
+                                                                nEpochs=nEpochs,print_losses='celeba' in dataset.lower())
             print("Done training!")
             qmc_model.eval()
             with torch.no_grad():
