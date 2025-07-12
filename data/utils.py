@@ -6,7 +6,7 @@ from torchvision import transforms, datasets
 from data.mocap import *
 
 
-def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sample=5):
+def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sample=1):
 
     n_workers = len(os.sched_getaffinity(0))
 
