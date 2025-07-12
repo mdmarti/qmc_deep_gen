@@ -52,17 +52,21 @@ def binary_evidence_old(samples, data,reduce=True,batch_size=-1):
 
     return -1* recon_loss
 
-def binary_lp(samples,data):
+def binary_lp(samples,data,importance_weights=[]):
 
     ## following the example of torch BCEloss, this clamps the log terms at -100
     ## to prevent bad gradients
+    ## Samples should be KSamples x Channels x H x W
+    K,C,H,W = samples.shape
+    if len(importance_weights) == 0:
+        importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
     samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
     t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
     t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
     #if torch.any(t1 == )
     assert not torch.any(t1 == torch.nan)
     assert not (torch.any(t2 == torch.nan))
-    return t1 + t2
+    return (t1 + t2)*importance_weights
 
 def binary_lp_old(samples,data):
 
@@ -143,7 +147,7 @@ def gaussian_evidence_with_blur(samples,data,var=1.,kernel_size=4,sigma=0.25):
     return gaussian_evidence(blur_samples,blur_data,var)
 
 
-def gaussian_lp(samples,data,var):
+def gaussian_lp(samples,data,var,importance_weights=[]):
 
     """
     expects samples to be 
@@ -151,9 +155,12 @@ def gaussian_lp(samples,data,var):
     expects data to be
     B x 1 x D x D
     """
+    K,C,H,W = samples.shape
+    if len(importance_weights) == 0:
+        importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
     #lambda_lp = lambda samples,data: -torch.nn.functional.gaussian_nll_loss(samples,data,var=var,reduction='sum',full=True)
     vmapped_lp = torch.vmap(torch.vmap(torch.nn.functional.gaussian_nll_loss,in_dims=(0,None)),in_dims=(None,0))
-    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True)
+    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True)*importance_weights
 
 
 def gaussian_lp_old(samples,data,var=1):
