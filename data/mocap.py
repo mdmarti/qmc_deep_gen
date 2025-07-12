@@ -27,7 +27,7 @@ def getRotation(joints,motion,excluded = ['toes','hand','fingers','thumb','hipjo
         for kk in excluded:
             if kk in joint.name:
                 drop = True
-                print(f'dropping {joint.name}')
+                #print(f'dropping {joint.name}')
                 continue
         if not drop:
             if joint.name == 'root':
