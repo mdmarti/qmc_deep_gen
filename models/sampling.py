@@ -1,5 +1,7 @@
-import numpy as numpy
+import numpy as np
 import torch
+from scipy.spatial import Voronoi, voronoi_plot_2d
+from scipy.spatial.distance import cdist
 
 
 def roberts_sequence(
@@ -83,3 +85,124 @@ def box_muller(unif_2d_vars):
     z2 = torch.sqrt(-2 * torch.log(unif_2d_vars[:,0]+EPS)) * torch.sin(2*torch.pi*unif_2d_vars[:,1])
 
     return torch.stack([z1,z2],dim=1)
+
+######### For finer-grained sampling after the model is mostly fully trained on the original
+######## grid. motivation here is that once the model has been heavily trained on the 
+####### first grid, most samples are wasted so we need to sample more finely for each data point
+
+def get_default_voronoi(grid):
+  """
+  should take a grid and do everything needed to find a the voronoi cell around each grid point
+  then, should center this at zero
+  """
+  (K,D) = grid.shape
+  pts = grid.detach().cpu().numpy()
+  k = np.argmin(np.linalg.norm(pts - 0.5*np.ones((D,)), axis=1))
+  dists = cdist(pts[k][None,:],pts).ravel() # distance of all points to point closest to center of grid
+
+  n_neighbors = min(50,len(pts)-1)
+  partition =  np.argpartition(dists, n_neighbors)[:n_neighbors] # 20 nearest neighbors to central point. This should be enough points, but can increase to 50 just in case
+  neighbors = np.setdiff1d(partition,[k]) # nearest neighbors not including center point
+
+  vor = Voronoi(np.vstack([pts[k]] + [pts[kn] for kn in neighbors])) # voronoi partition of central point and all neighbors
+  assert np.allclose(vor.points[0], pts[k])
+
+  central_verts = vor.vertices[vor.regions[vor.point_region[0]]]
+  nverts = len(central_verts)
+
+  zero_centered_cell = central_verts - pts[k]
+  return torch.from_numpy(zero_centered_cell)
+
+def sample_from_grid(grid,posterior,num_samples=1000):
+
+    """
+    takes as input a grid of voronoi cell centers,
+    a weighting on those centers (based on some posterior),
+    """
+
+    #print(grid_len)
+    #print(posterior.shape)
+    #gen = np.random.default_rng()
+    #fn = lambda posterior: gen.choice(grid_len,n_samples,replace=True,p=posterior)
+    #print(fn(posterior.detach().cpu().numpy()).shape)
+    #assert False
+    #sample_fnc = np.vectorize(fn)
+    #print(posterior.shape)
+    (B1,N) = posterior.shape
+    n = len(grid)
+    samples = torch.multinomial(posterior,num_samples,replacement=True).to(grid.device)
+    (B2,K) = samples.shape
+    assert B1 == B2
+    #for ii,s in enumerate(samples): 
+    #    assert torch.all(s >= ii * N) and torch.all(s < (ii+1)*N)
+    #samples = sample_fnc(posterior[None,:].detach().cpu().numpy()) #gen.choice(grid_len,n_samples,replace=True,p=posterior.detach().cpu().numpy()).squeeze()
+    
+    #assert False
+    #posterior_weights = posterior[samples.view(np.prod]
+    #print(posterior_weights.shape)
+    #print(num_samples)
+    #shifted_samples = samples + (torch.arange(0,B1)*N)[:,None]
+    posterior_weights = [] #posterior.view(np.prod(posterior.shape))
+    
+    samples = samples.view(np.prod(samples.shape))
+    #start = time.time()
+    for ii in range(B1):
+        posterior_weights.append(posterior[ii][samples])
+    posterior_weights=torch.stack(posterior_weights,dim=0)
+    importance_weights = torch.mean(posterior_weights,axis=0) # is this correct here? yes
+    #end = time.time() - start
+    #print(f"got weights in {end*1000:.2f}ms")
+    #shifted_samples = shifted_samples.view(np.prod(samples.shape))
+    
+    
+    #posterior_weights = posterior_weights[shifted_samples]
+    #posterior_weights = posterior_weights.view(B1,K)
+    assert (posterior_weights.shape[0]) == B1 and (posterior_weights.shape[1] == K),print(posterior_weights.shape)
+    #print(posterior_weights.shape)
+    #print(posterior_weights.shape)
+    #print(grid.shape)
+    #assert False
+    #print(grid.shape)
+    #print(samples.shape)
+    #print(grid[samples].shape)
+    return grid[samples],posterior_weights
+
+def sample_from_cells(cell_centers,cell_bounds):
+
+    """
+    cell_bounds should be kxd, where k is the number of bounding points, d is latent dim
+    cell_centers should be bxd, where b is the number of centers per batch, and, d is the latent dim
+    which means that shifted cells should end up as b x k x d
+    """
+    gen = np.random.default_rng()
+    k = cell_bounds.shape[0]
+    b = cell_centers.shape[0]
+    dirichlet_weights = np.ones((k,))
+    dirichlet_samples = torch.from_numpy(gen.dirichlet(dirichlet_weights,size=(b,1))).to(cell_centers.device)
+
+    #print(cell_bounds.shape)
+    #print(cell_centers.shape)
+    #shifted_cells = cell_centers + cell_bounds[None,:,:]
+    shifted_cells = cell_centers[:,None,:] + cell_bounds[None,:,:]
+    #print(shifted_cells.shape)
+    #assert False
+    samples = torch.einsum('bkd,bjk->bjd',shifted_cells,dirichlet_samples).squeeze()
+    
+    samples[samples < 0] = 1 + samples[samples < 0]
+    samples[samples >= 1] = samples[samples >=1] -1
+    #print(samples.shape)
+    return samples
+
+def gen_samples_batch(grid,model,lp,samples,n_samples_total):
+
+    n_per_s = n_samples_total // samples.shape[0] 
+    with torch.no_grad():
+        posterior=model.posterior_probability(grid.to(model.device),samples.to(model.device),lp)
+
+        centered_cell = get_default_voronoi(grid)
+    
+        sampled_shifts,importance_weights = sample_from_grid(grid,posterior,num_samples=n_per_s)
+    
+        samples = sample_from_cells(sampled_shifts,centered_cell)
+
+    return samples.to(torch.float32),importance_weights.to(torch.float32)
