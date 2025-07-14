@@ -52,7 +52,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     data_save_loc = os.path.join(save_location,f'vae_qmc_dim_comparison_stats_{dataset}.json')
     qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid_{qmc_latent_dim}d.png')
     print(f"we will{'' if rerun else ' not'} be rerunning model analysis")
-    if not os.path.isfile(data_save_loc) or not rerun: 
+    if not os.path.isfile(data_save_loc) or rerun: 
         ############## QMC Training ########################
 
         qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
