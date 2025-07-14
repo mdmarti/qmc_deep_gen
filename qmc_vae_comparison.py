@@ -83,7 +83,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         print("making train plot...")
         vis2d.qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{dataset}_train_curve.svg'))
         print("done!")
-        if not os.path.isfile(qmc_grid_loc) and (dataset.lower() != 'mocap'):
+        if not os.path.isfile(qmc_grid_loc) and ('mocap' not in dataset.lower()):
             print("making model grid plot....")
             if qmc_latent_dim == 2:
                 vis2d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
@@ -154,13 +154,13 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                                 cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
                                 model_type='vae',show=False)
                 print("done!")
-            if make_comparison_plots and (dataset.lower() != 'mocap'):
+            if make_comparison_plots and  ('mocap' not in dataset.lower()):
                 recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
                 with torch.no_grad():
                     print(f"comparing {ld}d VAE and QMC reconstructions")
                     vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc)
                     print("done!")
-            if ld == 2 and (dataset.lower() != 'mocap'):
+            if ld == 2 and  ('mocap' not in dataset.lower()):
                 print("comparing true to encoder posteriors (under decoder)")
                 with torch.no_grad():
                     posterior_save_loc =os.path.join(save_location,"vae_posterior_comparison_" + str(ld) + 'd_{sample_num}.png')
