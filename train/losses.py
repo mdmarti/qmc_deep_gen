@@ -4,7 +4,7 @@ from torchvision.transforms import GaussianBlur
 import numpy as np
 
 
-def binary_evidence(samples, data,reduce=True,batch_size=-1):
+def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[]):
 
 
     #,calc_device=torch.device('cuda')
@@ -14,7 +14,7 @@ def binary_evidence(samples, data,reduce=True,batch_size=-1):
     # (should be sum for full, joint evidence)
     # but we can also do expected evidence per sample
 
-    recon_loss = binary_lp(samples,data) #torch.cat(recon_loss,axis=1) 
+    recon_loss = binary_lp(samples,data,importance_weights=importance_weights) #torch.cat(recon_loss,axis=1) 
     recon_loss = torch.special.logsumexp(
             recon_loss,
             axis=1
@@ -83,13 +83,13 @@ def binary_lp_old(samples,data):
                     reduction="none"
                 )
 
-def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1):
+def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weights=[]):
 
     B = samples.shape[0]
     if batch_size == -1:
         batch_size=B
 
-    recon_loss = gaussian_lp(samples,data,var)
+    recon_loss = gaussian_lp(samples,data,var,importance_weights=importance_weights)
 
     recon_loss = torch.special.logsumexp(
             recon_loss,
