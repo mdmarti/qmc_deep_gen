@@ -17,14 +17,14 @@ import fire
 import mocap
 
 
-def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15,make_comparison_plots=True):
+def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15,make_comparison_plots=True,frames_per_sample=1):
 
     save_location = os.path.join(save_location,dataset)
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
 
     print(f"Training on {dataset} data")
-    train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size)
+    train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -50,13 +50,13 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 train_lattice = gen_fib_basis(m=train_lattice_m)
                 test_lattice = gen_fib_basis(m=20)
             else:
-                train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size//2)
+                train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size//2,frames_per_sample=frames_per_sample)
 
                 train_lattice = gen_korobov_basis(a=76,num_dims=qmc_latent_dim,num_points=1021)
                 test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
             ############## QMC Training ########################
 
-            qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim)
+            qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
             qmc_loss_func = binary_evidence if 'mnist' in dataset.lower() else lambda samples,data: gaussian_evidence(samples,data,var=0.1)

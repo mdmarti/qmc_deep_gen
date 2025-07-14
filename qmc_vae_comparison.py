@@ -19,7 +19,7 @@ import fire
 import json
 
 
-def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15,make_comparison_plots=True):
+def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs=300,rerun=False,train_lattice_m=15,make_comparison_plots=True,frames_per_sample=1):
 
 
 
@@ -38,11 +38,11 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     qmc_latent_dim=3 if 'celeba' in dataset.lower() else 2
 
     if qmc_latent_dim == 2:
-        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size)
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample)
         train_lattice = gen_fib_basis(m=train_lattice_m)
         test_lattice = gen_fib_basis(m=20)
     else:
-        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size//2)
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size//2,frames_per_sample=frames_per_sample)
 
         train_lattice = gen_korobov_basis(a=1487,num_dims=qmc_latent_dim,num_points=2093)
         test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
@@ -55,7 +55,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     if not os.path.isfile(data_save_loc) or not rerun: 
         ############## QMC Training ########################
 
-        qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim)
+        qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
         qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
         qmc_loss_func = binary_evidence if 'mnist' in dataset.lower() else lambda samples,data: gaussian_evidence(samples,data,var=0.1)
@@ -111,8 +111,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         vae_lp = binary_lp if 'mnist' in dataset.lower() else lambda target,recon: gaussian_lp(recon,target,var=0.1)
         for ld in vae_latent_dim:
 
-            vae_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=ld,arch='vae')
-            vae_encoder = get_encoder_arch(dataset_name=dataset,latent_dim=ld)
+            vae_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=ld,arch='vae',n_per_sample=frames_per_sample)
+            vae_encoder = get_encoder_arch(dataset_name=dataset,latent_dim=ld,n_per_sample=frames_per_sample)
 
             vae_model = VAE(decoder=vae_decoder,encoder=vae_encoder,
                             distribution=LowRankMultivariateNormal,device=device)
