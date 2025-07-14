@@ -51,7 +51,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sampl
         test_data = MocapDataset(test_trials,test_labels,means,motions,test_frames,joints,keys)
 
     train_loader = DataLoader(train_data,num_workers=n_workers,shuffle=True,batch_size=batch_size)
-    test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=batch_size//4)
+    test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=max(1,batch_size//4))
 
     print("done!")
 
