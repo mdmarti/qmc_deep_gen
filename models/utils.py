@@ -44,6 +44,8 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
 
     elif 'celeba' in dataset_name.lower():
 
+        """
+        new architecture
         layers = [nn.ReLU(),
             nn.Linear(2048,64*5*5),
             nn.Unflatten(1, (64, 5, 5)),
@@ -63,6 +65,30 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             ResCellNVAESimple(8,expand_factor=6),
             ResCellNVAESimple(8,expand_factor=6),
             nn.Conv2d(8,1,1),
+            nn.Sigmoid()]
+        """
+        """
+        old architecture
+        """
+        layers = [nn.ReLU(),
+            nn.Linear(2048,64*5*5),
+            nn.Unflatten(1, (64, 5, 5)),
+            ResCellNVAESimple(64,expand_factor=2),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*5*5,64*10*10),
+            nn.Conv2d(64,32,1),
+            ResCellNVAESimple(32,expand_factor=4),#nn.ReLU(),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*10*10,32*20*20),
+            nn.Conv2d(32,16,1),
+            ResCellNVAESimple(16,expand_factor=8),#nn.ReLU(),
+            nn.ConvTranspose2d(16, 16, 3, stride=2, padding=1, output_padding=1,groups=16),#nn.Linear(16*20*20,16*40*40),
+            nn.Conv2d(16,8,1),
+            ResCellNVAESimple(8,expand_factor=8),
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=1, output_padding=1,groups=8),#nn.Linear(8*40*40,8*80*80),
+            nn.Conv2d(8,4,1),
+            ResCellNVAESimple(4,expand_factor=8),
+            ResCellNVAESimple(4,expand_factor=4),
+            ResCellNVAESimple(4,expand_factor=2),
+            nn.Conv2d(4,1,1),
             nn.Sigmoid()]
  
 
