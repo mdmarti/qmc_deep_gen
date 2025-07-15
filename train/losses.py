@@ -3,6 +3,14 @@ from torch.nn.functional import binary_cross_entropy,gaussian_nll_loss
 from torchvision.transforms import GaussianBlur
 import numpy as np
 
+def energy(predictions):
+    """
+    assumes predictions are BxCxHxW,
+    sums over square of CxHxW.
+    Should be used with 
+    """
+
+    return predictions.abs().pow(2).sum(axis=(-1,-2,-3))
 
 def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[]):
 
