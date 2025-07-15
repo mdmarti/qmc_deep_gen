@@ -105,6 +105,15 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.ConvTranspose2d(8,1,3,stride=2,padding=1,output_padding=1),
             nn.Sigmoid()]
         
+    elif 'mocap_simple' in dataset_name.lower():
+        decoder = nn.Sequential(TorusBasis(),
+                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
+        layers = [
+                nn.ReLU(),
+                nn.Linear(500,n_per_sample*100),
+                nn.Unflatten(1,(1,n_per_sample,100))
+        ]
+        
     elif 'mocap' in dataset_name.lower():
 
          layers = [
@@ -192,6 +201,17 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
     elif 'finch' in dataset_name.lower():
         enc = Encoder(latent_dim=latent_dim)
+
+    elif 'mocap_simple' in dataset_name.lower():
+        encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
+        mu_net = nn.Sequential(nn.Linear(n_per_sample*100,500),
+                               nn.ReLU(),
+                               nn.Linear(500,latent_dim))
+        L_net = ZeroLayer()
+        d_net = nn.Sequential(nn.Linear(n_per_sample*100,500),
+                               nn.ReLU(),
+                               nn.Linear(500,latent_dim))
+        enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
 
     elif 'mocap' in  dataset_name.lower():
 
