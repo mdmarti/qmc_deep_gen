@@ -50,6 +50,14 @@ def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sampl
         train_data = MocapDataset(train_trials,train_labels,means,motions,train_frames,joints,keys)
         test_data = MocapDataset(test_trials,test_labels,means,motions,test_frames,joints,keys)
 
+    elif 'moons' in dataset_name.lower():
+        train_data,test_data= generate_moons(n_samples=1000,seed=92,noise_sd_in=0.1,noise_sd_out=0.05,test_size=0.2)
+
+    elif 'blobs' in dataset_name.lower():
+        train_data,test_data= generate_blobs(n_samples=1000,dim=3,seed=92,noise_sd_in=0.1,noise_sd_out=0.05,test_size=0.2)
+
+    elif 'shapes3d' in dataset_name.lower():
+        train_data,test_data = get_3d_shapes(dpath=dataset_loc,seed=92,test_size=0.2)
     train_loader = DataLoader(train_data,num_workers=n_workers,shuffle=True,batch_size=batch_size)
     test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=max(1,batch_size//4))
 
