@@ -35,13 +35,13 @@ class CelebADsetIms(Dataset):
         return (self.ims[index],[])
     
 class GeneralToyDset(Dataset):
-    
+
     """
     assumes data come from an sklearn dataset,
     but really encompasses anything that's a data/label pair
     """
 
-    def __init__(self,ims,labels,indices=[],transform = transforms.ToTensor):
+    def __init__(self,ims,labels,indices=[],transform = torch.from_numpy):
 
         self.ims = ims
         self.labels = labels
