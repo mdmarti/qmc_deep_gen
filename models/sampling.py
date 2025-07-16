@@ -159,7 +159,7 @@ def sample_from_grid(grid,posterior,num_samples=1000):
     
     #posterior_weights = posterior_weights[shifted_samples]
     #posterior_weights = posterior_weights.view(B1,K)
-    assert (importance_weights.shape[0]) == 1 and (importance_weights.shape[1] == K),print(importance_weights.shape)
+    assert (importance_weights.shape[0]) == 1 and (importance_weights.shape[1] == B2*K),print(importance_weights.shape)
     #print(posterior_weights.shape)
     #print(posterior_weights.shape)
     #print(grid.shape)
