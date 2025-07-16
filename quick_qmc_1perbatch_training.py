@@ -21,9 +21,10 @@ import plotting.visualize_1d as vis1d
 import plotting.visualize_3d as vis3d
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import fire
 
 
-def run_1_epoch():
+def run_1_epoch(nperbatch=1):
 
     dataset = 'celeba_scaled_res'
     dataloc = '/mnt/home/zkadkhodaie/ceph/datasets/img_align_celeba'#'/mnt/home/mmartinez/ceph/data'
@@ -31,7 +32,7 @@ def run_1_epoch():
     qmc_latent_dim=3
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_loader,test_loader = load_data(dataset,dataloc,batch_size=1)
+    train_loader,test_loader = load_data(dataset,dataloc,batch_size=nperbatch)
     qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim)
     qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -84,7 +85,7 @@ def run_1_epoch():
     ax.set_xlabel("Training updates")
     ax.set_ylabel("Negative (log) evidence")
     ax.spines[['right','top']].set_visible(False)
-    plt.savefig("/mnt/home/mmartinez/ceph/qmc_experiments/extra_training/train2_loss.svg")
+    plt.savefig(f"/mnt/home/mmartinez/ceph/qmc_experiments/extra_training/train2_loss_{nperbatch}_per_batch.svg")
     plt.close()
 
     ax = plt.gca()
@@ -95,10 +96,9 @@ def run_1_epoch():
     ax.errorbar([2],qmc_mu_ev2,yerr=qmc_sd_ev2,color='tab:orange',capsize=12,linestyle='.')
     ax.set_xticks([1,2],['Old test','New test'])
     ax.spines[['right','top']].set_visible(False)
-    plt.savefig("/mnt/home/mmartinez/ceph/qmc_experiments/extra_training/test2_loss.svg")
+    plt.savefig(f"/mnt/home/mmartinez/ceph/qmc_experiments/extra_training/test2_loss_{nperbatch}_per_batch.svg")
     plt.close()
 
 if __name__ == '__main__':
 
-    run_1_epoch()
-    
+    fire.Fire(run_1_epoch)    
