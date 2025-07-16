@@ -97,7 +97,7 @@ def generate_blobs(n_samples,dim,seed,noise_sd_in,noise_sd_out,test_size=0.2):
 def get_3d_shapes(dpath,seed,test_size=0.2):
 
     dataset = h5py.File(os.path.join(dpath,'3dshapes.h5'),'r')
-    images,labels = dataset['images'],dataset['labels']
+    images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
     (B,H,W,C) = images.shape
     #images /= 255
     #images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
@@ -108,7 +108,7 @@ def get_3d_shapes(dpath,seed,test_size=0.2):
     order = gen.choice(B,B,replace=False)
     train_end = int(round(B * (1-test_size)))
     #train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
-    transform = lambda x: torch.from_numpy(np.asarray(x)).to(torch.float32).permute(2,0,1)/255
+    transform = lambda x: torch.from_numpy(x).permute(2,0,1)
 
     #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
     
