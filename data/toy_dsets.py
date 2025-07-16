@@ -108,7 +108,7 @@ def get_3d_shapes(dpath,seed,test_size=0.2):
     order = gen.choice(B,B,replace=False)
     train_end = int(round(B * (1-test_size)))
     #train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
-    transform = lambda x: torch.from_numpy(np.asarray(x)).to(torch.float32)/255
+    transform = lambda x: torch.from_numpy(np.asarray(x)).to(torch.float32).permute(2,0,1)/255
 
     #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
     
