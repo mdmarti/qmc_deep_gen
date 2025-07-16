@@ -26,6 +26,8 @@ import fire
 
 def run_1_epoch(nperbatch=1):
 
+    print(f"training with batch size {nperbatch}")
+
     dataset = 'celeba_scaled_res'
     dataloc = '/mnt/home/zkadkhodaie/ceph/datasets/img_align_celeba'#'/mnt/home/mmartinez/ceph/data'
     save_location= f'/mnt/home/mmartinez/ceph/qmc_experiments/qmc_vae_comparison/{dataset}'
