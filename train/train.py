@@ -21,6 +21,23 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,m
 
     return epoch_losses,model,optimizer
 
+def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True):
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_loss = 0
+    epoch_losses = []
+    for batch_idx, (data, _) in tqdm(enumerate(loader)):
+        data = data.to(model.device)
+        optimizer.zero_grad()
+        samples = model(base_sequence,random,mod)
+        loss = loss_function(samples, data)
+        loss.backward()
+        train_loss += loss.item()
+        optimizer.step()
+        epoch_losses.append(loss.item())
+
+    return epoch_losses,model,optimizer
+
 def test_epoch(model,loader,base_sequence,loss_function):
 
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,19 +54,25 @@ def test_epoch(model,loader,base_sequence,loss_function):
 
     return epoch_losses
 
-def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,print_losses=False,
+def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,verbose=False,
                random=True,mod=True):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
     for epoch in tqdm(range(nEpochs)):
 
-        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,
+        if verbose:
+            batch_loss,model,optimizer = train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,
+                                                 random=random,mod=mod)    
+        else:
+            batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,
                                                  random=random,mod=mod)
 
         losses += batch_loss
-        if print_losses:
+        if verbose:
             print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
+
+
 
 
     return model, optimizer,losses
