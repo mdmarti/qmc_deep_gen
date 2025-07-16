@@ -94,11 +94,34 @@ def generate_blobs(n_samples,dim,seed,noise_sd_in,noise_sd_out,test_size=0.2):
 
     return GeneralToyDset(train_x,train_y,transform=torch.from_numpy), GeneralToyDset(test_x,test_y,transform=torch.from_numpy)
 
+class shapes3dDset(Dataset):
+
+    def __init__(self,filepath,indices):
+
+        self.file = h5py.File(filepath)
+        self.n_images, self.H,self.W,self.C = self.file['images'].shape
+        self.indices = indices
+        self.n_used = len(self.indices)
+
+    def __len__(self):
+
+        return self.n_used 
+    
+    def __getitem__(self,index):
+
+        idx = self.indices[index]
+        image, label = self.file['images'][idx],self.file['labels'][idx]
+
+        return (image.astype(np.float32).transpose(2,0,1)/255,label.astype(np.float32))
+    
+
+
 def get_3d_shapes(dpath,seed,test_size=0.2):
 
-    dataset = h5py.File(os.path.join(dpath,'3dshapes.h5'),'r')
-    images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
-    (B,H,W,C) = images.shape
+    dfile = os.path.join(dpath,'3dshapes.h5')
+    dataset = h5py.File(dfile,'r')
+    #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
+    (B,H,W,C) = dataset['images'].shape
     #images /= 255
     #images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
     #images = np.swapaxes(images.astype(np.float32),axis1=2,axis2=3) # B C H W
@@ -107,9 +130,10 @@ def get_3d_shapes(dpath,seed,test_size=0.2):
 
     order = gen.choice(B,B,replace=False)
     train_end = int(round(B * (1-test_size)))
+
     #train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
-    transform = lambda x: torch.from_numpy(x).permute(2,0,1)
+    #transform = lambda x: torch.from_numpy(x).permute(2,0,1)
 
     #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
     
-    return GeneralToyDset(images,labels,indices=order[:train_end],transform=transform), GeneralToyDset(images,labels,indices=order[train_end:],transform=transform)
+    return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
