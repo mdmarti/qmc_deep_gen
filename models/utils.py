@@ -124,6 +124,24 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                 #nn.Sigmoid(),
                 nn.Unflatten(1,(1,n_per_sample,100))
         ]
+         
+    elif 'blobs' in dataset_name.lower():
+
+        layers = [
+
+        ]
+
+    elif 'moons' in dataset_name.lower():
+
+        layers = [
+
+        ]
+
+    elif 'shapes3d' in dataset_name.lower():
+
+        layers = [
+            
+        ]
         
 
     for layer in layers:
