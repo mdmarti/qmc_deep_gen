@@ -149,7 +149,9 @@ def sample_from_grid(grid,posterior,num_samples=1000):
     for ii in range(B1):
         posterior_weights.append(posterior[ii][samples])
     posterior_weights=torch.stack(posterior_weights,dim=0)
-    importance_weights = torch.mean(posterior_weights,axis=0) # is this correct here? yes
+    if len(posterior_weights.shape) == 1:
+        posterior_weights = posterior_weights[None,:]
+    importance_weights = torch.mean(posterior_weights,axis=0,keepdims=True) # is this correct here? yes
     #end = time.time() - start
     #print(f"got weights in {end*1000:.2f}ms")
     #shifted_samples = shifted_samples.view(np.prod(samples.shape))
@@ -157,7 +159,7 @@ def sample_from_grid(grid,posterior,num_samples=1000):
     
     #posterior_weights = posterior_weights[shifted_samples]
     #posterior_weights = posterior_weights.view(B1,K)
-    assert (posterior_weights.shape[0]) == B1 and (posterior_weights.shape[1] == K),print(posterior_weights.shape)
+    assert (importance_weights.shape[0]) == 1 and (importance_weights.shape[1] == K),print(importance_weights.shape)
     #print(posterior_weights.shape)
     #print(posterior_weights.shape)
     #print(grid.shape)
@@ -165,7 +167,7 @@ def sample_from_grid(grid,posterior,num_samples=1000):
     #print(grid.shape)
     #print(samples.shape)
     #print(grid[samples].shape)
-    return grid[samples],posterior_weights
+    return grid[samples],importance_weights
 
 def sample_from_cells(cell_centers,cell_bounds):
 
