@@ -125,23 +125,37 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                 nn.Unflatten(1,(1,n_per_sample,100))
         ]
          
-    elif 'blobs' in dataset_name.lower():
+    elif 'blobs' in dataset_name.lower() or 'moons' in dataset_name.lower():
 
+        decoder = nn.Sequential(TorusBasis(),
+                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
-
-        ]
-
-    elif 'moons' in dataset_name.lower():
-
-        layers = [
-
+                nn.ReLU(),
+                nn.Linear(500,1000),
+                nn.Unflatten(1,(1,1,1000))
         ]
 
     elif 'shapes3d' in dataset_name.lower():
 
-        layers = [
-            
-        ]
+        layers = [nn.ReLU(),
+            nn.Linear(2048,64*4*4),
+            nn.Unflatten(1, (64, 4, 4)),
+            ResCellNVAESimple(64,expand_factor=1),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*4*4,64*8*8),
+            nn.Conv2d(64,32,1),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*8*8,32*16*16),
+            nn.Conv2d(32,16,1),
+            ResCellNVAESimple(16,expand_factor=2),#nn.ReLU(),
+            nn.ConvTranspose2d(16, 16, 3, stride=2, padding=1, output_padding=1,groups=16),#nn.Linear(16*32*32,16*32*32),
+            nn.Conv2d(16,8,1),
+            ResCellNVAESimple(8,expand_factor=4),
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=1, output_padding=1,groups=8),#nn.Linear(8*32*32,8*64*64),
+            nn.Conv2d(8,3,1),
+            ResCellNVAESimple(3,expand_factor=8),
+            ResCellNVAESimple(3,expand_factor=4),
+            ResCellNVAESimple(3,expand_factor=2),
+            #nn.Conv2d(4,1,1),
+            nn.Sigmoid()]
         
 
     for layer in layers:
