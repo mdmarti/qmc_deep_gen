@@ -75,6 +75,22 @@ class VAE(nn.Module):
         log_evidence = torch.special.logsumexp(log_likelihood + log_prior[:,None],dim=0) # this is approoooooooooooxxximately log p(x) #(1,)
         log_posterior = log_likelihood.squeeze() + log_prior.squeeze() - log_evidence.squeeze() # (2500,)
         return nn.Softmax(dim=0)(log_posterior).detach().cpu().numpy().squeeze(),nn.Softmax(dim=0)(lp_grid_encoder).detach().cpu().numpy(),xy_grid.detach().cpu().numpy()
+    
+    def embed_data(self,loader):
+        latents = []
+        labels = [] 
+        with torch.no_grad():
+            for (data,label) in loader:
+                data = data.to(self.device)
+                labels.append(label.detach().cpu().numpy())
+
+                lat = self.encode(data)
+                # posterior is B x S, convert to B x 2 for weighted grid
+                latents.append(lat)
+
+        latents = torch.vstack(latents).detach().cpu().numpy()
+        labels = np.hstack(labels)
+        return latents,labels
 
     
 class Print(nn.Module):

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+import numpy as np
 
 class FourierBasis(nn.Module):
 
@@ -122,8 +123,8 @@ class QMCLVM(nn.Module):
                 # posterior is B x S, convert to B x 2 for weighted grid
                 latents.append((posterior @ (grid%1)).detach().cpu())
 
-        latents = torch.vstack(latents)
-        labels = torch.hstack(labels)
+        latents = torch.vstack(latents).detach().cpu().numpy()
+        labels = np.hstack(labels)
         return latents,labels
     
 
