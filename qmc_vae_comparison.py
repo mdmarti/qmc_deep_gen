@@ -35,7 +35,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    qmc_latent_dim=3 if 'celeba' in dataset.lower() else 2
+    qmc_latent_dim=3 if (('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower())) else 2
 
     if qmc_latent_dim == 2:
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample)
