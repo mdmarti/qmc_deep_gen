@@ -112,7 +112,7 @@ class shapes3dDset(Dataset):
         idx = self.indices[index]
         image, label = self.file['images'][idx],self.file['labels'][idx]
 
-        return (image.astype(np.float32).transpose(2,0,1)/255,label.astype(np.float32))
+        return (image.astype(np.float32)/255,label.astype(np.float32))
     
 
 

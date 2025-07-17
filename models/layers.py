@@ -109,3 +109,12 @@ class ZeroLayer(nn.Module):
     def forward(self,x):
 
         return 0 * x
+    
+class PermutationLayer(nn.Module):
+
+    def __init__(self):
+        super(PermutationLayer,self).__init__()
+
+    def forward(self,x):
+        # permutes dimensions to be BxHxWxC, from BxCxHxW
+        return x.permute(0,2,3,1)
