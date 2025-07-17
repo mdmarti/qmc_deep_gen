@@ -4,6 +4,15 @@ import numpy as np
 from numpy.polynomial.hermite import hermgauss
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 
+class ae_dist():
+
+    def __init__(self,mu,L,d):
+
+        self.data = mu
+    
+    def rsample(self):
+
+        return self.data 
 
 class VAE(nn.Module):
 
