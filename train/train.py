@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
 import torch
-from model.losses import jacEnergy
+from train.losses import jacEnergy
 
 
 def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True):
