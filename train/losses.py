@@ -2,6 +2,7 @@ import torch
 from torch.nn.functional import binary_cross_entropy,gaussian_nll_loss
 from torchvision.transforms import GaussianBlur
 import numpy as np
+from torch.autograd.functional import jacobian
 
 def energy(predictions):
     """
@@ -11,6 +12,16 @@ def energy(predictions):
     """
 
     return predictions.abs().pow(2).sum(axis=(-1,-2,-3))
+
+def jacEnergy(predictions):
+    """
+    returns the jacobian of pixel energy wrt model predictions.
+    returns the l2 norm of the jacobian
+    """
+
+    jacE = jacobian(energy,predictions,create_graph=True,strict=True,vectorize=True)
+
+    return jacE.pow(2).sum(dim=-1)
 
 def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[]):
 
@@ -170,7 +181,7 @@ def gaussian_lp(samples,data,var,importance_weights=[]):
     if len(importance_weights) == 0:
         importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
     #lambda_lp = lambda samples,data: -torch.nn.functional.gaussian_nll_loss(samples,data,var=var,reduction='sum',full=True)
-    vmapped_lp = torch.vmap(torch.vmap(torch.nn.functional.gaussian_nll_loss,in_dims=(0,None)),in_dims=(None,0))
+    vmapped_lp = torch.vmap(torch.vmap(gaussian_nll_loss,in_dims=(0,None)),in_dims=(None,0))
     return -vmapped_lp(samples,data,var=var,reduction='sum',full=True)*importance_weights
 
 
@@ -182,7 +193,7 @@ def gaussian_lp_old(samples,data,var=1):
     1 X S x H x W
     """
 
-    return -torch.nn.functional.gaussian_nll_loss(samples.swapaxes(0,1).tile((data.shape[0],1,1,1)),
+    return -gaussian_nll_loss(samples.swapaxes(0,1).tile((data.shape[0],1,1,1)),
                                                 data.tile(1,samples.shape[0],1,1),
                                                 var=var,
                                                 reduction='none',
@@ -204,12 +215,12 @@ def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
 
     z_dim = mu.shape[1]
     #err = targets - reconstructions
-    neg_lp = torch.nn.functional.gaussian_nll_loss(reconstructions,
-                                                    targets,
-                                                   var=1/recon_precision,
-                                                   reduction='none',
-                                                   full=True
-                                                   ).sum(axis=(1,2,3))
+    neg_lp = gaussian_nll_loss(reconstructions,
+                                targets,
+                                var=1/recon_precision,
+                                reduction='none',
+                                full=True
+                                ).sum(axis=(1,2,3))
     #torch.einsum('bchw,bchw->b',err,err) *(recon_precision)/2 + \
         #d*np.log(2*torch.pi)/2 - d * np.log(recon_precision)/2 
 
