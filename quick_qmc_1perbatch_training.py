@@ -33,7 +33,7 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     save_location= f'/mnt/home/mmartinez/ceph/qmc_experiments/qmc_vae_comparison/{dataset}'
     qmc_latent_dim=3
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    new_save_dir = os.path.join(new_save_dir,'new_train_{nperbatch}_plots')
+    new_save_dir = os.path.join(new_save_dir,f'new_train_{nperbatch}_plots')
     if not os.path.isdir(new_save_dir):
         os.mkdir(new_save_dir)
 
