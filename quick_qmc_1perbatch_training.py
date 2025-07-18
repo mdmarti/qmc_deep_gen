@@ -46,15 +46,16 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison.tar')
     updated_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison_{nperbatch}_per_batch_updated.tar')
     qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
-
+    
+    train_lattice = gen_korobov_basis(a=1487,num_dims=qmc_latent_dim,num_points=2093)
+    test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
     if not os.path.isfile(updated_save_path):
         print("doing extra trainin")
         qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
         qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
 
 
-        train_lattice = gen_korobov_basis(a=1487,num_dims=qmc_latent_dim,num_points=2093)
-        test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
+        
         #train_lattice,test_lattice = gen_fib_basis(m=15), gen_fib_basis(m=20)
 
         new_train_losses= []
