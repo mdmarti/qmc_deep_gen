@@ -137,3 +137,53 @@ def get_3d_shapes(dpath,seed,test_size=0.2):
     #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
     
     return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
+
+
+def get_index(factors):
+  """ from the 3dShapes Github
+  Converts factors to indices in range(num_data)
+  Args:
+    factors: np array shape [6,batch_size].
+             factors[i]=factors[i,:] takes integer values in 
+             range(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[i]]).
+
+  Returns:
+    indices: np array shape [batch_size].
+  """
+  indices = 0
+  base = 1
+  for factor, name in reversed(list(enumerate(_FACTORS_IN_ORDER))):
+    indices += factors[factor] * base
+    base *= _NUM_VALUES_PER_FACTOR[name]
+  return indices
+
+def get_factor_indices(fixed_factors,fixed_factor_values):
+
+    """
+    expects fixed factors and factor values to be in the same order.
+    also expects them to be in numerical order (factor 1 comes before factor 2, etc.)
+    """
+    assert len(fixed_factors) == len(fixed_factor_values), print("each fixed factor must have a fixed value!")
+
+    n_indices = np.prod([_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[ii]] for ii in range(6) if ii not in fixed_factors])
+    
+    print(f"there should be {n_indices} indices by the end of this function")
+
+    factor_inds = []
+    fixed_index = 0
+    for factor,name in enumerate(_FACTORS_IN_ORDER):
+        if factor in fixed_factors:
+            factor_inds.append([fixed_factor_values[fixed_index]])
+            fixed_index += 1
+        else:
+            factor_inds.append(list(range(_NUM_VALUES_PER_FACTOR[name])))
+
+    factor_grid = np.meshgrid(*factor_inds)
+    factor_grid = np.stack([f.flatten() for f in factor_grid],axis=0)
+    assert factor_grid.shape[0] == 6, print(factor_grid.shape)
+    assert factor_grid.shape[1] == n_indices,print(factor_grid.shape)
+
+    inds = get_index(factor_grid)
+    assert len(inds) == n_indices,print(n_indices.shape)
+
+    return inds
