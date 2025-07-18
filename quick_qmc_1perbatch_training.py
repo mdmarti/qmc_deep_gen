@@ -48,6 +48,7 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
 
     if not os.path.isfile(updated_save_path):
+        print("doing extra trainin")
         qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
         qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
 
@@ -85,9 +86,11 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
         qmc_run_info = {'train':new_train_losses,'test':new_test_losses}
         save(qmc_model.to('cpu'),qmc_opt,run_info=qmc_run_info,fn=updated_save_path)
     else:
+        print("already did extra trainin...loading now")
         qmc_model,qmc_opt,qmc_run_info= load(qmc_model,qmc_opt,updated_save_path)
         new_train_losses,new_test_losses = qmc_run_info['train'],qmc_run_info['test']
 
+    print("Done! plot time")
     nTrain1 = len(qmc_losses)
     nTrain2 = len(new_train_losses)
 
@@ -111,7 +114,7 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     ax.errorbar([2],qmc_mu_ev2,yerr=qmc_sd_ev2,color='tab:orange',capsize=12,linestyle='')
     ax.set_xticks([1,2],['Old test','New test'])
     ax.spines[['right','top']].set_visible(False)
-    plt.savefig(os.path.join(f"test2_loss_{nperbatch}_per_batch.svg"))
+    plt.savefig(os.path.join(new_save_dir,f"test2_loss_{nperbatch}_per_batch.svg"))
     plt.close()
 
     ################## Compare reconstructions between original weights and new weights. should
@@ -120,6 +123,8 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     qmc_decoder_orig = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim)
     qmc_model_orig = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder_orig)
     qmc_model_orig,_,orig_qmc_run_info = load(qmc_model_orig,qmc_opt,qmc_save_path)
+    qmc_model_orig.to(device)
+    qmc_model.to(device)
 
     n_samples = 50
     sample_inds = np.random.choice(len(test_loader.dataset),n_samples,replace=False).squeeze()
@@ -132,8 +137,8 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
         sample = test_loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
         with torch.no_grad():
-            recon_qmc_new = qmc_model.round_trip(test_lattice,sample,qmc_lp,recon_type='posterior').detach().cpu()
-            recon_qmc_orig = qmc_model_orig.round_trip(test_lattice,sample,qmc_lp,recon_type='posterior').detach().cpu()
+            recon_qmc_new = qmc_model.round_trip(test_lattice.to(qmc_model.device),sample,qmc_lp,recon_type='posterior').detach().cpu()
+            recon_qmc_orig = qmc_model_orig.round_trip(test_lattice.to(qmc_model_orig.device),sample,qmc_lp,recon_type='posterior').detach().cpu()
 
         fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
         axs[0].imshow(recon_qmc_new.squeeze(),cmap='gray',origin=None)
