@@ -149,7 +149,7 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
         #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
         axs[1].imshow(sample.squeeze(),cmap='gray',origin=None)
         axs[2].imshow(recon_qmc_orig.squeeze(),cmap='gray',origin=None)
-        labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
+        labels=['New QMC reconstruction','Original image','Orig QMC reconstruction'] #'QMC max prob point',
         for ax,label in zip(axs,labels):
             ax = vis2d.format_img_axis(ax,title=label)
             
