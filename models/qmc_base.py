@@ -92,17 +92,28 @@ class QMCLVM(nn.Module):
 
             return nn.Softmax(dim=1)(posterior) # posterior over grid points for each sample
     
-    def round_trip(self,grid,data,log_likelihood,recon_type='posterior'):
+    def round_trip(self,grid,data,log_likelihood,recon_type='posterior',n_samples=25):
 
         grid = grid.to(self.device)
-        posterior = self.posterior_probability(grid,data,log_likelihood)
-        posterior = posterior.to(self.device)
+
+        if recon_type == 'rqmc':
+            posterior_grid = []
+            for _ in range(n_samples):
+                tmp_grid = (grid % 1) + torch.rand((1,2),device=self.device)
+                posterior = self.posterior_probability(tmp_grid,data,log_likelihood)
+                posterior_grid.append(posterior.to(self.device) @ tmp_grid)
+            posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
+        else:
+            posterior = self.posterior_probability(grid,data,log_likelihood)
+            posterior = posterior.to(self.device)
         
         
-        if recon_type == 'posterior':
+        if (recon_type == 'posterior') or (recon_type=='rqmc'):
             posterior_grid = posterior @ (grid % 1)
         elif recon_type == 'argmax':
             posterior_grid = grid[torch.argmax(posterior)][None,:] % 1
+        elif recon_type == 'rqmc':
+            pass
         else:
             raise NotImplementedError
         recon = self.decoder(posterior_grid)
