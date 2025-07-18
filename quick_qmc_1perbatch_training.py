@@ -46,7 +46,7 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison.tar')
     updated_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison_{nperbatch}_per_batch_updated.tar')
     qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
-    
+
     train_lattice = gen_korobov_basis(a=1487,num_dims=qmc_latent_dim,num_points=2093)
     test_lattice = gen_korobov_basis(a=1516,num_dims=qmc_latent_dim,num_points=4093)
     if not os.path.isfile(updated_save_path):
@@ -140,9 +140,10 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
         sample = test_loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
         with torch.no_grad():
-            recon_qmc_new = qmc_model.round_trip(test_lattice.to(qmc_model.device),sample,qmc_lp,recon_type='posterior').detach().cpu()
-            recon_qmc_orig = qmc_model_orig.round_trip(test_lattice.to(qmc_model_orig.device),sample,qmc_lp,recon_type='posterior').detach().cpu()
+            recon_qmc_new = qmc_model.round_trip(test_lattice.to(qmc_model.device),sample,qmc_lp,recon_type='posterior').detach().cpu().numpy()
+            recon_qmc_orig = qmc_model_orig.round_trip(test_lattice.to(qmc_model_orig.device),sample,qmc_lp,recon_type='posterior').detach().cpu().numpy()
 
+        sample = sample.detach().cpu().numpy()
         fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
         axs[0].imshow(recon_qmc_new.squeeze(),cmap='gray',origin=None)
         #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
