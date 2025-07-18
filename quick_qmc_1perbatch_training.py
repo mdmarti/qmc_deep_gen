@@ -130,14 +130,14 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
     qmc_model.to(device)
 
     n_samples = 50
-    sample_inds = np.random.choice(len(test_loader.dataset),n_samples,replace=False).squeeze()
+    sample_inds = np.random.choice(len(train_loader.dataset),n_samples,replace=False).squeeze()
     
 
     for sample_ind in tqdm(sample_inds):
 
         save_path_ind = os.path.join(new_save_dir,f"recon_{sample_ind}_qmc_orig_new.png")
 
-        sample = test_loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
+        sample = train_loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
         with torch.no_grad():
             recon_qmc_new = qmc_model.round_trip(test_lattice.to(qmc_model.device),sample,qmc_lp,recon_type='posterior').detach().cpu().numpy()
