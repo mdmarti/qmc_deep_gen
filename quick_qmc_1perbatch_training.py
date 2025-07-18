@@ -87,6 +87,8 @@ def run_1_epoch(nperbatch=1,new_save_dir=''):
         save(qmc_model.to('cpu'),qmc_opt,run_info=qmc_run_info,fn=updated_save_path)
     else:
         print("already did extra trainin...loading now")
+        _,_,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
+        qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
         qmc_model,qmc_opt,qmc_run_info= load(qmc_model,qmc_opt,updated_save_path)
         new_train_losses,new_test_losses = qmc_run_info['train'],qmc_run_info['test']
 
