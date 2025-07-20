@@ -1,5 +1,5 @@
 import torch
-from umap import umap
+import umap
 import os
 from data.utils import load_data
 from models.sampling import gen_fib_basis, gen_korobov_basis
