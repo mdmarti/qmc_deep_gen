@@ -193,7 +193,7 @@ def compare_embeddings(model_save_loc,
     plt.colorbar(g,cax=axs['cbar'],ticks=list(range(len(unique_labels))), format=formatter)
 
     # Set the clim so that labels are centered on each block
-    plt.clim(-0.5, len(unique_labels)-0.5)
+    #plt.clim(-0.5, len(unique_labels)-0.5)
     for key in axs.keys()[:-1]:
         axs[key] = vis2d.format_plot_axis(axs[key],xlabel='Latent dim 1',
                                           ylabel='Latent dim 2',
