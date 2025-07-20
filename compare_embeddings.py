@@ -23,7 +23,7 @@ def compare_embeddings(model_save_loc,
                        frames_per_sample=10
                        ):
     
-    print("actually running code")
+    #print("actually running code")
     save_location = os.path.join(save_location,dataset)
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
