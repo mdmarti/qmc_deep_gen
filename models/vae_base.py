@@ -84,7 +84,7 @@ class VAE(nn.Module):
                 data = data.to(self.device)
                 labels.append(label.detach().cpu().numpy())
 
-                lat = self.encode(data)
+                lat,_,_ = self.encode(data)
                 # posterior is B x S, convert to B x 2 for weighted grid
                 latents.append(lat)
 
