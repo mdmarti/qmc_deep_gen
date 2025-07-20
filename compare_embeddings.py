@@ -99,8 +99,8 @@ def compare_embeddings(model_save_loc,
         vae_model_2d.to(device)
         vae_model_2d.eval()
 
-        test_latents_vae_2d,test_labels_vae_2d = vae_model_2d.embed_data(lattice,test_loader,qmc_lp)
-        train_latents_vae_2d,train_labels_vae_2d = vae_model_2d.embed_data(lattice,train_loader,qmc_lp)
+        test_latents_vae_2d,test_labels_vae_2d = vae_model_2d.embed_data(test_loader)
+        train_latents_vae_2d,train_labels_vae_2d = vae_model_2d.embed_data(train_loader)
         vae_model_2d.to('cpu')
         print("Done! saving out now")
         vae_latents_2d = {'train':{'latents': train_latents_vae_2d.tolist(),'labels':test_labels_vae_2d.tolist()},
@@ -134,8 +134,8 @@ def compare_embeddings(model_save_loc,
         vae_model_128d.to(device)
         vae_model_128d.eval()
 
-        test_latents_vae_128d,test_labels_vae_128d = vae_model_128d.embed_data(lattice,test_loader,qmc_lp)
-        train_latents_vae_128d,train_labels_vae_128d = vae_model_128d.embed_data(lattice,train_loader,qmc_lp)
+        test_latents_vae_128d,test_labels_vae_128d = vae_model_128d.embed_data(test_loader)
+        train_latents_vae_128d,train_labels_vae_128d = vae_model_128d.embed_data(train_loader)
         vae_model_128d.to('cpu')
 
         print("done! saving out...")
