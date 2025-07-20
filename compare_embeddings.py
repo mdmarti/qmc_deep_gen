@@ -181,9 +181,9 @@ def compare_embeddings(model_save_loc,
     
     fig,axs = plt.subplot_mosaic(mosaic,figsize=(22,7))
 
-    axs['QMC'].scatter(train_latents_qmc[:,0],train_latents_qmc[:,1],c=train_labels_qmc,cmap='tab:10')
-    axs['VAE 2d'].scatter(train_latents_vae_2d[:,0],train_latents_vae_2d[:,1],c=train_labels_vae_2d,cmap='tab:10')
-    axs['VAE 128d'].scatter(umap_128_vae_train[:,0],umap_128_vae_train[:,1],c=train_labels_vae_128d,cmap='tab:10')
+    axs['QMC'].scatter(train_latents_qmc[:,0],train_latents_qmc[:,1],c=train_labels_qmc,cmap='tab10')
+    axs['VAE 2d'].scatter(train_latents_vae_2d[:,0],train_latents_vae_2d[:,1],c=train_labels_vae_2d,cmap='tab10')
+    axs['VAE 128d'].scatter(umap_128_vae_train[:,0],umap_128_vae_train[:,1],c=train_labels_vae_128d,cmap='tab10')
 
     plt.savefig(os.path.join(save_location,f'latent_rep_comparison_{dataset}.png'))
     plt.close()
