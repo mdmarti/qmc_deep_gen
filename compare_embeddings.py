@@ -173,8 +173,8 @@ def compare_embeddings(model_save_loc,
 
             vae_128d_umap = json.load(f)
 
-        umap_128_vae_train = vae_128d_umap['train']
-        umap_128_vae_test = vae_128d_umap['test']
+        umap_128_vae_train = np.array(vae_128d_umap['train'])
+        umap_128_vae_test = np.array(vae_128d_umap['test'])
 
     mosaic = [['QMC','QMC','VAE 2d', 'VAE 2d', 'VAE 128d', 'VAE 128d'],
               ['QMC','QMC','VAE 2d', 'VAE 2d', 'VAE 128d', 'VAE 128d']]
