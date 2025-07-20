@@ -8,6 +8,7 @@ from models.vae_base import VAE
 from models.qmc_base import QMCLVM
 from train.losses import *
 from train.model_saving_loading import *
+import plotting.visualize as vis2d
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
 import matplotlib.pyplot as plt
@@ -176,15 +177,30 @@ def compare_embeddings(model_save_loc,
         umap_128_vae_train = np.array(vae_128d_umap['train'])
         umap_128_vae_test = np.array(vae_128d_umap['test'])
 
-    mosaic = [['QMC','QMC','VAE 2d', 'VAE 2d', 'VAE 128d', 'VAE 128d'],
-              ['QMC','QMC','VAE 2d', 'VAE 2d', 'VAE 128d', 'VAE 128d']]
+    mosaic = [['QMC','QMC','VAE 2d', 'VAE 2d', 'VAE 128d', 'VAE 128d','cbar'],
+              ['QMC','QMC','VAE 2d', 'VAE 2d', 'VAE 128d', 'VAE 128d','cbar']]
     
+    unique_labels = np.unique(train_labels_qmc)
+     
     fig,axs = plt.subplot_mosaic(mosaic,figsize=(22,7))
 
-    axs['QMC'].scatter(train_latents_qmc[:,0],train_latents_qmc[:,1],c=train_labels_qmc,cmap='tab10')
-    axs['VAE 2d'].scatter(train_latents_vae_2d[:,0],train_latents_vae_2d[:,1],c=train_labels_vae_2d,cmap='tab10')
-    axs['VAE 128d'].scatter(umap_128_vae_train[:,0],umap_128_vae_train[:,1],c=train_labels_vae_128d,cmap='tab10')
+    g = axs['QMC'].scatter(train_latents_qmc[:,0],train_latents_qmc[:,1],c=train_labels_qmc,cmap='tab10',s=5,alpha=0.8)
+    axs['VAE 2d'].scatter(train_latents_vae_2d[:,0],train_latents_vae_2d[:,1],c=train_labels_vae_2d,cmap='tab10',alpha=0.8)
+    axs['VAE 128d'].scatter(umap_128_vae_train[:,0],umap_128_vae_train[:,1],c=train_labels_vae_128d,cmap='tab10',alpha=0.8)
+    formatter = plt.FuncFormatter(lambda val, loc: f"Category {unique_labels[val]}")
 
+    # We must be sure to specify the ticks matching our target names
+    plt.colorbar(g,cax=axs['cbar'],ticks=list(range(len(unique_labels))), format=formatter)
+
+    # Set the clim so that labels are centered on each block
+    plt.clim(-0.5, len(unique_labels)-0.5)
+    for key in axs.keys()[:-1]:
+        axs[key] = vis2d.format_plot_axis(axs[key],xlabel='Latent dim 1',
+                                          ylabel='Latent dim 2',
+                                          title='key',
+                                          xlim=[0,1] if key == 'QMC' else (),
+                                          ylim=[0,1] if key == 'QMC' else ())
+    axs['cbar'] = vis2d.format_img_axis(axs['cbar'])
     plt.savefig(os.path.join(save_location,f'latent_rep_comparison_{dataset}.png'))
     plt.close()
 
