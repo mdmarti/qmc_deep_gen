@@ -181,8 +181,8 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
                                nn.ReLU(),
                                nn.Linear(500,latent_dim))
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
-        
-    if 'mnist' in dataset_name.lower():
+        #print(list(enc.named_parameters()))
+    elif 'mnist' in dataset_name.lower():
 
         encoder_net =nn.Sequential(nn.Conv2d(1,16,1),
                            ResCellNVAESimple(16,expand_factor=1),
@@ -303,4 +303,5 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
+    #print(list(enc.named_parameters()))
     return enc
