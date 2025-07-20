@@ -19,8 +19,7 @@ import matplotlib.pyplot as plt
 import fire
 import json
 
-def compare_embeddings(qmc_save_loc,
-                       vae_save_loc,
+def compare_embeddings(model_save_loc,
                        dataset,
                        dataloc,
                        save_location,
@@ -29,12 +28,13 @@ def compare_embeddings(qmc_save_loc,
                        frames_per_sample=10
                        ):
     
+
     save_location = os.path.join(save_location,dataset)
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
-
-    vae_2d_save_loc = os.path.join(vae_save_loc,)
-    vae_128d_save_loc = os.path.join(vae_save_loc,)
+    qmc_save_loc = os.path.join(model_save_loc,f'qmc_train_{dataset}_dim_comparison.tar')
+    vae_2d_save_loc = os.path.join(model_save_loc,f'vae_train_{dataset}_dim_comparison_2d.tar')
+    vae_128d_save_loc = os.path.join(model_save_loc,f'vae_train_{dataset}_dim_comparison_128d.tar')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
