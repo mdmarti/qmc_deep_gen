@@ -52,6 +52,7 @@ def compare_embeddings(model_save_loc,
     ### qmc ###
     qmc_lat_file = os.path.join(save_location,'qmc_latents.json')
     if not os.path.isfile(qmc_lat_file):
+        print("Obtaining qmc latents...")
         qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
         qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -66,14 +67,15 @@ def compare_embeddings(model_save_loc,
         test_latents_qmc,test_labels_qmc = qmc_model.embed_data(lattice,test_loader,qmc_lp)
         train_latents_qmc,train_labels_qmc = qmc_model.embed_data(lattice,train_loader,qmc_lp)
 
-
+        print('done! saving...')
         qmc_latents = {'train':{'latents': train_latents_qmc.tolist(),'labels':train_labels_qmc.tolist()},
                     'test':{'latents': test_latents_qmc.tolist(),'labels':test_labels_qmc.tolist()}}
         qmc_model.to('cpu')
         with open(qmc_lat_file,'w') as f:
             json.dump(qmc_latents,f)
+        
     else:
-    
+        print("loading qmc latents")
         with open(qmc_lat_file,'r') as f:
             qmc_latents = json.load(f)
 
@@ -81,11 +83,12 @@ def compare_embeddings(model_save_loc,
         train_labels_qmc = np.array(qmc_latents['train']['labels'])
         test_latents_qmc = np.array(qmc_latents['test']['latents'])
         test_labels_qmc = np.array(qmc_latents['test']['labels'])
-    
+        print("done!")
     #######################################################################################
     ### vae 2d ###
     vae2d_lat_file = os.path.join(save_location,'vae_2d_latents.json')
     if not os.path.isfile(vae2d_lat_file):
+        print("Getting 2d VAE latents...")
         vae_loss_func = binary_elbo if 'mnist' in dataset.lower() else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=10)
         vae_lp = binary_lp if 'mnist' in dataset.lower() else lambda target,recon: gaussian_lp(recon,target,var=0.1)
 
@@ -104,13 +107,14 @@ def compare_embeddings(model_save_loc,
         test_latents_vae_2d,test_labels_vae_2d = vae_model_2d.embed_data(lattice,test_loader,qmc_lp)
         train_latents_vae_2d,train_labels_vae_2d = vae_model_2d.embed_data(lattice,train_loader,qmc_lp)
         vae_model_2d.to('cpu')
-
+        print("Done! saving out now")
         vae_latents_2d = {'train':{'latents': train_latents_vae_2d.tolist(),'labels':test_labels_vae_2d.tolist()},
                     'test':{'latents': test_latents_vae_2d.tolist(),'labels':train_labels_vae_2d.tolist()}}
         with open(vae2d_lat_file,'w') as f:
             json.dump(vae_latents_2d,f)
+        print("done!")
     else:
-    
+        print("loading 2d VAE latents...")
         with open(vae2d_lat_file,'r') as f:
             vae_latents_2d = json.load(f)
 
@@ -122,6 +126,7 @@ def compare_embeddings(model_save_loc,
     ### vae 128d ###
     vae128d_lat_file = os.path.join(save_location,'vae_128d_latents.json')
     if not os.path.isfile(vae128d_lat_file):
+        print("loading 128d latents...")
         vae_decoder_128d = get_decoder_arch(dataset_name=dataset,latent_dim=128,arch='vae',n_per_sample=frames_per_sample)
         vae_encoder_128d = get_encoder_arch(dataset_name=dataset,latent_dim=128,n_per_sample=frames_per_sample)
 
@@ -138,12 +143,14 @@ def compare_embeddings(model_save_loc,
         train_latents_vae_128d,train_labels_vae_128d = vae_model_128d.embed_data(lattice,train_loader,qmc_lp)
         vae_model_128d.to('cpu')
 
+        print("done! saving out...")
         vae_latents_128d = {'train':{'latents': train_latents_vae_128d.tolist(),'labels':test_labels_vae_128d.tolist()},
                     'test':{'latents': test_latents_vae_128d.tolist(),'labels':train_labels_vae_128d.tolist()}}
         with open(vae128d_lat_file,'w') as f:
             json.dump(vae_latents_128d,f)
+        print("done!!")
     else:
-    
+        print("loading 128d VAE latents...")
         with open(vae128d_lat_file,'r') as f:
             vae_latents_128d = json.load(f)
 
@@ -151,15 +158,17 @@ def compare_embeddings(model_save_loc,
         train_labels_vae_128d = np.array(vae_latents_128d['train']['labels'])
         test_latents_vae_128d = np.array(vae_latents_128d['test']['latents'])
         test_labels_vae_128d = np.array(vae_latents_128d['test']['labels'])
+        print("done!")
     ######################################################################################################
     ###### umap vae 128d latents #############
 
     vae128d_umap_file = os.path.join(save_location,'vae_128d_umap.json')
     if not os.path.isfile(vae128d_umap_file):
+        print("umappin' latents...")
         umap_model = umap.UMAP(n_components=2,random_state=128,n_neighbors=20,min_dist=0.1,n_jobs=len(os.sched_getaffinity(0)))
         umap_128_vae_train = umap_model.fit_transform(train_latents_vae_128d)
         umap_128_vae_test = umap_model.transform(test_latents_vae_128d)
-
+        print("done")
         vae_128d_umap = {'train': umap_128_vae_train.tolist(),
                     'test':umap_128_vae_test.tolist()}
         with open(vae128d_umap_file,'w') as f:
