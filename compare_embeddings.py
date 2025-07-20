@@ -139,7 +139,7 @@ def compare_embeddings(model_save_loc,
         vae_model_128d.to('cpu')
 
         print("done! saving out...")
-        vae_latents_128d = {'train':{'latents': train_latents_vae_128d.tolist(),'labels':test_labels_vae_128d.tolist()},
+        vae_latents_128d = {'train':{'latents': train_latents_vae_128d.tolist(),'labels':train_labels_vae_128d.tolist()},
                     'test':{'latents': test_latents_vae_128d.tolist(),'labels':train_labels_vae_128d.tolist()}}
         with open(vae128d_lat_file,'w') as f:
             json.dump(vae_latents_128d,f)
