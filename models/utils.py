@@ -143,6 +143,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             ResCellNVAESimple(64,expand_factor=1),
             nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*4*4,64*8*8),
             nn.Conv2d(64,32,1),
+            nn.ReLU(),
             nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*8*8,32*16*16),
             nn.Conv2d(32,16,1),
             ResCellNVAESimple(16,expand_factor=2),#nn.ReLU(),
@@ -260,4 +261,45 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
         
+    elif 'blobs' in dataset_name.lower() or 'moons' in dataset_name.lower():
+
+        encoder_net = nn.Sequential(nn.Flatten(start_dim=1,end_dim=-1),
+                                    nn.Linear(1000,500)
+                                    )
+        mu_net = nn.Linear(500,latent_dim)
+        L_net = nn.Linear(500,latent_dim)
+        d_net = nn.Linear(500,latent_dim)
+
+        enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
+
+
+    elif 'shapes3d' in dataset_name.lower():
+
+        encoder_net = nn.Sequential(
+            PermutationLayer(permute_type='input'),
+            ResCellNVAESimple(3,expand_factor=8),
+            ResCellNVAESimple(3,expand_factor=4),
+            ResCellNVAESimple(3,expand_factor=2),
+            nn.Conv2d(3,8,1),
+            nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
+            ResCellNVAESimple(8,expand_factor=4),
+            nn.Conv2d(8,16,1),
+            nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
+            ResCellNVAESimple(16,expand_factor=2),
+            nn.Conv2d(16,32,1),
+            nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
+            nn.Tanh(),
+            nn.Conv2d(32,64,1),
+            nn.Conv2d(64,64,4,stride=2,padding=1,groups=64),
+            ResCellNVAESimple(64,expand_factor=1),
+            nn.Flatten(start_dim=1,end_dim=-1),
+            nn.Linear(64*4*4,2048)
+        )
+        
+        mu_net = nn.Linear(2048,latent_dim)
+        L_net = nn.Linear(2048,latent_dim)
+        d_net = nn.Linear(2048,latent_dim)
+
+        enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
+
     return enc
