@@ -103,8 +103,8 @@ def compare_embeddings(model_save_loc,
         train_latents_vae_2d,train_labels_vae_2d = vae_model_2d.embed_data(train_loader)
         vae_model_2d.to('cpu')
         print("Done! saving out now")
-        vae_latents_2d = {'train':{'latents': train_latents_vae_2d.tolist(),'labels':test_labels_vae_2d.tolist()},
-                    'test':{'latents': test_latents_vae_2d.tolist(),'labels':train_labels_vae_2d.tolist()}}
+        vae_latents_2d = {'train':{'latents': train_latents_vae_2d.tolist(),'labels':train_labels_vae_2d.tolist()},
+                    'test':{'latents': test_latents_vae_2d.tolist(),'labels':test_labels_vae_2d.tolist()}}
         with open(vae2d_lat_file,'w') as f:
             json.dump(vae_latents_2d,f)
         print("done!")
@@ -140,7 +140,7 @@ def compare_embeddings(model_save_loc,
 
         print("done! saving out...")
         vae_latents_128d = {'train':{'latents': train_latents_vae_128d.tolist(),'labels':train_labels_vae_128d.tolist()},
-                    'test':{'latents': test_latents_vae_128d.tolist(),'labels':train_labels_vae_128d.tolist()}}
+                    'test':{'latents': test_latents_vae_128d.tolist(),'labels':test_labels_vae_128d.tolist()}}
         with open(vae128d_lat_file,'w') as f:
             json.dump(vae_latents_128d,f)
         print("done!!")
