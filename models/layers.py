@@ -112,9 +112,13 @@ class ZeroLayer(nn.Module):
     
 class PermutationLayer(nn.Module):
 
-    def __init__(self):
+    def __init__(self,permute_type='output'):
         super(PermutationLayer,self).__init__()
+
+        self.permute_type = permute_type
+        self.p_order = [0,2,3,1] if permute_type =='output' else [0,3,2,1]
 
     def forward(self,x):
         # permutes dimensions to be BxHxWxC, from BxCxHxW
-        return x.permute(0,2,3,1)
+        # if dims are BxHxWxC, needs to be  (0,3,1,2)
+        return x.permute(*self.p_order)
