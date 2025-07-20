@@ -198,7 +198,7 @@ def compare_embeddings(model_save_loc,
         if key != 'cbar':
             axs[key] = vis2d.format_plot_axis(axs[key],xlabel='Latent dim 1',
                                             ylabel='Latent dim 2',
-                                            title='key',
+                                            title=key,
                                             xlim=[0,1] if key == 'QMC' else (),
                                             ylim=[0,1] if key == 'QMC' else ())
     axs['cbar'] = vis2d.format_img_axis(axs['cbar'])

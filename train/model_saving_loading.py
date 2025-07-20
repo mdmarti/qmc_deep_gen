@@ -16,8 +16,13 @@ def save(model,optimizer,run_info,fn = ''):
 
 def load(model,optimizer,fn = ''):
 
+
     checkpoint = torch.load(fn,weights_only=True)
-    model.load_state_dict(checkpoint['model'])
+    try:
+        model.load_state_dict(checkpoint['model'])
+    except:
+        print(f"tried to load weights from {fn}; something went wrong!")
+        assert False
     optimizer.load_state_dict(checkpoint['optimizer'])
     run_info = checkpoint['run info']
 
