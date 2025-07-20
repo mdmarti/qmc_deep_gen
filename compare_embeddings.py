@@ -184,3 +184,6 @@ def compare_embeddings(model_save_loc,
     plt.savefig(os.path.join(save_location,f'latent_rep_comparison_{dataset}.png'))
     plt.close()
 
+if __name__ == '__main___':
+
+    fire.Fire(compare_embeddings)
