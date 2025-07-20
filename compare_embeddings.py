@@ -4,17 +4,12 @@ import os
 from data.utils import load_data
 from models.sampling import gen_fib_basis, gen_korobov_basis
 from models.utils import *
-import train.train as train_qmc 
-import train.train_vae as train_vae
 from models.vae_base import VAE 
 from models.qmc_base import QMCLVM
 from train.losses import *
 from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from torch.optim import Adam
-import plotting.visualize as vis2d # recon_comparison_plot,posterior_comparison_plot,qmc_train_plot,vae_train_plot,model_grid_plot
-import plotting.visualize_1d as vis1d
-import plotting.visualize_3d as vis3d
 import matplotlib.pyplot as plt
 import fire
 import json
@@ -28,7 +23,7 @@ def compare_embeddings(model_save_loc,
                        frames_per_sample=10
                        ):
     
-
+    print("actually running code")
     save_location = os.path.join(save_location,dataset)
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
@@ -193,6 +188,6 @@ def compare_embeddings(model_save_loc,
     plt.savefig(os.path.join(save_location,f'latent_rep_comparison_{dataset}.png'))
     plt.close()
 
-if __name__ == '__main___':
+if __name__ =='__main__':
 
     fire.Fire(compare_embeddings)
