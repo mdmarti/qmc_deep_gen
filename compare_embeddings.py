@@ -194,12 +194,13 @@ def compare_embeddings(model_save_loc,
 
     # Set the clim so that labels are centered on each block
     #plt.clim(-0.5, len(unique_labels)-0.5)
-    for key in axs.keys()[:-1]:
-        axs[key] = vis2d.format_plot_axis(axs[key],xlabel='Latent dim 1',
-                                          ylabel='Latent dim 2',
-                                          title='key',
-                                          xlim=[0,1] if key == 'QMC' else (),
-                                          ylim=[0,1] if key == 'QMC' else ())
+    for key in axs.keys():
+        if key != 'cbar':
+            axs[key] = vis2d.format_plot_axis(axs[key],xlabel='Latent dim 1',
+                                            ylabel='Latent dim 2',
+                                            title='key',
+                                            xlim=[0,1] if key == 'QMC' else (),
+                                            ylim=[0,1] if key == 'QMC' else ())
     axs['cbar'] = vis2d.format_img_axis(axs['cbar'])
     plt.savefig(os.path.join(save_location,f'latent_rep_comparison_{dataset}.png'))
     plt.close()
