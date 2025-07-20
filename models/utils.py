@@ -14,7 +14,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         decoder.append(nn.Linear(latent_dim,2048))
 
     if 'mnist_simple' in dataset_name.lower():
-
+        print("getting SHRIMPLE decoder")
         decoder = nn.Sequential(TorusBasis(),
                                 nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
@@ -171,6 +171,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
 
     if 'mnist_simple' in dataset_name.lower():
+        print("getting SHRIMPLE encoder")
         encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
         mu_net = nn.Sequential(nn.Linear(28**2,500),
                                nn.ReLU(),
