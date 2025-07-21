@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from numpy.polynomial.hermite import hermgauss
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
+import string
 
 class ae_dist():
 
@@ -82,7 +83,10 @@ class VAE(nn.Module):
         with torch.no_grad():
             for (data,label) in loader:
                 data = data.to(self.device)
-                labels.append(label.detach().cpu().numpy())
+                if type(label) == tuple:
+                    labels.append([string.ascii_lowercase.index(l.lower()[0]) for l in label])
+                else:
+                    labels.append(label.detach().cpu().numpy())
 
                 lat,_,_ = self.encode(data)
                 # posterior is B x S, convert to B x 2 for weighted grid

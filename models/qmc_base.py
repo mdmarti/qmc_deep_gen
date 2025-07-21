@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import numpy as np
+import string 
 
 class FourierBasis(nn.Module):
 
@@ -128,7 +129,10 @@ class QMCLVM(nn.Module):
         with torch.no_grad():
             for (data,label) in loader:
                 data = data.to(self.device)
-                labels.append(label.detach().cpu().numpy())
+                if type(label) == tuple:
+                    labels.append([string.ascii_lowercase.index(l.lower()[0]) for l in label])
+                else:
+                    labels.append(label.detach().cpu().numpy())
 
                 posterior = self.posterior_probability(grid,data,log_likelihood)
                 # posterior is B x S, convert to B x 2 for weighted grid
