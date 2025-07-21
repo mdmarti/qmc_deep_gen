@@ -82,7 +82,7 @@ class VAE(nn.Module):
         labels = [] 
         with torch.no_grad():
             for (data,label) in loader:
-                data = data.to(self.device)
+                data = data.to(self.device).to(torch.float32)
                 if type(label) == tuple:
                     labels.append([string.ascii_lowercase.index(l.lower()[0]) for l in label])
                 else:
