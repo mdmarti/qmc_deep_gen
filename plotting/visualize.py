@@ -223,6 +223,8 @@ def format_img_axis(ax,xlabel='',ylabel='',title=''):
     ax.set_ylabel(ylabel)
     ax.set_title(title)
 
+    return ax
+
 
 def format_plot_axis(ax,xlabel='',ylabel='',title='',xticks=[],yticks=[],xticklabels=[],yticklabels=[],xlim=(),ylim=()):
 
