@@ -25,14 +25,16 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey',mo
 
             dist = stats.norm
             z = torch.from_numpy(dist.ppf(z.detach().cpu().numpy())).to(torch.float32).to(model.device)
-        sample = model.decoder(z).detach().cpu()
+        sample = model.decoder(z)
+        
+    if sample.shape[1] == 3:
+        sample = sample.permute(0,2,3,1)
+    sample = sample.detach().cpu()
     z = z.detach().cpu().numpy()
     inds = np.arange(n_samples)
     cs = cmap(norm(inds))
 
-    
     mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]                
-    
 
     fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.01})
 
