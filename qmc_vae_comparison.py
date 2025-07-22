@@ -47,7 +47,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
         train_lattice = gen_korobov_basis(a=76,num_dims=qmc_latent_dim,num_points=1021)
         test_lattice = gen_korobov_basis(a=1487,num_dims=qmc_latent_dim,num_points=2039)
 
-    vae_latent_dim = [qmc_latent_dim**ii for ii in range(1,8)]
+    vae_latent_dim = [2**ii for ii in range(1,8)]
 
     data_save_loc = os.path.join(save_location,f'vae_qmc_dim_comparison_stats_{dataset}.json')
     qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid_{qmc_latent_dim}d.png')
@@ -200,7 +200,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
     padding = (range_of_vals[1] - range_of_vals[0]) // 2
 
     ax = plt.gca()
-    ax.set_xscale('log')
+    #ax.set_xscale('log')
     r = ax.errorbar(vae_latent_dim,vae_mu_recons,yerr = vae_sd_recons,capsize=12,color='tab:green',fmt='.')
     e= ax.errorbar(vae_latent_dim,vae_mu_elbos,yerr = vae_sd_elbos,capsize=12,color='tab:orange',fmt='.')
     q = ax.hlines(qmc_mu_ev,xmin=-20,xmax=vae_latent_dim[-1]+20,color='k')
