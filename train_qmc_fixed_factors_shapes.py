@@ -34,11 +34,14 @@ def run_fixed_factor_experiments(save_location,dataloc,batch_size=64,nEpochs=10,
         train_lattice = gen_korobov_basis(a=76,num_dims=qmc_dim,num_points=1021)
         test_lattice = gen_korobov_basis(a=1487,num_dims=qmc_dim,num_points=2039)
 
-    factor_order = [4,3,2,0,1]
-    factor_names = [_FACTORS_IN_ORDER[f] for f in factor_order]
+    factor_order = [1,0,2,3]
+    #factor_names = [_FACTORS_IN_ORDER[f] for f in factor_order]
     print(f"we will{'' if rerun else ' not'} be rerunning model analysis")
     for fixed_inds in range(1,len(factor_order)+1):
 
+        fixed_factors = factor_order[:fixed_inds]
+        fixed_factors.sort()
+        factor_names = [_FACTORS_IN_ORDER[f] for f in fixed_factors]
         print("now fixing: " + ', '.join(factor_names))
 
         save_string = '_'.join(factor_names)
@@ -46,8 +49,8 @@ def run_fixed_factor_experiments(save_location,dataloc,batch_size=64,nEpochs=10,
 
         data_save_loc = os.path.join(save_location,f'qmc_fixed_factors_{save_string}_stats_.json')
         qmc_grid_loc = os.path.join(save_location,f'qmc_fixed_factors_{save_string}_grid.png')
-        
-        train_ds,test_ds = get_3d_shapes_fixed_factors(dpath=dataloc,seed=92,fixed_factors=factor_order[:fixed_inds])
+
+        train_ds,test_ds = get_3d_shapes_fixed_factors(dpath=dataloc,seed=92,fixed_factors=fixed_factors)
         train_loader = DataLoader(train_ds,num_workers=n_workers,shuffle=True,batch_size=batch_size)
         test_loader = DataLoader(test_ds,num_workers=n_workers,shuffle=False,batch_size=max(1,batch_size//2))
         if not os.path.isfile(data_save_loc) or rerun: 
