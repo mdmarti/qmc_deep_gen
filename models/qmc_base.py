@@ -100,7 +100,7 @@ class QMCLVM(nn.Module):
         if recon_type == 'rqmc':
             posterior_grid = []
             for _ in range(n_samples):
-                tmp_grid = (grid % 1) + torch.rand((1,2),device=self.device)
+                tmp_grid = (grid + torch.rand((1,2),device=self.device)) % 1
                 posterior = self.posterior_probability(tmp_grid,data,log_likelihood)
                 posterior_grid.append(posterior.to(self.device) @ tmp_grid)
             posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
@@ -121,22 +121,36 @@ class QMCLVM(nn.Module):
 
         return recon
     
-    def embed_data(self,grid,loader,log_likelihood):
+    def embed_data(self,grid,loader,log_likelihood,embed_type='posterior',n_samples=10):
 
         latents = []
         labels = [] 
         grid = grid.to(self.device)
         with torch.no_grad():
-            for (data,label) in loader:
+            for (data,label) in tqdm(loader,desc='embedding latents',total=len(loader)):
                 data = data.to(self.device).to(torch.float32)
                 if type(label) == tuple:
                     labels.append([string.ascii_lowercase.index(l.lower()[0]) for l in label])
                 else:
                     labels.append(label.detach().cpu().numpy())
 
-                posterior = self.posterior_probability(grid,data,log_likelihood)
-                # posterior is B x S, convert to B x 2 for weighted grid
-                latents.append((posterior @ (grid%1)).detach().cpu())
+                if embed_type == 'rqmc':
+                    latent_batch = []
+
+                    for _ in range(n_samples):
+                        tmp_grid = (grid % 1) + torch.rand((1,2),device=self.device)
+                        posterior = self.posterior_probability(tmp_grid,data,log_likelihood) # Bsz x Grid size
+                        latent_batch.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
+                    latent_batch = torch.stack(latent_batch,axis=0).mean(axis=0) # Bsz x latent dim
+                    latents.append(latent_batch.detach().cpu())
+                elif embed_type == 'posterior':
+                    posterior = self.posterior_probability(grid,data,log_likelihood)
+                    # posterior is B x S, convert to B x 2 for weighted grid
+                    latents.append((posterior @ (grid%1)).detach().cpu())
+                elif embed_type == 'argmax':
+                    posterior = self.posterior_probability(grid,data,log_likelihood)
+                    max_inds = torch.argmax(posterior,axis=1)
+                    latents.append((grid[max_inds]%1).detach().cpu()) # this may work? double check
 
         latents = torch.vstack(latents).detach().cpu().numpy()
         labels = np.hstack(labels)
