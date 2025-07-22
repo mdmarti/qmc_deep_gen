@@ -157,6 +157,24 @@ def get_index(factors):
     base *= _NUM_VALUES_PER_FACTOR[name]
   return indices
 
+def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
+
+
+    gen = np.random.default_rng(seed=seed)
+    dfile = os.path.join(dpath,'3dshapes.h5')
+    dataset = h5py.File(dfile,'r')
+    #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
+    (B,H,W,C) = dataset['images'].shape
+
+    fixed_factor_values = [gen.choice(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[f]]) for  f in fixed_factors]
+
+    valid_indices = get_factor_indices(fixed_factors,fixed_factor_values)
+    B = len(valid_indices)
+    order = gen.choice(B,B,replace=False)
+    train_end = int(round(B * (1-test_size)))
+
+    return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
+
 def get_factor_indices(fixed_factors,fixed_factor_values):
 
     """
