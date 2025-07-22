@@ -63,7 +63,7 @@ def run_fixed_factor_experiments(save_location,dataloc,batch_size=64,nEpochs=10,
 
             if not os.path.isfile(qmc_save_path):
                 qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
-                                                                    nEpochs=nEpochs)
+                                                                    nEpochs=nEpochs*fixed_inds)
                 print("Done training!")
                 qmc_model.eval()
                 with torch.no_grad():
