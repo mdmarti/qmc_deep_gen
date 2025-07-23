@@ -138,7 +138,7 @@ class QMCLVM(nn.Module):
                     latent_batch = []
 
                     for _ in range(n_samples):
-                        tmp_grid = (grid % 1) + torch.rand((1,2),device=self.device)
+                        tmp_grid = (grid + torch.rand((1,2),device=self.device))%1
                         posterior = self.posterior_probability(tmp_grid,data,log_likelihood) # Bsz x Grid size
                         latent_batch.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
                     latent_batch = torch.stack(latent_batch,axis=0).mean(axis=0) # Bsz x latent dim
