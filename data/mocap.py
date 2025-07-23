@@ -257,6 +257,37 @@ class MocapDataset(Dataset):
         self.n_per_sample=0
         self.transform=transform
 
+        ### figure this part out ####
+        self.subj_54_key ={
+             '0':0, #monkey
+             '1':1, #bear
+             '2':2, #penguin
+             '3':3, #pterosaur
+             '4':3, #pterosaur
+             '5':3, # pterosaur
+             '6':4, # prairie dog
+             '7':5, # roadrunner
+             '8':6, # insect/praying mantis
+             '9':7, #ghost
+             '10':2, # penguin
+             '11':8, #dragon,
+             '12':8, # dragon,
+             '13':0, #monkey,
+             '14': 4, #prairie dog,
+             '15': -1, #superhero,
+             '16': 9, #squirrel,
+             '17': 9, #squirrel,
+             '18': 9, #robot squirrel,
+             '19': 10, #normal walking,
+             '20': 10, #normal walking,
+             '21': 10, #normal walking,
+             '22': 0, #monkey,
+             '23': 11, #hummingbird,
+             '24': 12, #chicken,
+             '25': 12, #chicken,
+             '26': 12, #chicken
+        }
+
     def __len__(self):
 
         return self.length
@@ -268,7 +299,7 @@ class MocapDataset(Dataset):
         if self.n_per_sample == 0:
               self.n_per_sample = sample.shape[0]
         sample = self.transform(sample).unsqueeze(0)#,(1,sample.shape[0],sample.shape[1])))#.unsqueeze(0)
-        label = self.labels[index]
+        label = self.subj_54_key[str(self.labels[index])]
 
         if return_all_info:
 
