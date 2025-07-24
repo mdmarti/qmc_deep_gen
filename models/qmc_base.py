@@ -96,29 +96,58 @@ class QMCLVM(nn.Module):
     def round_trip(self,grid,data,log_likelihood,recon_type='posterior',n_samples=25):
 
         grid = grid.to(self.device)
+        with torch.no_grad():
+            if recon_type == 'rqmc':
+                posterior_grid = []
 
-        if recon_type == 'rqmc':
-            posterior_grid = []
+                for _ in range(n_samples):
+                    tmp_grid = (grid + torch.rand((1,2),device=self.device))%1
+                    posterior = self.posterior_probability(tmp_grid,data,log_likelihood) # Bsz x Grid size
+                    posterior_grid.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
+                posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
+            elif recon_type == 'rqmc_recon':
+                posterior_ims = []
 
-            for _ in range(n_samples):
-                tmp_grid = (grid + torch.rand((1,2),device=self.device))%1
-                posterior = self.posterior_probability(tmp_grid,data,log_likelihood) # Bsz x Grid size
-                posterior_grid.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
-            posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
-        else:
-            posterior = self.posterior_probability(grid,data,log_likelihood)
-            posterior = posterior.to(self.device)
-        
-        
-        if (recon_type == 'posterior'):
-            posterior_grid = posterior @ (grid % 1)
-        elif recon_type == 'argmax':
-            posterior_grid = grid[torch.argmax(posterior)][None,:] % 1
-        elif recon_type == 'rqmc':
-            pass
-        else:
-            raise NotImplementedError
-        recon = self.decoder(posterior_grid)
+                for _ in range(n_samples):
+                    tmp_grid = (grid + torch.rand((1,2),device=self.device)) % 1
+                    posterior = self.posterior_probability(tmp_grid,data,log_likelihood)
+                    recons = self.decoder(tmp_grid) # G x C x H x W (or B)
+                    recons = posterior.to(self.device) @ recons
+                    posterior_ims.append(recons)
+                recon = torch.stack(posterior_ims,axis=0).mean(axis=0)
+
+            else:
+                posterior = self.posterior_probability(grid,data,log_likelihood)
+                posterior = posterior.to(self.device)
+            
+            if 'argmax' in recon_type:
+                """
+                same if we do in image space vs. latent space
+                """
+                
+                posterior_grid = grid[torch.argmax(posterior)][None,:] % 1
+                recon = self.decoder(posterior_grid)
+                
+            elif ('recon' not in recon_type):
+                """
+                different in latent space
+                """
+                if (recon_type == 'posterior'):
+                    posterior_grid = posterior @ (grid % 1)
+                
+                elif recon_type == 'rqmc':
+                    pass
+                else:
+                    raise NotImplementedError
+                recon = self.decoder(posterior_grid)
+            else:
+                if 'posterior' in recon_type:
+                    recons = self.decoder(grid)
+                    recon = posterior @ recons
+                elif 'rqmc' in recon_type:
+                    pass 
+                else:
+                    raise NotImplementedError
 
         return recon
     
