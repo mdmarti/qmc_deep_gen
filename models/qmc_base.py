@@ -101,7 +101,7 @@ class QMCLVM(nn.Module):
                 posterior_grid = []
 
                 for _ in range(n_samples):
-                    tmp_grid = (grid + torch.rand((1,2),device=self.device))%1
+                    tmp_grid = (grid + torch.rand((1,grid.shape[1]),device=self.device))%1
                     posterior = self.posterior_probability(tmp_grid,data,log_likelihood) # Bsz x Grid size
                     posterior_grid.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
                 posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
@@ -109,10 +109,10 @@ class QMCLVM(nn.Module):
                 posterior_ims = []
 
                 for _ in range(n_samples):
-                    tmp_grid = (grid + torch.rand((1,2),device=self.device)) % 1
+                    tmp_grid = (grid + torch.rand((1,grid.shape[1]),device=self.device)) % 1
                     posterior = self.posterior_probability(tmp_grid,data,log_likelihood)
                     recons = self.decoder(tmp_grid) # G x C x H x W (or B)
-                    recons = posterior.to(self.device) @ recons
+                    recons = torch.einsum('BG,GCHW->BCHW',posterior,recons)#posterior.to(self.device) @ recons
                     posterior_ims.append(recons)
                 recon = torch.stack(posterior_ims,axis=0).mean(axis=0)
 
@@ -143,7 +143,7 @@ class QMCLVM(nn.Module):
             else:
                 if 'posterior' in recon_type:
                     recons = self.decoder(grid)
-                    recon = posterior @ recons
+                    recon =  torch.einsum('BG,GCHW->BCHW',posterior,recons)
                 elif 'rqmc' in recon_type:
                     pass 
                 else:
