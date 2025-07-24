@@ -99,17 +99,18 @@ class QMCLVM(nn.Module):
 
         if recon_type == 'rqmc':
             posterior_grid = []
+
             for _ in range(n_samples):
-                tmp_grid = (grid + torch.rand((1,2),device=self.device)) % 1
-                posterior = self.posterior_probability(tmp_grid,data,log_likelihood)
-                posterior_grid.append(posterior.to(self.device) @ tmp_grid)
+                tmp_grid = (grid + torch.rand((1,2),device=self.device))%1
+                posterior = self.posterior_probability(tmp_grid,data,log_likelihood) # Bsz x Grid size
+                posterior_grid.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
             posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
         else:
             posterior = self.posterior_probability(grid,data,log_likelihood)
             posterior = posterior.to(self.device)
         
         
-        if (recon_type == 'posterior') or (recon_type=='rqmc'):
+        if (recon_type == 'posterior'):
             posterior_grid = posterior @ (grid % 1)
         elif recon_type == 'argmax':
             posterior_grid = grid[torch.argmax(posterior)][None,:] % 1

@@ -134,7 +134,7 @@ def round_trip_qmc(model,grid,data,log_density,device='cuda'):
     return data,recon
 
 def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,n_samples=50,
-                          save_path='recon_{sample_num}.png',cm='gray',origin=None,show=False):
+                          save_path='recon_{sample_num}.png',cm='gray',origin=None,show=False,recon_type='posterior'):
 
     n_samples = min(n_samples,len(loader.dataset))
     sample_inds = np.random.choice(len(loader.dataset),n_samples,replace=False).squeeze()
@@ -144,7 +144,7 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
         save_path_ind = save_path.format(sample_num = sample_ind)
         sample = loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
         sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
-        recon_qmc = qmc_model.round_trip(qmc_lattice,sample,qmc_likelihood,recon_type='posterior').detach().cpu()
+        recon_qmc = qmc_model.round_trip(qmc_lattice,sample,qmc_likelihood,recon_type=recon_type).detach().cpu()
         recon_vae = vae_model.round_trip(sample).detach().cpu()
         sample = sample.detach().cpu().numpy()
 
