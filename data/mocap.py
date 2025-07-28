@@ -208,7 +208,7 @@ def plot_sample(sample,joints,motion,conversion_key,n_per_sample=5):
     plt.show()
     plt.close()
       
-def get_samples(datapath,subject,n_frames_per_sample=4,test_size=0.2):
+def get_samples(datapath,subject,n_frames_per_sample=4,test_size=0.2,seed=92):
     
     
     asf = glob.glob(os.path.join(datapath,subject,'*.asf'))[0]
@@ -232,7 +232,7 @@ def get_samples(datapath,subject,n_frames_per_sample=4,test_size=0.2):
         labels.append(ii * np.ones((len(traj),),dtype=np.int32))
     
     trials,labels,frame_nos =np.vstack(trials),np.hstack(labels),np.hstack(frame_nos)
-    train_trials,test_trials,train_labels,test_labels,train_frames,test_frames = train_test_split(trials,labels,frame_nos,test_size=test_size)
+    train_trials,test_trials,train_labels,test_labels,train_frames,test_frames = train_test_split(trials,labels,frame_nos,test_size=test_size,random_state=seed)
     
     
     return (train_trials,test_trials),(train_labels,test_labels),(train_frames,test_frames),means,keys,frames,joints

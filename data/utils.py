@@ -6,7 +6,10 @@ from torchvision import transforms, datasets
 from data.mocap import *
 
 
-def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sample=1):
+def load_data(dataset_name,dataset_loc,batch_size=256,
+              subj='54',frames_per_sample=1, # mocap params
+              family = 2,specs_per_file=20, #gerbil params
+              seed=92):
 
     n_workers = len(os.sched_getaffinity(0))
 
@@ -35,17 +38,24 @@ def load_data(dataset_name,dataset_loc,batch_size=256,subj='54',frames_per_sampl
 
         print("loading bird....")
 
-        (train_files,test_files),(train_ids,test_ids) = load_segmented_sylls(dataset_loc,sylls=['A','B','C','D','D2','E'])
+        (train_files,test_files),(train_ids,test_ids) = load_segmented_sylls(dataset_loc,sylls=['A','B','C','D','D2','E'],seed=seed)
         train_data = bird_data(train_files,train_ids)
         test_data = bird_data(test_files,test_ids)
         #train_loader = DataLoader(train_data,num_workers=n_workers,shuffle=True,batch_size=batch_size)
         #test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=batch_size//4)
 
+    elif 'gerbil' in dataset_name.lower():
+
+        print("loading gerbil")
+
+
     elif 'mocap' in dataset_name.lower():
 
         print('loading mocap...')
 
-        (train_trials,test_trials),(train_labels,test_labels),(train_frames,test_frames),means,keys,motions,joints = get_samples(dataset_loc,subj,frames_per_sample)
+        (train_trials,test_trials),(train_labels,test_labels),(train_frames,test_frames),means,keys,motions,joints = get_samples(dataset_loc,
+                                                                                                                                 subj,frames_per_sample,
+                                                                                                                                 seed=seed)
 
         train_data = MocapDataset(train_trials,train_labels,means,motions,train_frames,joints,keys)
         test_data = MocapDataset(test_trials,test_labels,means,motions,test_frames,joints,keys)

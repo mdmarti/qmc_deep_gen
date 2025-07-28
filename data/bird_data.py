@@ -4,7 +4,7 @@ import os,glob
 import h5py
 from sklearn.model_selection import train_test_split
 
-def load_segmented_sylls(bird_filepath,sylls,test_size=0.2):
+def load_segmented_sylls(bird_filepath,sylls,test_size=0.2,seed=92):
 
     spec_files = []
     syll_ids = []
@@ -15,7 +15,7 @@ def load_segmented_sylls(bird_filepath,sylls,test_size=0.2):
         spec_files += syll_files
         syll_ids += [syll]*len(syll_files)
         
-    train_files,test_files,train_ids,test_ids = train_test_split(spec_files,syll_ids,test_size=test_size)
+    train_files,test_files,train_ids,test_ids = train_test_split(spec_files,syll_ids,test_size=test_size,random_state=seed)
     
     return (train_files,test_files),(train_ids,test_ids)
         
@@ -46,4 +46,10 @@ class bird_data(Dataset):
         spec = self.transform(spec)
 
         return (spec,syll_id)
-        
+    
+def load_gerbils(gerbil_filepath,specs_per_file,family=2,test_size=0.2,seed=92):
+
+    specs_in_file = []
+    spec_dir = os.path.join(gerbil_filepath,'processed-data',f"family{family}")
+    spec_fns = glob.glob(os.path.join(spec_dir,'*.hdf5'))
+
