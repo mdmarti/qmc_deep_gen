@@ -37,6 +37,16 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
 
     qmc_latent_dim=3 if (('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower())) else 2
 
+    if 'finch' in dataset.lower():
+        cm = 'viridis'
+        origin = 'lower'
+    elif 'gerbil' in dataset.lower():
+        cm = 'inferno'
+        origin = 'lower'
+    else:
+        cm = 'gray'
+        origin = None
+
     if qmc_latent_dim == 2:
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample)
         train_lattice = gen_fib_basis(m=train_lattice_m)
@@ -87,19 +97,19 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
             print("making model grid plot....")
             if qmc_latent_dim == 2:
                 vis2d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
-                                origin='lower' if dataset.lower() == 'finch' else None,
-                                cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                origin=origin,
+                                cm = cm,
                                 model_type='qmc',show=False)
             elif qmc_latent_dim == 1:
                     vis1d.model_grid_plot(qmc_model,n_samples_dim=100,fn=qmc_grid_loc,
-                                        origin='lower' if dataset.lower() == 'finch' else None,
-                                        cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                        origin=origin,
+                                        cm = cm,
                                         model_type='qmc',show=False)
             elif qmc_latent_dim == 3:
                 qmc_grid_loc = os.path.join(save_location,f'qmc_{dataset}_grid')
                 vis3d.model_grid_plot(qmc_model,n_samples_dim=20,fn=qmc_grid_loc,
-                                        origin='lower' if dataset.lower() == 'finch' else None,
-                                    cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                        origin=origin,
+                                    cm = cm,
                                     model_type='qmc',show=False)
             print("done!")
         qmc_test_losses = -np.array(qmc_test_losses)
@@ -152,15 +162,16 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
             if not os.path.isfile(vae_grid_loc) and ld == 2 and (dataset.lower() != 'mocap'):
                 print("making model grid plot....")
                 vis2d.model_grid_plot(vae_model,n_samples_dim=20,fn=vae_grid_loc,
-                                origin='lower' if dataset.lower() == 'finch' else None,
-                                cm = 'viridis' if dataset.lower() == 'finch' else 'gray',
+                                origin=origin,
+                                cm = cm,
                                 model_type='vae',show=False)
                 print("done!")
             if make_comparison_plots and  ('mocap' not in dataset.lower()):
                 recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
                 with torch.no_grad():
                     print(f"comparing {ld}d VAE and QMC reconstructions")
-                    vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc)
+                    vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc,
+                                                cm=cm,origin=origin)
                     print("done!")
             if ld == 2 and  ('mocap' not in dataset.lower()) and make_comparison_plots:
                 print("comparing true to encoder posteriors (under decoder)")
