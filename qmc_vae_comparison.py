@@ -170,8 +170,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,nEpochs
                 recon_save_loc = os.path.join(save_location,"qmc_vae_recon_comparison_" + str(ld) + 'd_{sample_num}.png')
                 with torch.no_grad():
                     print(f"comparing {ld}d VAE and QMC reconstructions")
-                    vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples=10,save_path=recon_save_loc,
-                                                cm=cm,origin=origin)
+                    vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,test_loader,test_lattice.to(device),n_samples_comparison=10,save_path=recon_save_loc,
+                                                cm=cm,origin=origin,recon_type='rqmc',n_samples_recon=50)
                     print("done!")
             if ld == 2 and  ('mocap' not in dataset.lower()) and make_comparison_plots:
                 print("comparing true to encoder posteriors (under decoder)")
