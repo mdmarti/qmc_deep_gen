@@ -47,6 +47,9 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
     elif 'gerbil' in dataset_name.lower():
 
         print("loading gerbil")
+        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,family=family,seed=seed)
+        train_data = bird_data(train_files,train_ids,sylls_per_file)
+        test_data = bird_data(test_files,test_ids,sylls_per_file)
 
 
     elif 'mocap' in dataset_name.lower():
