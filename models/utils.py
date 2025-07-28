@@ -92,7 +92,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Sigmoid()]
  
 
-    elif 'finch' in dataset_name.lower():
+    elif ('finch' in dataset_name.lower()) or ('gerbil' in dataset_name.lower()):
 
         layers = [nn.Linear(2048, 64*8*8),
             nn.Unflatten(1, (64, 8, 8)),
@@ -279,7 +279,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
-    elif 'finch' in dataset_name.lower():
+    elif ('finch' in dataset_name.lower()) or ('gerbil' in dataset_name.lower()):
         enc = Encoder(latent_dim=latent_dim)
 
     elif 'mocap_simple' in dataset_name.lower():
