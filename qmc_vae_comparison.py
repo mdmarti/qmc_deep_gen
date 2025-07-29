@@ -121,7 +121,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
 
         ############## VAE Training ######################
         ### recreating loader with larger batch size, so we can train everything faster
-        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size*8,frames_per_sample=frames_per_sample)
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size*8,frames_per_sample=frames_per_sample,
+                                             families=families)
 
         vae_test_recons_all,vae_test_kls_all = [],[]
         vae_loss_func = binary_elbo if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=1/var)
