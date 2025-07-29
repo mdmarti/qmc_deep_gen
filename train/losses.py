@@ -240,12 +240,38 @@ def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
 
     return neg_lp.mean(),kl.mean()
 
-def gaussian_iwae_elbo(reconstructions,zs,targets,recon_precision=1e-2):
+def gaussian_iwae_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
 
+    """
+    here, reconstructions should be: B x k x C x H x W (i think)
+    where k is the number of reconstructions, B is batch size,
+    C,H,W are data dimensions.
 
+    distribution should be a tuple, with the first element corresponding to samples from dist
+    of shape B x k x d (d = latent dimensionality)
+
+    the second element should be the latent distribution object, which has a .log_prob method
+
+    targets are data, and should be BxCxHxW
+    """
+
+    z,dist = distribution
+    B,k,d = z.shape
+    
+    print(z.shape,reconstructions.shape,targets.shape)
+    ### first, reconstruction ll. 
+    rlp = torch.vmap(gaussian_nll_loss,in_dims=(1,None),out_dims=1)
+    recon_ll = -rlp(reconstructions,targets,var=1/recon_precision,reduction='none',full=True).sum(dim=(2,3,4))
+    ### then, latent prior ll
+    prior_ll =  -torch.einsum('kbd,kbd->bk',z,z)/2  - d*np.log(2*np.pi)/2 - d/2 ## needs to also be B x k
+    
+    ### finally, learned latent dist ll
+    latent_ll = dist.log_prob(z).permute(1,0) # should be B x k
+    
+    
 
     #return neg_lp.mean(),kl.mean()
-    pass
+    return -torch.special.logsumexp(recon_ll + prior_ll - latent_ll,dim=1).mean(dim=0),torch.tensor([0.])
 
 def binary_elbo(reconstructions,distribution,targets):
 

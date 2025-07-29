@@ -95,7 +95,27 @@ class VAE(nn.Module):
         latents = torch.vstack(latents).detach().cpu().numpy()
         labels = np.hstack(labels)
         return latents,labels
+    
 
+class IWAE(VAE):
+
+    def __init__(self,decoder,encoder,distribution,device,k_samples=10):
+
+
+        super(IWAE,self).__init__(decoder,encoder,distribution,device)
+
+        self.k_samples=k_samples
+
+    def forward(self,x):
+
+        x = x.to(torch.float32)
+        params = self.encoder(x)
+
+        dist = self.distribution(*params)
+        z = dist.rsample([self.k_samples]) # K x B x d 
+        recons = torch.vmap(self.decoder,in_dims=(1),out_dims=(1))(z).permute(1,0,2,3,4) # KxBxCxHxW->BxKxCxHxW
+
+        return recons,(z,dist)
     
 class Print(nn.Module):
     def __init__(self):
