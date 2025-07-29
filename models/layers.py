@@ -124,6 +124,7 @@ class PermutationLayer(nn.Module):
         return x.permute(*self.p_order)
     
 class PrintLayer(nn.Module):
+    
     def __init__(self):
         super(PrintLayer,self).__init__()
 
