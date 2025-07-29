@@ -312,7 +312,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         """
         new version
         """
-        encoder_net = nn.Sequential(PrintLayer,
+        encoder_net = nn.Sequential(PrintLayer(),
                                     nn.Conv2d(1,1,3,stride=2,padding=1),
                                     nn.Conv2d(1,8,1),
                                     ResCellNVAESimple(8,expand_factor=4),
