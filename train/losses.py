@@ -76,20 +76,26 @@ def binary_lp(samples,data,importance_weights=[]):
     ## following the example of torch BCEloss, this clamps the log terms at -100
     ## to prevent bad gradients
     ## Samples should be KSamples x Channels x H x W
-    K,C,H,W = samples.shape
-    if len(importance_weights) == 0:
-        importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
+    try:
+        K,C,H,W = samples.shape
+        if len(importance_weights) == 0:
+            importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
+        
+        samples[samples <= 1e-6] = samples[samples <= 1e-6] - samples[samples <= 1e-6] + 1e-6
+        samples[samples >= 1 - 1e-6] = samples[samples >= 1 - 1e-6] - samples[samples >= 1 - 1e-6] + 1 - 1e-6
+        #samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
+        t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
+        t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
+        #if torch.any(t1 == )
+        assert not torch.any(t1 == torch.nan)
+        assert not (torch.any(t2 == torch.nan))
     
-    samples[samples <= 1e-6] = samples[samples <= 1e-6] - samples[samples <= 1e-6] + 1e-6
-    samples[samples >= 1 - 1e-6] = samples[samples >= 1 - 1e-6] - samples[samples >= 1 - 1e-6] + 1 - 1e-6
-    #samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
-    t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
-    t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
-    #if torch.any(t1 == )
-    assert not torch.any(t1 == torch.nan)
-    assert not (torch.any(t2 == torch.nan))
-    return (t1 + t2)*importance_weights
-
+        return (t1 + t2)*importance_weights
+    except:
+        print("shapes were probably weird: here's what they were:")
+        print(f"samples: {samples.shape}")
+        print(f"data: {data.shape}")
+        assert False
 def binary_lp_old(samples,data):
 
     """
@@ -232,6 +238,13 @@ def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
     kl = (t12 + t22 + t32 + t42)
 
     return neg_lp.mean(),kl.mean()
+
+def gaussian_iwae_elbo(reconstructions,zs,targets,recon_precision=1e-2):
+
+
+
+    #return neg_lp.mean(),kl.mean()
+    pass
 
 def binary_elbo(reconstructions,distribution,targets):
 
