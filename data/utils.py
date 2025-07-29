@@ -49,8 +49,8 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
         print("loading gerbil")
         (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,families=families,
                                                                                     seed=seed)
-        train_data = bird_data(train_files,train_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(1))
-        test_data = bird_data(test_files,test_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(1))
+        train_data = bird_data(train_files,train_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0))
+        test_data = bird_data(test_files,test_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0))
 
 
     elif 'mocap' in dataset_name.lower():
