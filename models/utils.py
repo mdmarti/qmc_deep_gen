@@ -1,5 +1,5 @@
 import torch
-from models.layers import ResCellNVAESimple,ZeroLayer,PermutationLayer
+from models.layers import ResCellNVAESimple,ZeroLayer,PermutationLayer,PrintLayer
 import torch.nn as nn
 from models.qmc_base import TorusBasis
 from models.vae_base import Encoder
@@ -312,7 +312,8 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         """
         new version
         """
-        encoder_net = nn.Sequential(nn.Conv2d(1,1,3,stride=2,padding=1),
+        encoder_net = nn.Sequential(PrintLayer,
+                                    nn.Conv2d(1,1,3,stride=2,padding=1),
                                     nn.Conv2d(1,8,1),
                                     ResCellNVAESimple(8,expand_factor=4),
                                     nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),

@@ -122,3 +122,11 @@ class PermutationLayer(nn.Module):
         # permutes dimensions to be BxHxWxC, from BxCxHxW
         # if dims are BxHxWxC, needs to be  (0,3,1,2)
         return x.permute(*self.p_order)
+    
+class PrintLayer(nn.Module):
+    def __init__(self):
+        super(PrintLayer,self).__init__()
+
+    def forward(self,x):
+        print(x.shape)
+        return x
