@@ -258,7 +258,7 @@ def gaussian_iwae_elbo(reconstructions,distribution,targets,recon_precision=1e-2
     z,dist = distribution
     B,k,d = z.shape
     
-    print(z.shape,reconstructions.shape,targets.shape)
+    #print(z.shape,reconstructions.shape,targets.shape)
     ### first, reconstruction ll. 
     rlp = torch.vmap(gaussian_nll_loss,in_dims=(1,None),out_dims=1)
     recon_ll = -rlp(reconstructions,targets,var=1/recon_precision,reduction='none',full=True).sum(dim=(2,3,4))
@@ -271,7 +271,25 @@ def gaussian_iwae_elbo(reconstructions,distribution,targets,recon_precision=1e-2
     
 
     #return neg_lp.mean(),kl.mean()
-    return -torch.special.logsumexp(recon_ll + prior_ll - latent_ll,dim=1).mean(dim=0),torch.tensor([0.])
+    return -torch.special.logsumexp(recon_ll + prior_ll - latent_ll,dim=1).mean(dim=0),torch.tensor([0.]).to(reconstructions.device)
+
+def binary_iwae_elbo(reconstructions,distribution,targets):
+
+    z,dist = distribution
+    B,k,d = z.shape
+    rlp = torch.vmap(binary_cross_entropy,in_dims=(1,None),out_dims=1)
+    recon_ll = -rlp(reconstructions,targets,reduction='none').sum(dim=(2,3,4))
+    
+    ### then, latent prior ll
+    prior_ll =  -torch.einsum('kbd,kbd->bk',z,z)/2  - d*np.log(2*np.pi)/2 - d/2 ## needs to also be B x k
+    
+    ### finally, learned latent dist ll
+    latent_ll = dist.log_prob(z).permute(1,0) # should be B x k
+    
+    
+
+    #return neg_lp.mean(),kl.mean()
+    return -torch.special.logsumexp(recon_ll + prior_ll - latent_ll,dim=1).mean(dim=0),torch.tensor([0.]).to(reconstructions.device)
 
 def binary_elbo(reconstructions,distribution,targets):
 
