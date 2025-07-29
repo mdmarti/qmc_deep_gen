@@ -22,7 +22,7 @@ import json
 def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                             nEpochs=300,rerun=False,train_lattice_m=15,
                             make_comparison_plots=True,frames_per_sample=1,
-                            var=0.1):
+                            var=0.1,families=[2]):
 
 
 
@@ -51,11 +51,13 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
         origin = None
 
     if qmc_latent_dim == 2:
-        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample)
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
+                                             families=families)
         train_lattice = gen_fib_basis(m=train_lattice_m)
         test_lattice = gen_fib_basis(m=20)
     else:
-        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample)
+        train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
+                                             families=families)
 
         train_lattice = gen_korobov_basis(a=76,num_dims=qmc_latent_dim,num_points=1021)
         test_lattice = gen_korobov_basis(a=1487,num_dims=qmc_latent_dim,num_points=2039)
