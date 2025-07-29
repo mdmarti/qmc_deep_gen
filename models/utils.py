@@ -92,7 +92,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Sigmoid()]
  
 
-    elif ('finch' in dataset_name.lower()) or ('gerbil' in dataset_name.lower()):
+    elif ('finch' in dataset_name.lower()):
 
         layers = [nn.Linear(2048, 64*8*8),
             nn.Unflatten(1, (64, 8, 8)),
@@ -104,6 +104,28 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.ReLU(),
             nn.ConvTranspose2d(8,1,3,stride=2,padding=1,output_padding=1),
             nn.Sigmoid()]
+        
+    
+    elif ('gerbil' in dataset_name.lower()):
+
+        """
+        older version used finch decoder
+        """
+        layers = [nn.Linear(2048, 64*8*8),
+            nn.Unflatten(1, (64, 8, 8)),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*7*7,32*14*14),
+            nn.Conv2d(64,32,1),
+            ResCellNVAESimple(32,expand_factor=4),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1),#nn.Linear(32*14*14,1*28*28),
+            nn.Conv2d(32,16,1),
+            ResCellNVAESimple(16,expand_factor=4),
+            nn.ConvTranspose2d(16,16,3,stride=2,padding=1,output_padding=1),
+            nn.Conv2d(16,8,1),
+            ResCellNVAESimple(8,expand_factor=4),
+            nn.ConvTranspose2d(8,8,3,stride=2,padding=1,output_padding=1),
+            nn.Conv2d(8,1,1),
+            nn.Sigmoid()]
+    
         
     elif 'mocap_simple' in dataset_name.lower():
         decoder = nn.Sequential(TorusBasis(),
@@ -279,8 +301,39 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
-    elif ('finch' in dataset_name.lower()) or ('gerbil' in dataset_name.lower()):
+    elif ('finch' in dataset_name.lower()):
         enc = Encoder(latent_dim=latent_dim)
+    
+    elif 'gerbil' in dataset_name.lower():
+        """
+        older versions
+        """
+        #enc = Encoder(latent_dim=latent_dim)
+        """
+        new version
+        """
+        encoder_net = nn.Sequential(nn.Conv2d(1,1,3,stride=2,padding=1),
+                                    nn.Conv2d(1,8,1),
+                                    ResCellNVAESimple(8,expand_factor=4),
+                                    nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
+                                    nn.Conv2d(8,16,1),
+                                    ResCellNVAESimple(16,expand_factor=4),
+                                    nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
+                                    nn.Conv2d(16,32,1),
+                                    ResCellNVAESimple(32,expand_factor=4),
+                                    nn.Conv2d(32,32,3,stride=2,padding=1,groups=16),
+                                    nn.Conv2d(32,64,1),
+                                    nn.Flatten(start_dim=1,end_dim=-1),
+                                    nn.Linear(64*8*8,2048),
+                                    nn.Tanh())
+        mu_net = nn.Linear(2048,latent_dim)
+        L_net = nn.Linear(2048,latent_dim)
+        d_net = nn.Linear(2048,latent_dim)
+        
+
+        enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
+    
+
 
     elif 'mocap_simple' in dataset_name.lower():
         encoder_net = nn.Flatten(start_dim=1,end_dim=-1)

@@ -8,7 +8,7 @@ from data.mocap import *
 
 def load_data(dataset_name,dataset_loc,batch_size=256,
               subj='54',frames_per_sample=1, # mocap params
-              family = 2,specs_per_file=20, #gerbil params
+              families = [2],specs_per_file=20, #gerbil params
               seed=92):
 
     n_workers = len(os.sched_getaffinity(0))
@@ -47,7 +47,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
     elif 'gerbil' in dataset_name.lower():
 
         print("loading gerbil")
-        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,family=family,seed=seed)
+        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,families=families,seed=seed)
         train_data = bird_data(train_files,train_ids,sylls_per_file)
         test_data = bird_data(test_files,test_ids,sylls_per_file)
 
