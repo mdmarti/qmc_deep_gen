@@ -81,8 +81,9 @@ def binary_lp(samples,data,importance_weights=[]):
         if len(importance_weights) == 0:
             importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
         
-        samples[samples <= 1e-6] = samples[samples <= 1e-6] - samples[samples <= 1e-6] + 1e-6
-        samples[samples >= 1 - 1e-6] = samples[samples >= 1 - 1e-6] - samples[samples >= 1 - 1e-6] + 1 - 1e-6
+        samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
+        #samples[samples <= 1e-6] = samples[samples <= 1e-6] - samples[samples <= 1e-6] + 1e-6
+        #samples[samples >= 1 - 1e-6] = samples[samples >= 1 - 1e-6] - samples[samples >= 1 - 1e-6] + 1 - 1e-6
         #samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
         t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
         t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
