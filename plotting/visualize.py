@@ -133,36 +133,50 @@ def round_trip_qmc(model,grid,data,log_density,device='cuda'):
 
     return data,recon
 
-def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,n_samples_comparison=50,
+def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,n_samples_comparison=6,
                           save_path='recon_{sample_num}.png',cm='gray',origin=None,show=False,recon_type='posterior',n_samples_recon=10):
 
     n_samples = min(n_samples_comparison,len(loader.dataset))
     sample_inds = np.random.choice(len(loader.dataset),n_samples,replace=False).squeeze()
-    
-    for sample_ind in tqdm(sample_inds):
+    mosaic = [[f"qmc {ii}" for ii in range(n_samples)],
+              [f"sample {ii}" for ii in range(n_samples)],
+             [f"vae {ii}" for ii in range(n_samples)]]  
 
-        save_path_ind = save_path.format(sample_num = sample_ind)
-        sample = loader.dataset[sample_ind][0].to(torch.float32).to(qmc_model.device)
-        sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.0})
+    for ii,sample_ind in tqdm(enumerate(sample_inds),total=len(sample_inds)):
+
+        #save_path_ind = save_path.format(sample_num = sample_ind)
+        sample = torch.tensor(loader.dataset[sample_ind][0]).to(torch.float32).to(qmc_model.device)
+        if sample.shape[0] == 1:
+            sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
+        else:
+            sample = sample.view(1,*sample.shape)
+        
         recon_qmc = qmc_model.round_trip(qmc_lattice,sample,qmc_likelihood,recon_type=recon_type,n_samples=n_samples_recon).detach().cpu()
         recon_vae = vae_model.round_trip(sample).detach().cpu()
+        
         sample = sample.detach().cpu().numpy()
 
-        fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
-        axs[0].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
+
+        #fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
+        axes[f"qmc {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
         #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
-        axs[1].imshow(sample.squeeze(),cmap=cm,origin=origin)
-        axs[2].imshow(recon_vae.squeeze(),cmap=cm,origin=origin)
-        labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
-        for ax,label in zip(axs,labels):
-            ax = format_img_axis(ax,title=label)
-            
-        plt.tight_layout()
-        if show:
-            plt.show()
-        else:
-            plt.savefig(save_path_ind)
-        plt.close()
+        axes[f"sample {ii}"].imshow(sample.squeeze(),cmap=cm,origin=origin)
+        axes[f"vae {ii}"].imshow(recon_vae.squeeze(),cmap=cm,origin=origin)
+        
+    #labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
+    for key in axes.keys():
+        
+        axes[key] = format_img_axis(axes[key])
+    axes['qmc 0'].set_ylabel(f"{qmc_lattice.shape[1]}d Lattice-LVM Reconstructions")
+    axes['sample 0'].set_ylabel("Original samples")
+    axes['vae 0'].set_ylabel(f"{qmc_lattice.shape[1]}d VAE Reconstructions")
+    #plt.tight_layout()
+    if show:
+        plt.show()
+    else:
+        plt.savefig(save_path,transparent=True)
+    plt.close()
 
     return
 
@@ -211,6 +225,82 @@ def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50
             plt.savefig(save_path_sample)
         plt.close()
 
+def round_trip_plot_qmc(qmc_model,qmc_likelihood,loader,qmc_lattice,n_samples_comparison=6,
+                          save_path='recons_qmc.png',cm='gray',origin=None,show=False,
+                          recon_type='posterior',n_samples_recon=10):
+    
+    n_samples_comparison = min(n_samples_comparison,len(loader.dataset))
+
+    sample_inds = np.random.choice(len(loader.dataset),n_samples_comparison,replace=False)
+
+    mosaic = [[f"qmc {ii}" for ii in range(n_samples_comparison)],
+              [f"sample {ii}" for ii in range(n_samples_comparison)]]  
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.0})
+    for ii,sample_ind in tqdm(enumerate(sample_inds),total=len(sample_inds)):
+
+        sample = torch.tensor(loader.dataset[sample_ind][0]).to(torch.float32).to(qmc_model.device)
+        if sample.shape[0] == 1:
+            sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
+        else:
+            sample = sample.view(1,*sample.shape)
+        
+        recon_qmc = qmc_model.round_trip(qmc_lattice,sample,qmc_likelihood,recon_type=recon_type,n_samples=n_samples_recon).detach().cpu()
+        
+        sample = sample.detach().cpu().numpy()
+
+
+        #fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
+        axes[f"qmc {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
+        #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
+        axes[f"sample {ii}"].imshow(sample.squeeze(),cmap=cm,origin=origin)
+
+    axes['qmc 0'].set_ylabel(f"{qmc_lattice.shape[1]}d Lattice-LVM Reconstructions")
+    axes['sample 0'].set_ylabel("Original samples")
+    if show:
+        plt.show()
+    else:
+        plt.savefig(save_path,transparent=True)
+    plt.close()
+
+    pass
+
+def round_trip_plot_vae(vae_model,loader,n_samples_comparison=6,
+                          save_path='recons_vae.png',cm='gray',origin=None,show=False,
+                          recon_type='posterior',n_samples_recon=10):
+    
+    n_samples_comparison = min(n_samples_comparison,len(loader.dataset))
+
+    sample_inds = np.random.choice(len(loader.dataset),n_samples_comparison,replace=False)
+
+    mosaic = [[f"vae {ii}" for ii in range(n_samples_comparison)],
+              [f"sample {ii}" for ii in range(n_samples_comparison)]]  
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.0})
+    for ii,sample_ind in tqdm(enumerate(sample_inds),total=len(sample_inds)):
+
+        sample = torch.tensor(loader.dataset[sample_ind][0]).to(torch.float32).to(vae_model.device)
+        if sample.shape[0] == 1:
+            sample = sample.view(1,1,sample.shape[-2],sample.shape[-1])
+        else:
+            sample = sample.view(1,*sample.shape)
+        
+        ### if this is an 
+        recon_qmc = vae_model.round_trip(sample).detach().cpu()
+        
+        sample = sample.detach().cpu().numpy()
+
+
+        #fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
+        axes[f"vae {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
+        #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
+        axes[f"sample {ii}"].imshow(sample.squeeze(),cmap=cm,origin=origin)
+
+    axes['vae 0'].set_ylabel(f"{vae_model.encoder.latent_dim}d Lattice-LVM Reconstructions")
+    axes['sample 0'].set_ylabel("Original samples")
+    if show:
+        plt.show()
+    else:
+        plt.savefig(save_path,transparent=True)
+    plt.close()
 
 
 

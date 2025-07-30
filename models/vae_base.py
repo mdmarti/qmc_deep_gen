@@ -117,6 +117,21 @@ class IWAE(VAE):
 
         return recons,(z,dist)
     
+    #def round_trip(self, x, recon_type='mean'):
+    #    with torch.no_grad():
+    #        if recon_type == 'mean':
+    #            return super().round_trip(x)
+    #        elif recon_type == 'weighted':
+    #            x = x.to(torch.float32)
+    #            params = self.encoder(x)
+
+    #            dist = self.distribution(*params)
+    #            z = dist.rsample([self.k_samples])
+
+
+
+        
+    
 class Print(nn.Module):
     def __init__(self):
         super(Print, self).__init__()
