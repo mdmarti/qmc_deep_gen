@@ -114,6 +114,11 @@ def run_iwae_experiments(save_location,dataloc,dataset,batch_size=256,
                     vis2d.posterior_comparison_plot(iwae_model,test_loader,iwae_lp,save_path=posterior_save_loc)
                 print("Done!")
 
+            with torch.no_grad():
+                print(f"plotting {ld}d IWAE reconstructions")
+                recon_save_loc = os.path.join(save_location,f"iwae_recons_{ld}_set.png")
+                vis2d.round_trip_plot_vae(iwae_model,test_loader,n_samples_comparison=8,save_path=recon_save_loc,origin=origin,cm=cm,show=False)
+
 
         
         iwae_mu_recons = np.array([np.nanmean(r) for r in iwae_test_recons_all])
