@@ -158,7 +158,7 @@ def run_iwae_experiments(save_location,dataloc,dataset,batch_size=256,
     #ax.set_xticks(vae_latent_dim)
 
     #
-    ax.legend([q,r.lines[0],e.lines[0]],['IWAE ELBO'],frameon=False)
+    ax.legend([e.lines[0]],['IWAE ELBO'],frameon=False)
     plt.savefig(os.path.join(save_location,f'iwae_elbo_comparison_by_dim_{dataset}.svg'))
     #plt.show()
     plt.close()
