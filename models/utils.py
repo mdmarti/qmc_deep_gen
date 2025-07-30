@@ -113,18 +113,22 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         """
         layers = [nn.Linear(2048, 64*8*8),
             nn.Unflatten(1, (64, 8, 8)),
-            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*7*7,32*14*14),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), # 64 x 8 x 8 -> 64 x 16 x 16
             nn.Conv2d(64,32,1),
             ResCellNVAESimple(32,expand_factor=4),
-            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1),#nn.Linear(32*14*14,1*28*28),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1), # 32 x 16 x 16 -> 32 x 32 x 32
             nn.Conv2d(32,16,1),
             ResCellNVAESimple(16,expand_factor=4),
-            nn.ConvTranspose2d(16,16,3,stride=2,padding=1,output_padding=1),
+            nn.ConvTranspose2d(16,16,3,stride=2,padding=1,output_padding=1), # 16 x 32 x 32 -> 16 x 64 x 64
             nn.Conv2d(16,8,1),
             ResCellNVAESimple(8,expand_factor=4),
-            nn.ConvTranspose2d(8,8,3,stride=2,padding=1,output_padding=1),
-            nn.Conv2d(8,1,1),
-            nn.Sigmoid()]
+            nn.ConvTranspose2d(8,8,3,stride=2,padding=1,output_padding=1), # 8 x 64 x 64 -> 8 x 128 x 128
+            nn.Conv2d(8,4,1),
+            nn.ReLU(), # added from previous versions
+            nn.ConvTranspose2d(4,4,3,stride=2,padding=1,output_padding=1), # 4 x 128 x 128 -> 4 x 256 x 256 # added from previous versions
+            nn.Conv2d(4,1,1), # previously 8->1
+            nn.Sigmoid(),
+            nn.MaxPool2d(3,stride=2,padding=1)] # maxpool added from previous versions
     
         
     elif 'mocap_simple' in dataset_name.lower():
