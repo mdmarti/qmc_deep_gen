@@ -111,6 +111,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         """
         older version used finch decoder
         """
+        """
+        middle version
+        """
         layers = [nn.Linear(2048, 64*8*8),
             nn.Unflatten(1, (64, 8, 8)),
             nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), # 64 x 8 x 8 -> 64 x 16 x 16
@@ -124,13 +127,40 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             ResCellNVAESimple(8,expand_factor=4),
             nn.ConvTranspose2d(8,8,3,stride=2,padding=1,output_padding=1), # 8 x 64 x 64 -> 8 x 128 x 128
             nn.Conv2d(8,1,1), # previously 8->1
-            nn.Sigmoid(),
+            #nn.Sigmoid(),
             ] # maxpool added from previous versions
             #nn.MaxPool2d(3,stride=2,padding=1)
             #nn.Conv2d(8,4,1),
             #nn.ReLU(), # added from previous versions
             #nn.ConvTranspose2d(4,4,3,stride=2,padding=1,output_padding=1), # 4 x 128 x 128 -> 4 x 256 x 256 # added from previous versions
+        """
+        new version (from AVA)
+
         
+        decoder = nn.Sequential(TorusBasis(),
+                                nn.Linear(2*latent_dim,64)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,64))
+
+        layers = [nn.ReLU(),
+                  nn.Linear(64,256),
+                  nn.ReLU(),
+                  nn.Linear(256,1024),
+                  nn.ReLU(),
+                  nn.Linear(1024,8192),
+                  nn.ReLU(),
+                  nn.Unflatten(1,(32,16,16)),
+                  nn.BatchNorm2d(32),
+                  nn.ConvTranspose2d(32,24,3,1,padding=1),
+                  nn.ReLU(),
+                  nn.BatchNorm2d(24),
+                  nn.ConvTranspose2d(24,24,3,2,padding=1,output_padding=1),
+                  nn.ReLU(),
+                  nn.BatchNorm2d(24),
+                  nn.ConvTranspose2d(24,16,3,1,padding=1),
+                  nn.ReLU(),
+                  nn.BatchNorm2d(16),
+                  nn.ConvTranspose2d(16,16,3,2,)]
+        """
+
     elif 'mocap_simple' in dataset_name.lower():
         decoder = nn.Sequential(TorusBasis(),
                                 nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
