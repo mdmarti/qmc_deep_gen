@@ -123,13 +123,13 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Conv2d(16,8,1),
             ResCellNVAESimple(8,expand_factor=4),
             nn.ConvTranspose2d(8,8,3,stride=2,padding=1,output_padding=1), # 8 x 64 x 64 -> 8 x 128 x 128
-            nn.Conv2d(8,4,1),
-            nn.ReLU(), # added from previous versions
-            nn.ConvTranspose2d(4,4,3,stride=2,padding=1,output_padding=1), # 4 x 128 x 128 -> 4 x 256 x 256 # added from previous versions
-            nn.Conv2d(4,1,1), # previously 8->1
+            nn.Conv2d(8,1,1), # previously 8->1
             nn.Sigmoid(),
-            nn.MaxPool2d(3,stride=2,padding=1)] # maxpool added from previous versions
-    
+            ] # maxpool added from previous versions
+            #nn.MaxPool2d(3,stride=2,padding=1)
+            #nn.Conv2d(8,4,1),
+            #nn.ReLU(), # added from previous versions
+            #nn.ConvTranspose2d(4,4,3,stride=2,padding=1,output_padding=1), # 4 x 128 x 128 -> 4 x 256 x 256 # added from previous versions
         
     elif 'mocap_simple' in dataset_name.lower():
         decoder = nn.Sequential(TorusBasis(),
