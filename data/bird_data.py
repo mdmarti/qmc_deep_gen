@@ -49,7 +49,7 @@ class bird_data(Dataset):
 
         return (spec,syll_id)
     
-def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=92):
+def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=92,check=True):
 
     try:
         len(families)
@@ -58,23 +58,25 @@ def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=
     specs_in_file = []
     all_family_specs= []
     all_family_ids = []
+
     for ii,family in enumerate(families):
         print(f"loading family{family}")
         spec_dir = os.path.join(gerbil_filepath,'processed-data',f"family{family}")
         spec_fns = glob.glob(os.path.join(spec_dir,'*.hdf5'))
         all_family_specs += spec_fns
         all_family_ids.append(ii*np.ones((len(spec_fns),)))
+        if check:
+            for spec_fn in tqdm(spec_fns,total=len(spec_fns)):
+                with h5py.File(spec_fn,'r') as f:
+                    sif = len(f['specs'])
+                    specs_in_file.append(sif)
 
-        for spec_fn in tqdm(spec_fns,total=len(spec_fns)):
-            with h5py.File(spec_fn,'r') as f:
-                sif = len(f['specs'])
-                specs_in_file.append(sif)
-
-    num_specs = np.unique(specs_in_file)
-    assert len(num_specs) == 1, print(f"Files have different numbers of specs in them! {num_specs}")
-    if num_specs[0] != specs_per_file:
-        print(f"expected {specs_per_file} specs per file, found {num_specs[0]}; updating")
-        specs_per_file = num_specs[0]
+    if check:
+        num_specs = np.unique(specs_in_file)
+        assert len(num_specs) == 1, print(f"Files have different numbers of specs in them! {num_specs}")
+        if num_specs[0] != specs_per_file:
+            print(f"expected {specs_per_file} specs per file, found {num_specs[0]}; updating")
+            specs_per_file = num_specs[0]
     all_family_ids = np.hstack(all_family_ids)
     #assert num_specs[0] == specs_per_file,print("num_specs,specs_per_file)
 
