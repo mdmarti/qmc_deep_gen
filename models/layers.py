@@ -146,7 +146,7 @@ class AVADecodeLayer(nn.Module):
                     nn.ConvTranspose2d(out_channels,out_channels,3,2,padding=1,output_padding=1),
                     nn.ReLU())
         
-    def foward(self,x):
+    def forward(self,x):
 
         return self.net(x)
     
@@ -164,7 +164,7 @@ class AVAEncodeLayer(nn.Module):
                     nn.Conv2d(out_channels,out_channels,3,2,padding=1,output_padding=1),
                     nn.ReLU())
         
-    def foward(self,x):
+    def forward(self,x):
 
         return self.net(x)
 
