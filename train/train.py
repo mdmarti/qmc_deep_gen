@@ -27,7 +27,7 @@ def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,rando
 
     train_loss = 0
     epoch_losses = []
-    for batch_idx, (data, _) in tqdm(enumerate(loader)):
+    for batch_idx, (data, _) in tqdm(enumerate(loader),total=len(loader)):
         data = data.to(model.device)
         optimizer.zero_grad()
         samples = model(base_sequence,random,mod)

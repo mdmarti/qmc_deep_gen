@@ -222,7 +222,10 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         ]
 
     elif 'shapes3d' in dataset_name.lower():
-
+        """
+        old version
+        """
+        """
         layers = [nn.ReLU(),
             nn.Linear(2048,64*4*4),
             nn.Unflatten(1, (64, 4, 4)),
@@ -244,6 +247,25 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             #nn.Conv2d(4,1,1),
             nn.Sigmoid(),
             PermutationLayer()]
+        """
+        """
+        new version
+        """
+        layers = [nn.ReLU(),
+                  nn.Linear(2048,2048),
+                  nn.ReLU(),
+                  nn.Linear(2048,512), # 512 = 32*4*4
+                  nn.ReLU(),
+                  nn.Unflatten(1,(32,4,4)),
+                  AVADecodeLayer(32,24), # 24 x 8 x 8
+                  AVADecodeLayer(24,16), # 16 x 16 x 16
+                  AVADecodeLayer(16,8), # 8 x 32 x 32
+                  AVADecodeLayer(8,3), # 3 x 64 x 64
+                  ResCellNVAESimple(3,expand_factor=8),
+                  ResCellNVAESimple(3,expand_factor=8),
+                  ResCellNVAESimple(3,expand_factor=8),
+                  nn.Sigmoid(),
+                  PermutationLayer()]
         
 
     for layer in layers:
