@@ -166,7 +166,8 @@ def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
     #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
     (B,H,W,C) = dataset['images'].shape
 
-    fixed_factor_values = [gen.choice(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[f]]) for  f in fixed_factors]
+    ### turn this into the same factor value for each run -- that way we can actually make meaningful plots
+    fixed_factor_values = [int(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[f]]//2) for  f in fixed_factors]
 
     valid_indices = get_factor_indices(fixed_factors,fixed_factor_values)
     B = len(valid_indices)

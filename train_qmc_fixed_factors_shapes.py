@@ -34,7 +34,11 @@ def run_fixed_factor_experiments(save_location,dataloc,batch_size=64,nEpochs=10,
         train_lattice = gen_korobov_basis(a=76,num_dims=qmc_dim,num_points=1021)
         test_lattice = gen_korobov_basis(a=1487,num_dims=qmc_dim,num_points=2039)
 
+    ## Wall hue, floor hue, object hue, scale
     factor_order = [1,0,2,3]
+
+    ### Object, scale, orientation, object hue
+    # factor_order= [4,3,5,2]
     #factor_names = [_FACTORS_IN_ORDER[f] for f in factor_order]
     print(f"we will{'' if rerun else ' not'} be rerunning model analysis")
     for fixed_inds in range(1,len(factor_order)+1):
