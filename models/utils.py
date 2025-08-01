@@ -1,5 +1,5 @@
 import torch
-from models.layers import ResCellNVAESimple,ZeroLayer,PermutationLayer,PrintLayer
+from models.layers import ResCellNVAESimple,ZeroLayer,PermutationLayer,PrintLayer,AVADecodeLayer,AVAEncodeLayer
 import torch.nn as nn
 from models.qmc_base import TorusBasis
 from models.vae_base import Encoder
@@ -117,24 +117,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                   nn.Linear(1024,8192),
                   nn.ReLU(),
                   nn.Unflatten(1,(32,16,16)),
-                  nn.BatchNorm2d(32),
-                  nn.ConvTranspose2d(32,24,3,1,padding=1),
-                  nn.ReLU(),
-                  nn.BatchNorm2d(24),
-                  nn.ConvTranspose2d(24,24,3,2,padding=1,output_padding=1),
-                  nn.ReLU(),
-                  nn.BatchNorm2d(24),
-                  nn.ConvTranspose2d(24,16,3,1,padding=1),
-                  nn.ReLU(),
-                  nn.BatchNorm2d(16),
-                  nn.ConvTranspose2d(16,16,3,2,padding=1,output_padding=1),
-                  nn.ReLU(),
-                  nn.BatchNorm2d(16),
-                  nn.ConvTranspose2d(16,8,3,1,padding=1),
-                  nn.ReLU(),
-                  nn.BatchNorm2d(8),
-                  nn.ConvTranspose2d(8,8,3,2,padding=1,output_padding=1),
-                  nn.ReLU(),
+                  AVADecodeLayer(32,24),
+                  AVADecodeLayer(24,16),
+                  AVADecodeLayer(16,8),
                   nn.BatchNorm2d(8),
                   nn.ConvTranspose2d(8,1,3,1,padding=1),
                   ResCellNVAESimple(1,expand_factor=32), # added these post processing layers to try to get things to work maybe a little bit better
