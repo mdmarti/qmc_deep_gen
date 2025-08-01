@@ -136,7 +136,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                   nn.ConvTranspose2d(8,8,3,2,padding=1,output_padding=1),
                   nn.ReLU(),
                   nn.BatchNorm2d(8),
-                  nn.ConvTranspose2d(8,1,3,1,padding=1)]
+                  nn.ConvTranspose2d(8,1,3,1,padding=1),
+                  nn.Sigmoid()]
+        
     elif ('gerbil' in dataset_name.lower()):
 
         """
