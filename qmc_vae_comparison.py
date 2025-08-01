@@ -73,8 +73,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
         qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
         qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
-        qmc_loss_func = binary_evidence if ('mnist' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
-        qmc_lp = binary_lp if ('mnist' in dataset.lower()) else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
+        qmc_loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
+        qmc_lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
         qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison.tar')
 
         if not os.path.isfile(qmc_save_path):
@@ -125,8 +125,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                                              families=families)
 
         vae_test_recons_all,vae_test_kls_all = [],[]
-        vae_loss_func = binary_elbo if ('mnist' in dataset.lower()) else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=1/var) #or ('gerbil' in dataset.lower()) 
-        vae_lp = binary_lp if ('mnist' in dataset.lower())  else lambda target,recon: gaussian_lp(recon,target,var=var) #or ('gerbil' in dataset.lower())
+        vae_loss_func = binary_elbo if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=1/var) #or ('gerbil' in dataset.lower()) 
+        vae_lp = binary_lp if ('mnist' in dataset.lower())  or ('gerbil' in dataset.lower()) else lambda target,recon: gaussian_lp(recon,target,var=var) #or ('gerbil' in dataset.lower())
         for ld in vae_latent_dim:
 
             vae_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=ld,arch='vae',n_per_sample=frames_per_sample)
