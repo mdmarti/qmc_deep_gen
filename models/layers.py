@@ -131,3 +131,20 @@ class PrintLayer(nn.Module):
     def forward(self,x):
         print(x.shape)
         return x
+    
+class AVALayer(nn.Module):
+
+    def __init__(self,in_channels,out_channels):
+
+        self.net = nn.Sequential(
+                    nn.BatchNorm2d(in_channels),
+                    nn.ConvTranspose2d(in_channels,out_channels,3,1,padding=1),
+                    nn.ReLU(),
+                    nn.BatchNorm2d(out_channels),
+                    nn.ConvTranspose2d(out_channels,out_channels,3,2,padding=1,output_padding=1),
+                    nn.ReLU())
+        
+    def foward(self,x):
+
+        return self.net(x)
+
