@@ -136,6 +136,8 @@ class AVADecodeLayer(nn.Module):
 
     def __init__(self,in_channels,out_channels):
 
+        super(AVADecodeLayer,self).__init__()
+
         self.net = nn.Sequential(
                     nn.BatchNorm2d(in_channels),
                     nn.ConvTranspose2d(in_channels,out_channels,3,1,padding=1),
@@ -151,6 +153,8 @@ class AVADecodeLayer(nn.Module):
 class AVAEncodeLayer(nn.Module):
 
     def __init__(self,in_channels,out_channels):
+
+        super(AVAEncodeLayer,self).__init__()
 
         self.net = nn.Sequential(
                     nn.BatchNorm2d(in_channels),
