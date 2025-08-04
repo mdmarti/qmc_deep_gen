@@ -8,15 +8,14 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
 
     decoder = torch.nn.Sequential()
     if arch == 'qmc':
-        decoder.append(TorusBasis())
-        decoder.append(nn.Linear(2*latent_dim,2048))
-    else:
-        decoder.append(nn.Linear(latent_dim,2048))
+        latent_dim *= 2
+    
+    decoder.append(nn.Linear(latent_dim,2048))
+    decoder.append(nn.Linear(latent_dim,2048))
 
     if 'mnist_simple' in dataset_name.lower():
         print("getting SHRIMPLE decoder")
-        decoder = nn.Sequential(TorusBasis(),
-                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
+        decoder = nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
                 nn.ReLU(),
                 nn.Linear(500,28**2),
@@ -106,8 +105,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Sigmoid()]
         
     elif ('gerbil_ava' in dataset_name.lower()):
-        decoder = nn.Sequential(TorusBasis(),
-                                nn.Linear(2*latent_dim,64)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,64))
+        decoder = nn.Sequential(nn.Linear(latent_dim,64))
 
         layers = [nn.ReLU(),
                   nn.Linear(64,256),
@@ -192,8 +190,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         """
 
     elif 'mocap_simple' in dataset_name.lower():
-        decoder = nn.Sequential(TorusBasis(),
-                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
+        decoder = nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
                 nn.ReLU(),
                 nn.Linear(500,n_per_sample*100),
@@ -213,8 +210,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
          
     elif 'blobs' in dataset_name.lower() or 'moons' in dataset_name.lower():
 
-        decoder = nn.Sequential(TorusBasis(),
-                                nn.Linear(2*latent_dim,500)) if arch =='qmc' else nn.Sequential(nn.Linear(latent_dim,500))
+        decoder = nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
                 nn.ReLU(),
                 nn.Linear(500,1000),
