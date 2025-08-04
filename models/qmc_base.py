@@ -83,7 +83,7 @@ class QMCLVM(nn.Module):
         x = (r + eval_grid) % 1 if mod else r+eval_grid
         basis = self.basis(x)
         if len(c) > 0:
-            basis = torch.cat([basis,c],axis=-1)
+            basis = torch.cat([basis,c.repeat(basis.shape[0])],axis=-1)
         return self.decoder(basis)
 
 
