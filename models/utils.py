@@ -9,6 +9,8 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
     decoder = torch.nn.Sequential()
     if arch == 'qmc':
         latent_dim *= 2
+    elif arch == 'conditional_qmc':
+        latent_dim = latent_dim*2 + 1
     
     decoder.append(nn.Linear(latent_dim,2048))
     decoder.append(nn.Linear(latent_dim,2048))

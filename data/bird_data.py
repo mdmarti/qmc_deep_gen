@@ -85,3 +85,26 @@ def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=
     #test_ids = np.zeros((len(test_fns,)))
 
     return (train_fns,test_fns),(train_ids,test_ids),specs_per_file
+
+#### song features from syllables
+
+def calc_ent(spec):
+
+    ps = spec/(np.sum(spec,axis=0,keepdims=True)+1e-10)
+    ent = -(np.log(ps + 1e-10) * ps).sum(axis=0)
+
+    return np.nanmean(ent)
+
+
+def calc_fm(spec):
+    """
+    spec should be h x w bins
+    
+    """
+    dt = np.diff(spec,axis=1)
+    df = np.diff(spec,axis=0)
+    dt2 = np.amax(dt**2,axis=0)
+    df2 = np.amax(df**2,axis=0)
+    fm =np.arctan(dt2,df2[:-1])
+    #print(fm.shape)
+    return np.nanmean(fm)
