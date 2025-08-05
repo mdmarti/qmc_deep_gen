@@ -83,6 +83,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
             print("Done training!")
             qmc_model.eval()
             with torch.no_grad():
+                qmc_model.eval()
                 qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
             qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
             save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
@@ -92,6 +93,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
         else:
             qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
             qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
+            qmc_model.eval()
             qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
             qmc_model.to(device)
             qmc_model.eval()
