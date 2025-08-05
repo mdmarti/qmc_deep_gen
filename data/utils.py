@@ -72,8 +72,9 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
 
     elif 'shapes3d' in dataset_name.lower():
         train_data,test_data = get_3d_shapes(dpath=dataset_loc,seed=92,test_size=0.2)
+
     train_loader = DataLoader(train_data,num_workers=n_workers,shuffle=True,batch_size=batch_size)
-    test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=max(1,batch_size//4))
+    test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=batch_size)
 
     print("done!")
 

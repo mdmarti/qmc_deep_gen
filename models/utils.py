@@ -29,13 +29,13 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         layers = [nn.ReLU(),
             nn.Linear(2048,64*7*7),
             nn.Unflatten(1, (64, 7, 7)),
-            ResCellNVAESimple(64,expand_factor=2),
+            ResCellNVAESimple(64,expand_factor=2,in_h=7,in_w=7),
             nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*7*7,32*14*14),
             nn.Conv2d(64,32,1),
-            ResCellNVAESimple(32,expand_factor=4),#nn.ReLU(),
+            ResCellNVAESimple(32,expand_factor=4,in_h=14,in_w=14),#nn.ReLU(),
             nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*14*14,1*28*28),
             nn.Conv2d(32,16,1),
-            ResCellNVAESimple(16,expand_factor=4),
+            ResCellNVAESimple(16,expand_factor=4,in_h=28,in_w=28),
             #ResCellNVAESimple(16,expand_factor=2),
             #ResCellNVAESimple(16,expand_factor=1),
             nn.Conv2d(16,1,1),
@@ -74,21 +74,21 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         layers = [nn.ReLU(),
             nn.Linear(2048,64*5*5),
             nn.Unflatten(1, (64, 5, 5)),
-            ResCellNVAESimple(64,expand_factor=2),
+            ResCellNVAESimple(64,expand_factor=2,in_h=5,in_w=5),
             nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*5*5,64*10*10),
             nn.ConvTranspose2d(64,32,3,1,padding=1),
-            ResCellNVAESimple(32,expand_factor=4),#nn.ReLU(),
+            ResCellNVAESimple(32,expand_factor=4,in_h=10,in_w=10),#nn.ReLU(),
             nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*10*10,32*20*20),
             nn.ConvTranspose2d(32,16,3,1,padding=1),
-            ResCellNVAESimple(16,expand_factor=8),#nn.ReLU(),
+            ResCellNVAESimple(16,expand_factor=8,in_h=20,in_w=20),#nn.ReLU(),
             nn.ConvTranspose2d(16, 16, 3, stride=2, padding=1, output_padding=1,groups=16),#nn.Linear(16*20*20,16*40*40),
             nn.ConvTranspose2d(16,8,3,1,padding=1),
-            ResCellNVAESimple(8,expand_factor=8),
+            ResCellNVAESimple(8,expand_factor=8,in_h=40,in_w=40),
             nn.ConvTranspose2d(8, 8, 3, stride=2, padding=1, output_padding=1,groups=8),#nn.Linear(8*40*40,8*80*80),
             nn.ConvTranspose2d(8,4,3,1,padding=1),
-            ResCellNVAESimple(4,expand_factor=8),
-            ResCellNVAESimple(4,expand_factor=4),
-            ResCellNVAESimple(4,expand_factor=2),
+            ResCellNVAESimple(4,expand_factor=8,in_h=80,in_w=80),
+            ResCellNVAESimple(4,expand_factor=4,in_h=80,in_w=80),
+            ResCellNVAESimple(4,expand_factor=2,in_h=80,in_w=80),
             nn.ConvTranspose2d(4,1,3,1,padding=1),
             nn.Sigmoid()]
  
@@ -117,14 +117,16 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                   nn.Linear(1024,8192),
                   nn.ReLU(),
                   nn.Unflatten(1,(32,16,16)),
-                  AVADecodeLayer(32,24),
-                  AVADecodeLayer(24,16),
-                  AVADecodeLayer(16,8),
-                  nn.BatchNorm2d(8),
-                  nn.ConvTranspose2d(8,1,3,1,padding=1),
-                  ResCellNVAESimple(1,expand_factor=32), # added these post processing layers to try to get things to work maybe a little bit better
-                  ResCellNVAESimple(1,expand_factor=32),
-                  ResCellNVAESimple(1,expand_factor=32),
+                  AVADecodeLayer(32,24,16,16),
+                  AVADecodeLayer(24,16,32,32),
+                  AVADecodeLayer(16,8,64,64),
+                  AVADecodeLayer(8,3,128,128), # doubles dimensionality (256x256)
+                  nn.LayerNorm([3,256,256]),
+                  nn.Conv2d(3,1,3,1,padding=1,stride=2),
+                  #nn.ConvTranspose2d(3,1,3,1,padding=1),
+                  ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128), # added these post processing layers to try to get things to work maybe a little bit better
+                  ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128),
+                  ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128),
                   nn.Sigmoid()]
         
     elif ('gerbil' in dataset_name.lower()):
@@ -139,13 +141,13 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.Unflatten(1, (64, 8, 8)),
             nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), # 64 x 8 x 8 -> 64 x 16 x 16
             nn.ConvTranspose2d(64,32,3,1,padding=1),
-            ResCellNVAESimple(32,expand_factor=4),
+            ResCellNVAESimple(32,expand_factor=4,in_h=16,in_w=16),
             nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1), # 32 x 16 x 16 -> 32 x 32 x 32
             nn.ConvTranspose2d(32,16,3,1,padding=1),
-            ResCellNVAESimple(16,expand_factor=4),
+            ResCellNVAESimple(16,expand_factor=4,in_h=32,in_w=32),
             nn.ConvTranspose2d(16,16,3,stride=2,padding=1,output_padding=1), # 16 x 32 x 32 -> 16 x 64 x 64
             nn.ConvTranspose2d(16,8,3,1,padding=1),
-            ResCellNVAESimple(8,expand_factor=4),
+            ResCellNVAESimple(8,expand_factor=4,in_h=64,in_w=64),
             nn.ConvTranspose2d(8,8,3,stride=2,padding=1,output_padding=1), # 8 x 64 x 64 -> 8 x 128 x 128
             nn.ConvTranspose2d(8,1,3,1,padding=1), # previously 8->1
             #nn.Sigmoid(),
@@ -255,13 +257,13 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                   nn.Linear(2048,512), # 512 = 32*4*4
                   nn.ReLU(),
                   nn.Unflatten(1,(32,4,4)),
-                  AVADecodeLayer(32,24), # 24 x 8 x 8
-                  AVADecodeLayer(24,16), # 16 x 16 x 16
-                  AVADecodeLayer(16,8), # 8 x 32 x 32
-                  AVADecodeLayer(8,3), # 3 x 64 x 64
-                  ResCellNVAESimple(3,expand_factor=8),
-                  ResCellNVAESimple(3,expand_factor=8),
-                  ResCellNVAESimple(3,expand_factor=8),
+                  AVADecodeLayer(32,24,4,4), # 24 x 8 x 8
+                  AVADecodeLayer(24,16,8,8), # 16 x 16 x 16
+                  AVADecodeLayer(16,8,16,16), # 8 x 32 x 32
+                  AVADecodeLayer(8,3,32,32), # 3 x 64 x 64
+                  ResCellNVAESimple(3,expand_factor=8,in_h=64,in_w=64),
+                  ResCellNVAESimple(3,expand_factor=8,in_h=64,in_w=64),
+                  ResCellNVAESimple(3,expand_factor=8,in_h=64,in_w=64),
                   nn.Sigmoid(),
                   PermutationLayer()]
         
@@ -291,15 +293,15 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
     elif 'mnist' in dataset_name.lower():
 
         encoder_net =nn.Sequential(nn.Conv2d(1,16,1),
-                           ResCellNVAESimple(16,expand_factor=1),
-                            ResCellNVAESimple(16,expand_factor=2),
-                            ResCellNVAESimple(16,expand_factor=4),
+                           ResCellNVAESimple(16,expand_factor=1,in_h=28,in_w=28),
+                            ResCellNVAESimple(16,expand_factor=2,in_h=28,in_w=28),
+                            ResCellNVAESimple(16,expand_factor=4,in_h=28,in_w=28),
                            nn.Conv2d(16,32,1),#,stride=2,padding=1),
                            nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
-                           ResCellNVAESimple(32,expand_factor=4),
+                           ResCellNVAESimple(32,expand_factor=4,in_h=14,in_w=14),
                            nn.Conv2d(32,64,1),
                            nn.Conv2d(64,64,3,stride=2,padding=1,groups=64),
-                           ResCellNVAESimple(64,expand_factor=2),
+                           ResCellNVAESimple(64,expand_factor=2,in_h=7,in_w=7),
                            nn.Flatten(start_dim=1,end_dim=-1),
                            nn.Linear(64*7*7,2048),
                           nn.Tanh())
@@ -333,24 +335,24 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         #    nn.Conv2d(4,1,1),
         #    nn.Sigmoid()]
         encoder_net = nn.Sequential(nn.Conv2d(1,4,1),
-                                    ResCellNVAESimple(4,expand_factor=2),
-                                    ResCellNVAESimple(4,expand_factor=4),
-                                    ResCellNVAESimple(4,expand_factor=8),
+                                    ResCellNVAESimple(4,expand_factor=2,in_h=80,in_w=80),
+                                    ResCellNVAESimple(4,expand_factor=4,in_h=80,in_w=80),
+                                    ResCellNVAESimple(4,expand_factor=8,in_h=80,in_w=80),
                                     nn.Conv2d(4,8,1),
                                     nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
-                                    ResCellNVAESimple(8,expand_factor=8),
+                                    ResCellNVAESimple(8,expand_factor=8,in_h=40,in_w=40),
                                     nn.Tanh(),
                                     nn.Conv2d(8,16,1),
                                     nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
-                                    ResCellNVAESimple(16,expand_factor=8),
+                                    ResCellNVAESimple(16,expand_factor=8,in_h=20,in_w=20),
                                     nn.Tanh(),
                                     nn.Conv2d(16,32,1),
                                     nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
-                                    ResCellNVAESimple(32,expand_factor=4),
+                                    ResCellNVAESimple(32,expand_factor=4,in_h=10,in_w=10),
                                     nn.Tanh(),
                                     nn.Conv2d(32,64,1),
                                     nn.Conv2d(64,64,3,stride=2,padding=1,groups=64),
-                                    ResCellNVAESimple(64,expand_factor=2),
+                                    ResCellNVAESimple(64,expand_factor=2,in_h=5,in_w=5),
                                     nn.Flatten(start_dim=1,end_dim=-1),
                                     nn.Linear(64*5*5,2048),
                                     nn.Tanh())
@@ -398,13 +400,13 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         """
         encoder_net = nn.Sequential(nn.Conv2d(1,1,3,stride=2,padding=1),
                                     nn.Conv2d(1,8,1),
-                                    ResCellNVAESimple(8,expand_factor=4),
+                                    ResCellNVAESimple(8,expand_factor=4,in_h=64,in_w=64),
                                     nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
                                     nn.Conv2d(8,16,1),
-                                    ResCellNVAESimple(16,expand_factor=4),
+                                    ResCellNVAESimple(16,expand_factor=4,in_h=32,in_w=32),
                                     nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
                                     nn.Conv2d(16,32,1),
-                                    ResCellNVAESimple(32,expand_factor=4),
+                                    ResCellNVAESimple(32,expand_factor=4,in_h=16,in_w=16),
                                     nn.Conv2d(32,32,3,stride=2,padding=1,groups=16),
                                     nn.Conv2d(32,64,1),
                                     nn.Flatten(start_dim=1,end_dim=-1),
@@ -460,21 +462,21 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
 
         encoder_net = nn.Sequential(
             PermutationLayer(permute_type='input'),
-            ResCellNVAESimple(3,expand_factor=8),
-            ResCellNVAESimple(3,expand_factor=4),
-            ResCellNVAESimple(3,expand_factor=2),
+            ResCellNVAESimple(3,expand_factor=8,in_h=64,in_w=64),
+            ResCellNVAESimple(3,expand_factor=4,in_h=64,in_w=64),
+            ResCellNVAESimple(3,expand_factor=2,in_h=64,in_w=64),
             nn.Conv2d(3,8,1),
             nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
-            ResCellNVAESimple(8,expand_factor=4),
+            ResCellNVAESimple(8,expand_factor=4,in_h=32,in_w=32),
             nn.Conv2d(8,16,1),
             nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
-            ResCellNVAESimple(16,expand_factor=2),
+            ResCellNVAESimple(16,expand_factor=2,in_h=16,in_w=16),
             nn.Conv2d(16,32,1),
             nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
             nn.Tanh(),
             nn.Conv2d(32,64,1),
             nn.Conv2d(64,64,4,stride=2,padding=1,groups=64),
-            ResCellNVAESimple(64,expand_factor=1),
+            ResCellNVAESimple(64,expand_factor=1,in_h=4,in_w=4),
             nn.Flatten(start_dim=1,end_dim=-1),
             nn.Linear(64*4*4,2048)
         )

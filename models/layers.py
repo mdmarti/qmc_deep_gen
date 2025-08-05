@@ -24,14 +24,14 @@ class LinearResBlock(nn.Module):
 
 class ConvResBlock(nn.Module):
 
-    def __init__(self,in_channels,hidden_channels=32,kernel_size=3,pad=1):
+    def __init__(self,in_channels,in_h,in_w,hidden_channels=32,kernel_size=3,pad=1):
 
         super(ConvResBlock,self).__init__()
 
-        self.hidden = nn.Sequential(nn.BatchNorm2d(num_features=in_channels),
+        self.hidden = nn.Sequential(nn.LayerNorm([in_channels,in_h,in_w]),
                                     nn.Conv2d(in_channels,hidden_channels,kernel_size,padding=pad),
                                     nn.ReLU(),
-                                    nn.BatchNorm2d(num_features=hidden_channels),
+                                    nn.LayerNorm([hidden_channels,in_h,in_w]),
                                     nn.Conv2d(hidden_channels,in_channels,kernel_size,padding=pad))
 
     def forward(self,x):
@@ -45,15 +45,15 @@ class MLPResCellNVAESimple(nn.Module):
         super(ResCellNVAESimple,self).__init__()
         #self.ops = nn.ModuleList()
 
-        op1 = nn.BatchNorm1d(num_features=in_size)
+        op1 = nn.LayerNorm([in_size])
         op2 = nn.Linear(in_size,expand_factor*in_size)
-        op3_1 = nn.BatchNorm1d(num_features=expand_factor*in_size)
+        op3_1 = nn.LayerNorm([in_size*expand_factor])
         op3_2 = nn.SiLU()
         op4 = nn.Linear(expand_factor*in_size,expand_factor*in_size)
-        op5_1 = nn.BatchNorm1d(num_features=expand_factor*in_size)
+        op5_1 = nn.LayerNorm([expand_factor*in_size])
         op5_2 = nn.SiLU()
-        op6= nn.Linear(expand_factor*in_size,in_size,1)
-        op7 = nn.BatchNorm1d(num_features=in_size)
+        op6= nn.Linear(expand_factor*in_size,in_size)
+        op7 = nn.LayerNorm([in_size])
         op8 = SE(in_size,in_size)
 
         self.ops = nn.Sequential(op1,op2,op3_1,op3_2,op4,op5_1,op5_2,op6,op7,op8)
@@ -64,20 +64,20 @@ class MLPResCellNVAESimple(nn.Module):
 
 class ResCellNVAESimple(nn.Module):
 
-    def __init__(self,in_size,expand_factor=4):
+    def __init__(self,in_size,in_h,in_w,expand_factor=4):
 
         super(ResCellNVAESimple,self).__init__()
         #self.ops = nn.ModuleList()
 
-        op1 = nn.BatchNorm2d(num_features=in_size)
+        op1 = nn.LayerNorm([in_size,in_h,in_w])
         op2 = nn.Conv2d(in_size,expand_factor*in_size,1)
-        op3_1 = nn.BatchNorm2d(num_features=expand_factor*in_size)
+        op3_1 = nn.LayerNorm([expand_factor*in_size,in_h,in_w])
         op3_2 = nn.SiLU()
         op4 = nn.Conv2d(expand_factor*in_size,expand_factor*in_size,5,groups=expand_factor*in_size,padding=2)
-        op5_1 = nn.BatchNorm2d(num_features=expand_factor*in_size)
+        op5_1 = nn.LayerNorm([expand_factor*in_size,in_h,in_w])
         op5_2 = nn.SiLU()
         op6= nn.Conv2d(expand_factor*in_size,in_size,1)
-        op7 = nn.BatchNorm2d(num_features=in_size)
+        op7 = nn.LayerNorm([in_size,in_h,in_w])
         op8 = SE(in_size,in_size)
 
         self.ops = nn.Sequential(op1,op2,op3_1,op3_2,op4,op5_1,op5_2,op6,op7,op8)
@@ -134,15 +134,15 @@ class PrintLayer(nn.Module):
     
 class AVADecodeLayer(nn.Module):
 
-    def __init__(self,in_channels,out_channels):
+    def __init__(self,in_channels,out_channels,H,W):
 
         super(AVADecodeLayer,self).__init__()
 
         self.net = nn.Sequential(
-                    nn.BatchNorm2d(in_channels),
+                    nn.LayerNorm([in_channels,H,W]),
                     nn.ConvTranspose2d(in_channels,out_channels,3,1,padding=1),
                     nn.ReLU(),
-                    nn.BatchNorm2d(out_channels),
+                    nn.LayerNorm([out_channels,H,W]),
                     nn.ConvTranspose2d(out_channels,out_channels,3,2,padding=1,output_padding=1),
                     nn.ReLU())
         
@@ -152,15 +152,15 @@ class AVADecodeLayer(nn.Module):
     
 class AVAEncodeLayer(nn.Module):
 
-    def __init__(self,in_channels,out_channels):
+    def __init__(self,in_channels,out_channels,H,W):
 
         super(AVAEncodeLayer,self).__init__()
 
         self.net = nn.Sequential(
-                    nn.BatchNorm2d(in_channels),
+                    nn.LayerNorm([in_channels,H,W,]),
                     nn.Conv2d(in_channels,out_channels,3,1,padding=1),
                     nn.ReLU(),
-                    nn.BatchNorm2d(out_channels),
+                    nn.LayerNorm([out_channels,H,W]),
                     nn.Conv2d(out_channels,out_channels,3,2,padding=1,output_padding=1),
                     nn.ReLU())
         
