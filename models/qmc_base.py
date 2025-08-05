@@ -72,7 +72,7 @@ class QMCLVM(nn.Module):
             nn.Sigmoid(),
         ).to(device) if decoder is None else decoder.to(device)
 
-    def forward(self, eval_grid,c = [],random=True,mod=True):
+    def forward(self, eval_grid,random=True,mod=True,c = []):
         """
         eval_grid should be a sequence of `z`s that uniformly tile the latent space,
         and should be n_grid_points x latent_dim
