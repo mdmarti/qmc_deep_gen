@@ -87,6 +87,8 @@ def run_fixed_factor_experiments(save_location,dataloc,batch_size=64,nEpochs=10,
         print("making train plot...")
         vis2d.qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_fixed_factors_{save_string}_train_curve.svg'))
         print("done!")
+        """
+        leave out for now since this doesn't work anyway
         if not os.path.isfile(qmc_grid_loc):
             print("making model grid plot....")
             if qmc_dim == 2:
@@ -102,6 +104,7 @@ def run_fixed_factor_experiments(save_location,dataloc,batch_size=64,nEpochs=10,
                                     cm = 'gray',
                                     model_type='qmc',show=False)
             print("done!")
+        """
 
 if __name__ == '__main__':
 
