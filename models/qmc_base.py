@@ -83,7 +83,7 @@ class QMCLVM(nn.Module):
         x = (r + eval_grid) % 1 if mod else r+eval_grid
         basis = self.basis(x)
         if len(c) > 0:
-            basis = torch.cat([basis,c.repeat(basis.shape[0])],axis=-1)
+            basis = torch.cat([basis,c.repeat(basis.shape[0],1)],axis=-1)
         return self.decoder(basis)
 
 
@@ -99,7 +99,7 @@ class QMCLVM(nn.Module):
         with torch.no_grad():
             basis = self.basis(grid % 1)
             if len(c) > 0:
-                basis = torch.cat([basis,c],axis=-1)
+                basis = torch.cat([basis,c.repeat(basis.shape[0],1)],axis=-1)
             preds = self.decoder(basis)
     
             model_grid_lls = log_likelihood(preds,data) #each entry A_ij is log p(x_i|z_j)
