@@ -44,6 +44,14 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
         #train_loader = DataLoader(train_data,num_workers=n_workers,shuffle=True,batch_size=batch_size)
         #test_loader = DataLoader(test_data,num_workers=n_workers,shuffle=False,batch_size=batch_size//4)
 
+    elif 'conditional_gerbil' in dataset_name.lower():
+
+        print("loading conditional gerbil")
+        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,families=families,
+                                                                                    seed=seed,check=False)
+        train_data = bird_data(train_files,train_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),conditional=True)
+        test_data = bird_data(test_files,test_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),conditional=True)
+
     elif 'gerbil' in dataset_name.lower():
 
         print("loading gerbil")
