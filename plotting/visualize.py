@@ -25,7 +25,9 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey',mo
 
             dist = stats.norm
             z = torch.from_numpy(dist.ppf(z.detach().cpu().numpy())).to(torch.float32).to(model.device)
-        sample = model.decoder(z)
+            sample = model.decode(z)
+        else:
+            sample = model(z,mod=False,random=False)
         
     if sample.shape[1] == 3:
         sample = sample.permute(0,2,3,1)

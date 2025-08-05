@@ -123,9 +123,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                   nn.LayerNorm([3,256,256]),
                   nn.Conv2d(3,1,3,padding=1,stride=2),
                   #nn.ConvTranspose2d(3,1,3,1,padding=1),
-                  ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128), # added these post processing layers to try to get things to work maybe a little bit better
-                  ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128),
-                  ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128),
+                  #ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128), # added these post processing layers to try to get things to work maybe a little bit better
+                  #ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128),
+                  #ResCellNVAESimple(1,expand_factor=32,in_h=128,in_w=128),
                   nn.Sigmoid()]
         
     elif ('gerbil' in dataset_name.lower()):
