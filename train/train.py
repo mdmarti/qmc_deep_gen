@@ -5,15 +5,20 @@ import torch
 from train.losses import jacEnergy
 
 
-def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True):
+def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True,conditional=False):
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loss = 0
     epoch_losses = []
-    for batch_idx, (data, _) in enumerate(loader):
+    for batch_idx,batch in enumerate(loader):
+        data= batch[0]
         data = data.to(model.device)
         optimizer.zero_grad()
-        samples = model(base_sequence,random,mod)
+        if conditional:
+            c = batch[1].to(model.device).view(1,-1)
+            samples = model(base_sequence,random,mod,c)
+        else:
+            samples = model(base_sequence,random,mod)
         loss = loss_function(samples, data)
         loss.backward()
         train_loss += loss.item()
@@ -22,15 +27,20 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,m
 
     return epoch_losses,model,optimizer
 
-def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True):
+def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True,conditional=False):
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loss = 0
     epoch_losses = []
-    for batch_idx, (data, _) in tqdm(enumerate(loader),total=len(loader)):
+    for batch_idx, batch in tqdm(enumerate(loader),total=len(loader)):
+        data = batch[0]
         data = data.to(model.device)
         optimizer.zero_grad()
-        samples = model(base_sequence,random,mod)
+        if conditional:
+            c = batch[1].to(model.device).view(1,-1)
+            samples = model(base_sequence,random,mod,c)
+        else:
+            samples = model(base_sequence,random,mod)
         loss = loss_function(samples, data)
         loss.backward()
         train_loss += loss.item()
@@ -56,7 +66,7 @@ def test_epoch(model,loader,base_sequence,loss_function):
     return epoch_losses
 
 def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,verbose=False,
-               random=True,mod=True):
+               random=True,mod=True,conditional=False):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
@@ -64,10 +74,10 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,verbose=Fals
 
         if verbose:
             batch_loss,model,optimizer = train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,
-                                                 random=random,mod=mod)    
+                                                 random=random,mod=mod,conditional=conditional)    
         else:
             batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,
-                                                 random=random,mod=mod)
+                                                 random=random,mod=mod,conditional=conditional)
 
         losses += batch_loss
         if verbose:

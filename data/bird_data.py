@@ -24,13 +24,14 @@ def load_segmented_sylls(bird_filepath,sylls,test_size=0.2,seed=92):
 
 class bird_data(Dataset):
 
-    def __init__(self,filenames,syll_ids,specs_per_file=20,transform=transforms.ToTensor()):
+    def __init__(self,filenames,syll_ids,specs_per_file=20,transform=transforms.ToTensor(),conditional=False):
 
 
         self.filenames=filenames
         self.syll_ids = syll_ids
         self.specs_per_file = specs_per_file
         self.transform = transform
+        self.conditional=conditional
 
     def __len__(self):
         return len(self.filenames) * self.specs_per_file
@@ -45,8 +46,14 @@ class bird_data(Dataset):
         
         with h5py.File(load_fn,'r') as f:
             spec = f['specs'][spec_index]
+
+        if self.conditional:
+            fm = calc_fm(spec)
+        
         spec = self.transform(spec)
 
+        if self.conditional:
+            return (spec,fm,syll_id)
         return (spec,syll_id)
     
 def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=92,check=True):
