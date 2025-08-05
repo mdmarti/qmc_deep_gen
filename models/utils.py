@@ -13,7 +13,6 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
         latent_dim = latent_dim*2 + 1
     
     decoder.append(nn.Linear(latent_dim,2048))
-    decoder.append(nn.Linear(latent_dim,2048))
 
     if 'mnist_simple' in dataset_name.lower():
         print("getting SHRIMPLE decoder")
