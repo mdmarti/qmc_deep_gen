@@ -24,7 +24,8 @@ def load_segmented_sylls(bird_filepath,sylls,test_size=0.2,seed=92):
 
 class bird_data(Dataset):
 
-    def __init__(self,filenames,syll_ids,specs_per_file=20,transform=transforms.ToTensor(),conditional=False):
+    def __init__(self,filenames,syll_ids,specs_per_file=20,transform=transforms.ToTensor(),
+                 conditional=False,conditional_factor='fm'):
 
 
         self.filenames=filenames
@@ -32,6 +33,7 @@ class bird_data(Dataset):
         self.specs_per_file = specs_per_file
         self.transform = transform
         self.conditional=conditional
+        self.conditional_factor = conditional_factor
 
     def __len__(self):
         return len(self.filenames) * self.specs_per_file
@@ -48,12 +50,17 @@ class bird_data(Dataset):
             spec = f['specs'][spec_index]
 
         if self.conditional:
-            fm = calc_fm(spec)
+            if self.conditional_factor == 'fm':
+                c = calc_fm(spec)
+            elif self.conditional_factor == 'entropy':
+                c = calc_ent(spec)
+            elif self.conditional_factor =='length':
+                c = f['offsets'][spec_index] - f['onsets'][spec_index]
         
         spec = self.transform(spec)
 
         if self.conditional:
-            return (spec,fm,syll_id)
+            return (spec,c,syll_id)
         return (spec,syll_id)
     
 def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=92,check=True):
@@ -97,10 +104,13 @@ def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=
 
 def calc_ent(spec):
 
-    ps = spec/(np.sum(spec,axis=0,keepdims=True)+1e-10)
+    denom = np.sum(spec,axis=0,keepdims=True)#+1e-10)
+    ps = spec/(denom + 1e-10)
     ent = -(np.log(ps + 1e-10) * ps).sum(axis=0)
 
-    return np.nanmean(ent)
+    weights = denom > 0
+    weights /= np.sum(weights)
+    return (ent*weights.squeeze()).sum() #np.nanmean(ent)
 
 
 def calc_fm(spec):
@@ -113,5 +123,6 @@ def calc_fm(spec):
     dt2 = np.amax(dt**2,axis=0)
     df2 = np.amax(df**2,axis=0)
     fm =np.arctan(dt2,df2[:-1])
-    #print(fm.shape)
-    return np.nanmean(fm)
+    weights = np.sum(spec,axis=0) > 0
+    weights /= np.sum(weights)
+    return (fm * weights).sum()
