@@ -255,6 +255,8 @@ def gaussian_iwae_elbo(reconstructions,distribution,targets,recon_precision=1e-2
     targets are data, and should be BxCxHxW
     """
 
+    if len(targets.shape) == len(reconstructions.shape):
+        targets = targets.squeeze(1)
     z,dist = distribution
     B,k,d = z.shape
     
