@@ -27,7 +27,7 @@ def run_conditioning_experiments(save_location,dataloc,nEpochs=100,
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
 
-    print(f"Training on {dataset} data")
+    print(f"Training on {dataset} data,conditioning on {conditional_factor}")
     
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
