@@ -49,15 +49,21 @@ def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,rando
 
     return epoch_losses,model,optimizer
 
-def test_epoch(model,loader,base_sequence,loss_function):
+def test_epoch(model,loader,base_sequence,loss_function,conditional=False):
 
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     test_loss = 0
     epoch_losses = []
     with torch.no_grad():
-        for batch_idx, (data, _) in enumerate(tqdm(loader)):
+        for batch_idx, batch in enumerate(tqdm(loader)):
+            data = batch[0]
             data = data.to(model.device)
+            if conditional:
+                c = batch[1].to(torch.float32).to(model.device).view(1,-1)
+                samples = model(base_sequence,random=True,mod=True,c=c)
+            else:
+                samples = model(base_sequence,random=True,mod=True)
             samples = model(base_sequence)
             loss = loss_function(samples, data)
             test_loss += loss.item()

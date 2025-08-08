@@ -54,7 +54,7 @@ def run_conditioning_experiments(save_location,dataloc,nEpochs=100,
         qmc_loss_func = lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
         qmc_lp =  lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
         qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_conditioned_{conditional_factor}.tar')
-        if not os.path.sifile(qmc_save_path):
+        if not os.path.isfile(qmc_save_path):
             qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
                                                                     nEpochs=nEpochs,verbose=False,
                                                                     conditional=True)
@@ -63,7 +63,7 @@ def run_conditioning_experiments(save_location,dataloc,nEpochs=100,
             qmc_model.eval()
             with torch.no_grad():
                 qmc_model.eval()
-                qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
+                qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func,conditional=True)
             qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
             save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
             qmc_model.to(device)
