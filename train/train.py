@@ -15,7 +15,7 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,m
         data = data.to(model.device)
         optimizer.zero_grad()
         if conditional:
-            c = batch[1].to(model.device).view(1,-1)
+            c = batch[1].to(torch.float32).to(model.device).view(1,-1)
             samples = model(base_sequence,random,mod,c)
         else:
             samples = model(base_sequence,random,mod)
