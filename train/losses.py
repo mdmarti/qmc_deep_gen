@@ -208,7 +208,7 @@ def gaussian_lp_old(samples,data,var=1):
                                                 )
 
 
-def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
+def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2,beta=1):
 
 
     """
@@ -236,7 +236,7 @@ def gaussian_elbo(reconstructions,distribution,targets,recon_precision=1e-2):
     t32 = - z_dim/2
     t42 = 1/2 * (mu**2).sum(dim=-1)
 
-    kl = (t12 + t22 + t32 + t42)
+    kl = beta*(t12 + t22 + t32 + t42)
 
     return neg_lp.mean(),kl.mean()
 
@@ -293,7 +293,7 @@ def binary_iwae_elbo(reconstructions,distribution,targets):
     #return neg_lp.mean(),kl.mean()
     return -torch.special.logsumexp(recon_ll + prior_ll - latent_ll,dim=1).mean(dim=0),torch.tensor([0.]).to(reconstructions.device)
 
-def binary_elbo(reconstructions,distribution,targets):
+def binary_elbo(reconstructions,distribution,targets,beta=1):
 
     B,c,h,w = reconstructions.shape
     d = c*h*w
@@ -312,7 +312,7 @@ def binary_elbo(reconstructions,distribution,targets):
     t32 = - z_dim/2
     t42 = 1/2 * (mu**2).sum(dim=-1)
 
-    kl = (t12 + t22 + t32 + t42)
+    kl = beta*(t12 + t22 + t32 + t42)
 
 
     return neg_lp.mean(),kl.mean()
