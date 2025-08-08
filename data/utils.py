@@ -9,7 +9,9 @@ from data.mocap import *
 def load_data(dataset_name,dataset_loc,batch_size=256,
               subj='54',frames_per_sample=1, # mocap params
               families = [2],specs_per_file=20, #gerbil params
-              seed=92):
+              conditional=False,conditional_factor='length', # more gerbil params
+              seed=92,
+              ):
 
     n_workers = len(os.sched_getaffinity(0))
 
@@ -57,8 +59,13 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
         print("loading gerbil")
         (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,families=families,
                                                                                     seed=seed,check=False)
-        train_data = bird_data(train_files,train_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0))
-        test_data = bird_data(test_files,test_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0))
+        train_data = bird_data(train_files,train_ids,sylls_per_file,
+                               transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),
+                               conditional=conditional,
+                               conditional_factor=conditional_factor)
+        test_data = bird_data(test_files,test_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),
+                               conditional=conditional,
+                               conditional_factor=conditional_factor)
 
 
     elif 'mocap' in dataset_name.lower():

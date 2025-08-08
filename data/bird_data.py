@@ -49,13 +49,15 @@ class bird_data(Dataset):
         with h5py.File(load_fn,'r') as f:
             spec = f['specs'][spec_index]
 
-        if self.conditional:
-            if self.conditional_factor == 'fm':
-                c = calc_fm(spec)
-            elif self.conditional_factor == 'entropy':
-                c = calc_ent(spec)
-            elif self.conditional_factor =='length':
-                c = f['offsets'][spec_index] - f['onsets'][spec_index]
+            if self.conditional:
+                if self.conditional_factor == 'fm':
+                    c = calc_fm(spec)
+                elif self.conditional_factor == 'entropy':
+                    c = calc_ent(spec)
+                elif self.conditional_factor =='length':
+                    c = f['offsets'][spec_index] - f['onsets'][spec_index]
+                else:
+                    raise NotImplementedError
         
         spec = self.transform(spec)
 
@@ -108,7 +110,7 @@ def calc_ent(spec):
     ps = spec/(denom + 1e-10)
     ent = -(np.log(ps + 1e-10) * ps).sum(axis=0)
 
-    weights = denom > 0
+    weights = (denom > 0).astype(np.float32)
     weights /= np.sum(weights)
     return (ent*weights.squeeze()).sum() #np.nanmean(ent)
 
@@ -123,6 +125,6 @@ def calc_fm(spec):
     dt2 = np.amax(dt**2,axis=0)
     df2 = np.amax(df**2,axis=0)
     fm =np.arctan(dt2,df2[:-1])
-    weights = np.sum(spec,axis=0) > 0
+    weights = (np.sum(spec,axis=0) > 0).astype(np.float32)[:-1]
     weights /= np.sum(weights)
     return (fm * weights).sum()
