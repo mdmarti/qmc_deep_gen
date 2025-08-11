@@ -64,7 +64,7 @@ def test_epoch(model,loader,base_sequence,loss_function,conditional=False):
                 samples = model(base_sequence,random=True,mod=True,c=c)
             else:
                 samples = model(base_sequence,random=True,mod=True)
-            samples = model(base_sequence)
+            #samples = model(base_sequence)
             loss = loss_function(samples, data)
             test_loss += loss.item()
             epoch_losses.append(loss.item())
