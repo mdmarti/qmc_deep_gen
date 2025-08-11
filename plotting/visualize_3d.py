@@ -20,7 +20,10 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey',mo
         
         #z = torch.linspace(0,1,n_samples).to(device)[:,None]
         
-            sample = model.decoder(z).detach().cpu()
+            sample = model(z,mod=False,random=False)
+            if sample.shape[1] == 3:
+                sample = sample.permute(0,2,3,1)
+            sample = sample.detach().cpu()
             mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]                
 
     
