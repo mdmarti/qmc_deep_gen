@@ -5,15 +5,6 @@ from joblib import Parallel, delayed
 from sklearn.cluster._mean_shift import *
 import numpy as np
 #from sklearn.utils.validation import check_is_fitted, validate_data
-def p_norm_theta(x,y,p=2):
-    """
-    only for thetas bounded between 0,1
-    """
-
-    d1 = np.abs(x-y)
-    d2 = np.abs(x - (1+y))
-    abs_dist = np.minimum(d1,d2)
-    return (abs_dist ** p).sum() ** (1/p)
 
 class WeightedMeanShift(MeanShift):
     """
