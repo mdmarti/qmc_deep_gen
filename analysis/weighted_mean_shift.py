@@ -1,7 +1,11 @@
 from sklearn.cluster import MeanShift
+from sklearn.neighbors import NearestNeighbors
+from joblib import Parallel, delayed
+
 from sklearn.cluster._mean_shift import *
 import numpy as np
 #from sklearn.utils.validation import check_is_fitted, validate_data
+
 class WeightedMeanShift(MeanShift):
     """
     Implement weighted mean shift. Normally, you're using this algorithm
@@ -21,6 +25,7 @@ class WeightedMeanShift(MeanShift):
         cluster_all=True,
         n_jobs=None,
         max_iter=300,
+        metric = 'minkowski'
     ):
 
         super(WeightedMeanShift,self).__init__(bandwidth=bandwidth,
@@ -32,6 +37,8 @@ class WeightedMeanShift(MeanShift):
                                            max_iter=max_iter
         
         )
+        self.metric=metric
+
     def fit(self, X, y=None,weights=None):
         """Perform clustering.
 
@@ -65,7 +72,7 @@ class WeightedMeanShift(MeanShift):
         # We use n_jobs=1 because this will be used in nested calls under
         # parallel calls to _mean_shift_single_seed so there is no need for
         # for further parallelism.
-        nbrs = NearestNeighbors(radius=bandwidth, n_jobs=1).fit(X)
+        nbrs = NearestNeighbors(radius=bandwidth, n_jobs=1,metric=self.metric).fit(X)
 
         # execute iterations on all seeds in parallel
         all_res = Parallel(n_jobs=self.n_jobs)(

@@ -1,0 +1,232 @@
+
+import torch
+from data.toy_dsets import *
+
+from models.sampling import *
+from models.qmc_base import *
+from models.layers import *
+from train.losses import gaussian_lp,gaussian_evidence,gaussian_elbo
+from models.vae_base import *
+import train.train_vae as train_vae
+import train.train as train_qmc
+from torchvision import datasets,transforms
+from torch.utils.data import DataLoader
+import os
+from torch.optim import Adam
+from train.model_saving_loading import *
+from plotting.visualize import *
+from data.bird_data import *
+from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
+
+import fire
+
+
+
+def run_celeba_experiments(save_location,dataloc,train_grid_m=16,test_grid_m=20,n_recons=50,nEpochs=300):
+
+
+
+    ############ Set up experiment parameters ##################
+    print('loading data...')
+    train_ims = torch.load(os.path.join(dataloc,'train_80x80.pt'))
+    test_ims = torch.load(os.path.join(dataloc,'test80x80.pt'))  
+    print('done!')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    n_workers = len(os.sched_getaffinity(0))
+    print(f"using {n_workers} workers") 
+    train_data = CelebADsetIms(train_ims)
+    test_data = CelebADsetIms(test_ims)
+    train_loader = DataLoader(train_data,batch_size=64,num_workers=n_workers,shuffle=True)
+    test_loader = DataLoader(test_data,batch_size=1,num_workers=n_workers,shuffle=False)
+    #####################################################
+
+    ############## QMC training #########################
+    qmc_latent_dim=2
+    
+    decoder_qmc = nn.Sequential(
+            TorusBasis(),
+            nn.Linear(2*qmc_latent_dim,2048),
+            #nn.ReLU(),
+            #nn.Linear(2048, 32*7*7),
+            nn.ReLU(),
+            nn.Linear(2048,64*5*5),
+            nn.Unflatten(1, (64, 5, 5)),
+            ResCellNVAESimple(64,expand_factor=2),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*5*5,64*10*10),
+            nn.Conv2d(64,32,1),
+            ResCellNVAESimple(32,expand_factor=4),#nn.ReLU(),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*10*10,32*20*20),
+            nn.Conv2d(32,16,1),
+            ResCellNVAESimple(16,expand_factor=8),#nn.ReLU(),
+            nn.ConvTranspose2d(16, 16, 3, stride=2, padding=1, output_padding=1,groups=16),#nn.Linear(16*20*20,16*40*40),
+            nn.Conv2d(16,8,1),
+            ResCellNVAESimple(8,expand_factor=8),
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=1, output_padding=1,groups=8),#nn.Linear(8*40*40,8*80*80),
+            nn.Conv2d(8,4,1),
+            ResCellNVAESimple(4,expand_factor=8),
+            ResCellNVAESimple(4,expand_factor=4),
+            ResCellNVAESimple(4,expand_factor=2),
+            nn.Conv2d(4,1,1),
+            nn.Sigmoid(),
+        )
+    qmc_model = QMCLVM(latent_dim=qmc_latent_dim, device=device,decoder=decoder_qmc)
+    qmc_loss_function = lambda samples,data: gaussian_evidence(samples,data,var=.1)
+    
+    train_base_sequence = gen_fib_basis(m=train_grid_m)
+    test_base_sequence = gen_fib_basis(m=test_grid_m)
+
+    save_qmc = os.path.join(save_location,'qmc_train_zebra_finch_experiment.tar')
+    if not os.path.isfile(save_qmc):
+        print("now training qmc model")
+        ## starting this run takes a little while for some reason...
+        qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_base_sequence.to(device),qmc_loss_function,nEpochs=nEpochs,print_losses=True)
+        save(qmc_model.to('cpu'),qmc_opt,qmc_losses,fn=save_qmc)
+        qmc_model.to(device)
+    else:
+        qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
+        qmc_model,qmc_opt,qmc_losses = load(qmc_model,qmc_opt,save_qmc)
+        qmc_model.to(device)
+
+    qmc_losses = np.array(qmc_losses)
+    ax = plt.gca()
+    ax.plot(-np.array(qmc_losses))
+    ax =  format_plot_axis(ax,ylabel='log evidence',xlabel='update number',xticks=ax.get_xticks(),yticks=ax.get_yticks())
+    plt.savefig(os.path.join(save_location,'qmc_train_stats.svg'))
+    plt.close()
+
+    model_grid_plot(qmc_model.to(device),n_samples_dim=20,show=False,fn=os.path.join(save_location,'qmc_grid.png'))
+
+
+    ######################################################
+
+
+    ############## VAE training ##########################
+    vae_latent_dim=64
+    decoder_vae = nn.Sequential(
+            nn.Linear(vae_latent_dim,2048),
+            #nn.ReLU(),
+            #nn.Linear(2048, 32*7*7),
+            nn.ReLU(),
+            nn.Linear(2048,64*5*5),
+            nn.Unflatten(1, (64, 5, 5)),
+            ResCellNVAESimple(64,expand_factor=2),
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1,groups=64), #nn.Linear(64*5*5,64*10*10),
+            nn.Conv2d(64,32,1),
+            ResCellNVAESimple(32,expand_factor=4),#nn.ReLU(),
+            nn.ConvTranspose2d(32, 32, 3, stride=2, padding=1, output_padding=1,groups=32),#nn.Linear(32*10*10,32*20*20),
+            nn.Conv2d(32,16,1),
+            ResCellNVAESimple(16,expand_factor=8),#nn.ReLU(),
+            nn.ConvTranspose2d(16, 16, 3, stride=2, padding=1, output_padding=1,groups=16),#nn.Linear(16*20*20,16*40*40),
+            nn.Conv2d(16,8,1),
+            ResCellNVAESimple(8,expand_factor=8),
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=1, output_padding=1,groups=8),#nn.Linear(8*40*40,8*80*80),
+            nn.Conv2d(8,4,1),
+            ResCellNVAESimple(4,expand_factor=8),
+            ResCellNVAESimple(4,expand_factor=4),
+            ResCellNVAESimple(4,expand_factor=2),
+            nn.Conv2d(4,1,1),
+            nn.Sigmoid(),
+        )
+    encoder_net =nn.Sequential(nn.Conv2d(1,4,1),#,stride=2,padding=1),
+                            ResCellNVAESimple(4,expand_factor=2),
+                            ResCellNVAESimple(4,expand_factor=4),
+                            ResCellNVAESimple(4,expand_factor=8),
+                            nn.Conv2d(4,8,1),
+                            nn.Conv2d(8,8,3,stride=2,padding=1,groups=8),
+                            ResCellNVAESimple(8,expand_factor=8),
+                            nn.Conv2d(8,16,1),
+                            nn.Conv2d(16,16,3,stride=2,padding=1,groups=16),
+                            ResCellNVAESimple(16,expand_factor=8),
+                            nn.Conv2d(16,32,1),
+                            nn.Conv2d(32,32,3,stride=2,padding=1,groups=32),
+                            ResCellNVAESimple(32,expand_factor=4),
+                            nn.Conv2d(32,64,1),
+                            nn.Conv2d(64,64,3,stride=2,padding=1,groups=64),
+                            ResCellNVAESimple(64,expand_factor=2),
+                            nn.Flatten(start_dim=1,end_dim=-1),
+                            nn.Linear(64*5*5,2048),
+                            nn.Tanh())
+    mu_net = nn.Linear(2048,vae_latent_dim)
+    L_net = nn.Linear(2048,vae_latent_dim)
+    d_net = nn.Linear(2048,vae_latent_dim)
+
+    encoder_vae = Encoder(encoder_net,mu_net,L_net,d_net,vae_latent_dim)
+    vae_model= VAE(decoder_vae,encoder_vae,LowRankMultivariateNormal,device)
+    vae_model.device=device    
+
+    vae_loss_function = gaussian_elbo 
+
+    save_vae = os.path.join(save_location,'vae_train_celeba_experiment.tar')
+    if not os.path.isfile(save_vae):
+        print("now training vae model")
+        vae_model,vae_opt,vae_losses = train_vae.train_loop(vae_model,train_loader,vae_loss_function,nEpochs=nEpochs)
+        save(vae_model.to('cpu'),vae_opt,vae_losses,fn=save_vae)
+        vae_model.to(device)
+    else:
+        vae_opt = Adam(vae_model.parameters(),lr=1e-3)
+        vae_model,vae_opt,vae_losses = load(vae_model,vae_opt,save_vae)
+        vae_model.to(device)
+
+    [vae_recons,vae_kls] = vae_losses
+    vae_recons,vae_kls = np.array(vae_recons),np.array(vae_kls)
+    ax = plt.gca()
+    ax.plot(-vae_recons,label='VAE reconstruction log probability')
+    ax.plot(vae_kls,label='VAE KL')
+    ax.plot(-vae_recons - vae_kls,label='VAE ELBO')
+    ax =  format_plot_axis(ax,ylabel='',xlabel='update number',xticks=ax.get_xticks(),yticks=ax.get_yticks())
+    ax.legend(frameon=False)
+    plt.savefig(os.path.join(save_location,'vae_train_stats.svg'))
+    plt.close()
+
+    ####################### Model comparison #####################################
+
+    ax = plt.gca()
+    ax.plot(-qmc_losses,label='QMC model evidence')
+    ax.plot(-vae_recons,label='VAE reconstruction log probability')
+    ax.plot(-vae_recons - vae_kls,label='VAE ELBO')
+    ax =  format_plot_axis(ax,ylabel='',xlabel='update number',xticks=ax.get_xticks(),yticks=ax.get_yticks())
+    ax.legend(frameon=False)
+    plt.savefig(os.path.join(save_location,'qmc_vae_stats_comparison.svg'))
+    plt.close()
+    ######################################################
+
+
+    ############### analysis and comparison ##############
+
+    sample_inds = np.random.choice(len(test_loader.dataset),n_recons,replace=False)
+    for ii in range(n_recons):
+
+
+        sample_ind = sample_inds[ii]
+        save_fig = os.path.join(save_location,f'qmc_vae_round_trips_sample_{sample_ind}_argmax.png')
+
+        sample = test_loader.dataset.ims[sample_ind].to(torch.float32).to(device).view(1,1,80,80)
+        if torch.argmax(sample) > 1: 
+            sample /= 256
+        recon_qmc1 = qmc_model.round_trip(test_base_sequence.to(device),sample, lambda samples,data: gaussian_lp(samples,data,var=.1),recon_type='argmax')
+        recon_vae = vae_model.round_trip(sample)
+        recon_qmc1 = recon_qmc1.detach().cpu()
+        #recon_qmc2 = recon_qmc2.detach().cpu()
+        recon_vae = recon_vae.detach().cpu()
+        sample = sample.detach().cpu().squeeze()
+
+        fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
+        axs[0].imshow(recon_qmc1.squeeze(),cmap='gray')
+        #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
+        axs[1].imshow(sample.squeeze(),cmap='gray')
+        axs[2].imshow(recon_vae.squeeze(),cmap='gray')
+        labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
+        for ax,label in zip(axs,labels):
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_title(label)
+        plt.tight_layout()
+        plt.savefig(save_fig)
+        plt.close()
+
+
+    ######################################################
+
+if __name__ == '__main__':
+
+    fire.Fire(run_celeba_experiments)
