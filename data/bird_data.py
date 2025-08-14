@@ -56,11 +56,16 @@ class bird_data(Dataset):
                     c = calc_ent(spec)
                 elif self.conditional_factor =='length':
                     c = f['offsets'][spec_index] - f['onsets'][spec_index]
-                elif self.conditional_factor == 'location':
+                elif self.conditional_factor == 'locations':
                     ### this should ONLY be used for analysis and NOT for training
-                    c = f['location'][spec_index]
+        
+                    c = f['locations'][spec_index].decode('ASCII')
+                elif self.conditional_factor == 'file':
+                    ### this should ALSO only be used for analysis and NOT for training
+                    c = f['audio_filenames'][spec_index].decode('ASCII')
                 else:
                     raise NotImplementedError
+        
         
         spec = self.transform(spec)
 

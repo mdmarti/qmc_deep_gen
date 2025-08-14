@@ -123,7 +123,7 @@ def vae_train_plot(vae_train_losses,vae_test_losses,save_fn):
     plt.close()
 
 
-def qmc_train_plot(qmc_train_losses,qmc_test_losses,save_fn):
+def qmc_train_plot(qmc_train_losses,qmc_test_losses,save_fn='',show=False):
 
     qmc_train_losses,qmc_test_losses = np.array(qmc_train_losses),np.array(qmc_test_losses)
 
@@ -136,7 +136,11 @@ def qmc_train_plot(qmc_train_losses,qmc_test_losses,save_fn):
     xax += [N + N//10] 
     ax.errorbar(N + N//10,np.nanmean(-qmc_test_losses),yerr =np.nanstd(-qmc_test_losses),capsize=6,linestyle='',color='tab:blue')
     ax =  format_plot_axis(ax,ylabel='Model evidence',xlabel='update number',xticks=xax,xticklabels=xticklabels)
-    plt.savefig(save_fn)
+    if show:
+        plt.show()
+    else:
+        plt.savefig(save_fn)
+
     plt.close()
 
 

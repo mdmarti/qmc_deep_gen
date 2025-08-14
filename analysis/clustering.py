@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 #from sklearn.utils.validation import check_is_fitted, validate_data
-def p_norm_theta(x,y,p=2):
+def p_dist_theta(x,y,p=2):
     """
     only for thetas bounded between 0,1
     """
@@ -18,8 +18,8 @@ def p_norm_theta(x,y,p=2):
 def run_mean_shift(embeddings,seeds,norm_order=2):
 
     n_workers = len(os.sched_getaffinity(0))
-    metric = lambda x,y: p_norm_theta(x,y,p=norm_order)
-    ms = MeanShift(seeds=seeds,n_jobs = n_workers,metric=metric)
+    metric = lambda x,y: p_dist_theta(x,y,p=norm_order)
+    ms = WeightedMeanShift(seeds=seeds,n_jobs = n_workers,metric=metric)
     ms.fit(embeddings)
 
     return ms.cluster_centers_,ms.labels_

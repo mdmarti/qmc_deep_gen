@@ -62,7 +62,6 @@ def run_conditioning_experiments(save_location,dataloc,nEpochs=100,
             print("Done training!")
             qmc_model.eval()
             with torch.no_grad():
-                qmc_model.eval()
                 qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func,conditional=True)
             qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
             save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
