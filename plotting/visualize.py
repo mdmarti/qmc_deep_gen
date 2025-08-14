@@ -132,9 +132,11 @@ def qmc_train_plot(qmc_train_losses,qmc_test_losses,save_fn='',show=False):
 
     ax.plot(-qmc_train_losses,label = 'Model evidence',color='tab:blue')
     xax = list(ax.get_xticks()) 
+    if xax[-1] >= N + N//5:
+        xax = xax[:-1]
     xticklabels = xax + ['Test']
-    xax += [N + N//10] 
-    ax.errorbar(N + N//10,np.nanmean(-qmc_test_losses),yerr =np.nanstd(-qmc_test_losses),capsize=6,linestyle='',color='tab:blue')
+    xax += [N + N//5] 
+    ax.errorbar(N + N//5,np.nanmean(-qmc_test_losses),yerr =np.nanstd(-qmc_test_losses),capsize=6,linestyle='',color='tab:blue')
     ax =  format_plot_axis(ax,ylabel='Model evidence',xlabel='update number',xticks=xax,xticklabels=xticklabels)
     if show:
         plt.show()
