@@ -26,7 +26,7 @@ class WeightedMeanShift(MeanShift):
         cluster_all=True,
         n_jobs=None,
         max_iter=300,
-        metric = 'minkowski'
+        metric = 'minkowski',
     ):
 
         super(WeightedMeanShift,self).__init__(bandwidth=bandwidth,
@@ -39,8 +39,9 @@ class WeightedMeanShift(MeanShift):
         
         )
         self.metric=metric
+        
 
-    def fit(self, X, y=None,weights=None):
+    def fit(self, X, y=None,weights=None,verbose=False):
         """Perform clustering.
 
         Parameters
@@ -79,7 +80,7 @@ class WeightedMeanShift(MeanShift):
         print(f"running mean shift on {len(seeds)} seeds")
         seed_nos = np.arange(len(seeds))
         all_res = Parallel(n_jobs=self.n_jobs)(
-            delayed(_mean_shift_single_seed)(seed, X, nbrs, self.max_iter,weights,no)
+            delayed(_mean_shift_single_seed)(seed, X, nbrs, self.max_iter,weights,no,verbose)
             for seed,no in zip(seeds,seed_nos)
         )
         print("done!")
@@ -136,7 +137,7 @@ class WeightedMeanShift(MeanShift):
         self.cluster_centers_, self.labels_ = cluster_centers, labels
         return self
 
-def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0):
+def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,verbose=False):
     # For each seed, climb gradient until convergence or max_iter
     if weights is None:
         weights = np.ones([X.shape[0],1])
@@ -154,7 +155,7 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0):
         if len(points_within) == 0:
             break  # Depending on seeding strategy this condition may occur
         if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
-            print("weights less than volume of sphere")
+            if verbose: print("weights less than volume of sphere")
             points_within = []
             break # if sum of weights i proportionally less than volume in space
         my_old_mean = my_mean  # save the old mean
@@ -173,7 +174,7 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0):
         completed_iterations += 1
     end_time = time.time()
     time_len = round(end_time - start_time,3)
-    print(f"finished seed {seed_no} in {completed_iterations} iterations, {time_len}s")
+    if verbose: print(f"finished seed {seed_no} in {completed_iterations} iterations, {time_len}s")
     return tuple(my_mean), len(points_within), completed_iterations
 
    
