@@ -1,4 +1,4 @@
-from weighted_mean_shift import *
+from analysis.weighted_mean_shift import *
 from sklearn.cluster import MeanShift,KMeans  
 import os
 
