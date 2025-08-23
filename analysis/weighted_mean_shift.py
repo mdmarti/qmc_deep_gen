@@ -146,6 +146,7 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
     completed_iterations = 0
     start_time = time.time()
     n_points = X.shape[0]
+    #print(my_mean)
     while True:
         # Find mean of points within bandwidth
         i_nbrs = nbrs.radius_neighbors([my_mean], bandwidth, return_distance=False)[0]
@@ -154,24 +155,28 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
         weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
         if len(points_within) == 0:
             break  # Depending on seeding strategy this condition may occur
-        if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
-            if verbose: print("weights less than volume of sphere")
-            points_within = []
-            break # if sum of weights i proportionally less than volume in space
+        #if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
+        #    if verbose: print("weights less than volume of sphere")
+        #    points_within = []
+        #    break # if sum of weights i proportionally less than volume in space
         my_old_mean = my_mean  # save the old mean
         
         my_mean = np.sum(weights_within * points_within,axis=0) #np.mean(points_within*weights_within, axis=0)
+        #print(my_mean)
         # If converged or at max_iter, adds the cluster
         if (
             np.linalg.norm(my_mean - my_old_mean) <= stop_thresh
             or completed_iterations == max_iter
         ):
             break
-        my_mean = my_mean % 1
+        #my_mean = my_mean % 1
         completed_iterations += 1
     end_time = time.time()
     time_len = round(end_time - start_time,3)
+    
     if verbose: print(f"finished seed {seed_no} in {completed_iterations} iterations, {time_len}s")
+    #assert False
+
     return tuple(my_mean), len(points_within), completed_iterations
 
 class WeightedMeanShiftCircular(WeightedMeanShift):
