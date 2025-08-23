@@ -40,6 +40,14 @@ class TorusBasis(nn.Module):
     def forward(self,data):
         
         return torch.cat([torch.cos(2*torch.pi*data),torch.sin(2*torch.pi*data)],dim=1)
+    
+    def reverse(self,data):
+
+        d = int(data.shape[-1]//2)
+        angles = torch.atan2(data[:,d:],data[:,:d])
+        angles[angles < 0] = torch.pi*2 + angles[angles < 0]
+
+        return angles
 
 class IdentityBasis(nn.Module):
 
@@ -48,6 +56,10 @@ class IdentityBasis(nn.Module):
         super (IdentityBasis,self).__init__()
 
     def forward(self,data):
+
+        return data
+    
+    def reverse(self,data):
 
         return data
     
@@ -122,7 +134,9 @@ class QMCLVM(nn.Module):
                 for _ in range(n_samples):
                     tmp_grid = (grid + torch.rand((1,grid.shape[1]),device=self.device))%1
                     posterior = self.posterior_probability(tmp_grid,data,log_likelihood,c) # Bsz x Grid size
-                    posterior_grid.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
+                    posterior_grid.append(self.basis.reverse(
+                                            posterior.to(self.device) @ self.basis.forward(tmp_grid)
+                     )) # Bsz x latent dim
                 posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
             elif recon_type == 'rqmc_recon':
                 posterior_ims = []
@@ -153,7 +167,9 @@ class QMCLVM(nn.Module):
                 different in latent space
                 """
                 if (recon_type == 'posterior'):
-                    posterior_grid = posterior @ (grid % 1)
+                    posterior_grid = self.basis.reverse(
+                                    posterior.to(self.device) @ self.basis.forward(grid % 1)
+                     )
                 
                 elif recon_type == 'rqmc':
                     pass
@@ -190,13 +206,17 @@ class QMCLVM(nn.Module):
                     for _ in range(n_samples):
                         tmp_grid = (grid + torch.rand((1,2),device=self.device))%1
                         posterior = self.posterior_probability(tmp_grid,data,log_likelihood,c=c) # Bsz x Grid size
-                        latent_batch.append(posterior.to(self.device) @ tmp_grid) # Bsz x latent dim
+                        latent_batch.append(self.basis.reverse(
+                                            posterior.to(self.device) @ self.basis.forward(tmp_grid)
+                        )) # Bsz x latent dim
                     latent_batch = torch.stack(latent_batch,axis=0).mean(axis=0) # Bsz x latent dim
                     latents.append(latent_batch.detach().cpu())
                 elif embed_type == 'posterior':
                     posterior = self.posterior_probability(grid,data,log_likelihood,c=c)
                     # posterior is B x S, convert to B x 2 for weighted grid
-                    latents.append((posterior @ (grid%1)).detach().cpu())
+                    latents.append(self.basis.reverse(
+                                            posterior @ self.basis.forward(grid)
+                     ).detach().cpu())
                 elif embed_type == 'argmax':
                     posterior = self.posterior_probability(grid,data,log_likelihood,c=c)
                     max_inds = torch.argmax(posterior,axis=1)
