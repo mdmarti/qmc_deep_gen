@@ -47,7 +47,7 @@ class TorusBasis(nn.Module):
         angles = torch.atan2(data[:,d:],data[:,:d])
         angles[angles < 0] = torch.pi*2 + angles[angles < 0]
 
-        return angles
+        return angles/(2*torch.pi)
 
 class IdentityBasis(nn.Module):
 
