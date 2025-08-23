@@ -159,11 +159,8 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
             points_within = []
             break # if sum of weights i proportionally less than volume in space
         my_old_mean = my_mean  # save the old mean
-        dists = np.abs(my_mean - points_within)
-        b1 = dists >0.5
-        shift = ((my_mean > 0.5) - 0.5)*2
-        wrapped_points = points_within + b1 * shift
-        my_mean = np.sum(weights_within * wrapped_points,axis=0) #np.mean(points_within*weights_within, axis=0)
+        
+        my_mean = np.sum(weights_within * points_within,axis=0) #np.mean(points_within*weights_within, axis=0)
         # If converged or at max_iter, adds the cluster
         if (
             np.linalg.norm(my_mean - my_old_mean) <= stop_thresh
@@ -177,4 +174,74 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
     if verbose: print(f"finished seed {seed_no} in {completed_iterations} iterations, {time_len}s")
     return tuple(my_mean), len(points_within), completed_iterations
 
-   
+class WeightedMeanShiftCircular(WeightedMeanShift):
+    """
+    Implement weighted mean shift. Normally, you're using this algorithm
+    to estimate density from samples, move modes to centers of mass 
+    of your samples. Here, we have probability densities and uniform grid,
+    so we want to move modes to centers of mass using those densities on the grid
+    """
+
+
+    def __init__(
+        self,
+        *,
+        bandwidth=None,
+        seeds=None,
+        bin_seeding=False,
+        min_bin_freq=1,
+        cluster_all=True,
+        n_jobs=None,
+        max_iter=300,
+        metric = 'minkowski',
+    ):
+
+        super(WeightedMeanShiftCircular,self).__init__(bandwidth=bandwidth,
+                                           seeds=seeds,
+                                           bin_seeding=bin_seeding,
+                                           min_bin_freq=min_bin_freq,
+                                           cluster_all=cluster_all,
+                                           n_jobs=n_jobs,
+                                           max_iter=max_iter,
+                                           metric=metric
+        )
+
+    def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,verbose=False):
+    # For each seed, climb gradient until convergence or max_iter
+        if weights is None:
+            weights = np.ones([X.shape[0],1])
+        bandwidth = nbrs.get_params()["radius"]
+        stop_thresh = 1e-5 * bandwidth  # when mean has converged
+        completed_iterations = 0
+        start_time = time.time()
+        n_points = X.shape[0]
+        while True:
+            # Find mean of points within bandwidth
+            i_nbrs = nbrs.radius_neighbors([my_mean], bandwidth, return_distance=False)[0]
+            points_within = X[i_nbrs]
+            weights_within_unnorm = weights[i_nbrs]
+            weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
+            if len(points_within) == 0:
+                break  # Depending on seeding strategy this condition may occur
+            if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
+                if verbose: print("weights less than volume of sphere")
+                points_within = []
+                break # if sum of weights i proportionally less than volume in space
+            my_old_mean = my_mean  # save the old mean
+            dists = np.abs(my_mean - points_within)
+            b1 = dists >0.5
+            shift = ((my_mean > 0.5) - 0.5)*2
+            wrapped_points = points_within + b1 * shift
+            my_mean = np.sum(weights_within * wrapped_points,axis=0) #np.mean(points_within*weights_within, axis=0)
+            # If converged or at max_iter, adds the cluster
+            if (
+                np.linalg.norm(my_mean - my_old_mean) <= stop_thresh
+                or completed_iterations == max_iter
+            ):
+                break
+            my_mean = my_mean % 1
+            completed_iterations += 1
+        end_time = time.time()
+        time_len = round(end_time - start_time,3)
+        if verbose: print(f"finished seed {seed_no} in {completed_iterations} iterations, {time_len}s")
+        return tuple(my_mean), len(points_within), completed_iterations
