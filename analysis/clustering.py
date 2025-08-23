@@ -24,15 +24,14 @@ def p_dist_theta_alternate(x,y,p=2):
     abs_dist = np.abs(x-y - b1*b2)
     return (abs_dist**p).sum()**(1/p)
 
-def run_mean_shift(embeddings,seeds,norm_order=2):
+def run_mean_shift(latent_points,seeds,weights,bandwidth,n_jobs,p):
 
-    n_workers = len(os.sched_getaffinity(0))
-    metric = lambda x,y: p_dist_theta(x,y,p=norm_order)
-    ms = WeightedMeanShift(seeds=seeds,n_jobs = n_workers,metric=metric)
-    ms.fit(embeddings)
+    metric = lambda x,y: p_dist_theta(x,y,p=p)
+    wms = WeightedMeanShift(n_jobs=n_jobs,metric=metric,bandwidth=bandwidth,seeds=seeds)
+    wms.fit(latent_points,weights=weights)
+    centers = wms.cluster_centers_
 
-    return ms.cluster_centers_,ms.labels_
-
+    return centers,wms
 
 def run_kmeans(embeddings,n_clusters,norm_order=2):
 
