@@ -39,7 +39,7 @@ class TorusBasis(nn.Module):
         
     def forward(self,data):
         
-        return torch.cat([torch.cos(2*torch.pi*data),torch.sin(2*torch.pi*data)],dim=1)
+        return torch.cat([torch.cos(2*torch.pi*data),torch.sin(2*torch.pi*data)],dim=-1)
     
     def reverse(self,data):
 
