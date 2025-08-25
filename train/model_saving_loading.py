@@ -1,4 +1,6 @@
 import torch
+import copy
+from collections import OrderedDict
 
 def save(model,optimizer,run_info,fn = ''):
     """
@@ -22,8 +24,34 @@ def load(model,optimizer,fn = ''):
         model.load_state_dict(checkpoint['model'])
     except:
         print(f"tried to load weights from {fn}; something went wrong!")
-        assert False
+        print("trying to alter weight dict to match new structure")
+        model = convert_qmc_dict(checkpoint,model)
     optimizer.load_state_dict(checkpoint['optimizer'])
     run_info = checkpoint['run info']
 
     return model,optimizer, run_info
+
+def convert_qmc_dict(checkpoint,model):
+
+    """
+    convert dictionaries from models where the basis 
+    WAS in the decoder to dictionaries where the basis
+    is in the model object
+    """
+    try:
+        model.load_state_dict(checkpoint['model'])
+
+    except:
+        print(f"weights mismatch; converting")
+        dict_copy = OrderedDict()
+
+        keylist = checkpoint['model'].keys()
+        for key in keylist:
+            split_key = key.split('.')
+            
+            split_key[1] = str(int(split_key[1]) - 1)
+            dict_copy['.'.join(split_key)] = checkpoint['model'][key]
+
+        model.load_state_dict(dict_copy)
+
+    return model
