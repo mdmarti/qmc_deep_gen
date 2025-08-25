@@ -137,7 +137,7 @@ class QMCLVM(nn.Module):
                     posterior_grid.append(self.basis.reverse(
                                             posterior.to(self.device) @ self.basis.forward(tmp_grid)
                      )) # Bsz x latent dim
-                posterior_grid = torch.stack(posterior_grid,axis=0).mean(axis=0)
+                posterior_grid = self.basis.reverse(self.basis.forward(torch.stack(posterior_grid,axis=0)).mean(axis=0))
             elif recon_type == 'rqmc_recon':
                 posterior_ims = []
 
@@ -209,7 +209,7 @@ class QMCLVM(nn.Module):
                         latent_batch.append(self.basis.reverse(
                                             posterior.to(self.device) @ self.basis.forward(tmp_grid)
                         )) # Bsz x latent dim
-                    latent_batch = torch.stack(latent_batch,axis=0).mean(axis=0) # Bsz x latent dim
+                    latent_batch = self.basis.reverse(self.basis.forward(torch.stack(latent_batch,axis=0)).mean(axis=0)) # Bsz x latent dim
                     latents.append(latent_batch.detach().cpu())
                 elif embed_type == 'posterior':
                     posterior = self.posterior_probability(grid,data,log_likelihood,c=c)

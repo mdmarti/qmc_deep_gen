@@ -152,9 +152,13 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
         i_nbrs = nbrs.radius_neighbors([my_mean], bandwidth, return_distance=False)[0]
         points_within = X[i_nbrs]
         weights_within_unnorm = weights[i_nbrs]
-        weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
         if len(points_within) == 0:
             break  # Depending on seeding strategy this condition may occur
+        if np.sum(weights_within_unnorm) ==0:
+                if verbose: print("no density in ball")
+                points_within = []
+                break
+        weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
         #if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
         #    if verbose: print("weights less than volume of sphere")
         #    points_within = []
@@ -225,13 +229,18 @@ class WeightedMeanShiftCircular(WeightedMeanShift):
             i_nbrs = nbrs.radius_neighbors([my_mean], bandwidth, return_distance=False)[0]
             points_within = X[i_nbrs]
             weights_within_unnorm = weights[i_nbrs]
-            weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
+            
             if len(points_within) == 0:
                 break  # Depending on seeding strategy this condition may occur
             if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
                 if verbose: print("weights less than volume of sphere")
                 points_within = []
                 break # if sum of weights i proportionally less than volume in space
+            if np.sum(weights_within_unnorm) ==0:
+                if verbose: print("no density in ball")
+                points_within = []
+                break
+            weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
             my_old_mean = my_mean  # save the old mean
             dists = np.abs(my_mean - points_within)
             b1 = dists >0.5
