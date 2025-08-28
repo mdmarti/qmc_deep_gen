@@ -4,8 +4,14 @@ from stochman.curves import CubicSpline
 import torch
 from scipy.interpolate import LSQBivariateSpline as LSQ
 import numpy as np
+from analysis.model_helpers import torus_forward,torus_reverse
+from sklearn.neighbors import NearestNeighbors
+from scipy.sparse.csgraph import shortest_path,dijkstra 
 
 
+def prob_ratio(x,y,eps=1e-15):
+
+    return x/(y+eps)
 
 class PosteriorDensityManifold(Manifold):
 
@@ -49,14 +55,38 @@ def get_minimizing_curve(grid,posterior,p0,p1):
 def construct_lattice_graph(lattice,density):
 
 
-    pass
+    points = torus_forward(lattice)
+    nn = NearestNeighbors(n_neighbors=25,n_jobs=16)
+    nn.fit(points)
 
-def run_dijkstra(graph):
+    neighbor_graph = np.zeros((len(points),len(points)))
+    inds = nn.kneighbors(return_distance=False)
+    for row,ind in enumerate(inds):
+        neighbor_graph[row,ind] = 1
 
-    pass
+    weights = []
+    for p in density:
+        weights.append(prob_ratio(p,density)[:,None])
+    weights = np.hstack(weights)
 
-def decode_geodesic(node1,node2,graph):
+    weighted_graph = weights * neighbor_graph
 
-    pass 
+    return weighted_graph
+
+
+def run_dijkstra(lattice,node1_ind,node2_ind,graph):
+
+    dists,predecessors = shortest_path(graph,directed=True,
+                                       indices=node1_ind,predecessors=True)
+    path = []
+    ii = node2_ind
+    while ii != node1_ind:
+        path.append(lattice[ii])
+        ii = predecessors[ii]
+    path.append(lattice[node1_ind])
+
+    return dists[node2_ind],np.vstack(path)
+
+
 
 
