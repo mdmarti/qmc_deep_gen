@@ -77,7 +77,7 @@ def construct_lattice_graph(lattice,density):
 def run_dijkstra(lattice,node1_ind,node2_ind,graph):
 
     dists,predecessors = shortest_path(graph,directed=True,
-                                       indices=node1_ind,predecessors=True)
+                                       indices=node1_ind,return_predecessors=True)
     path = []
     ii = node2_ind
     while ii != node1_ind:
