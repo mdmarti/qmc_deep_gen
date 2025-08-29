@@ -56,7 +56,7 @@ def construct_lattice_graph(lattice,density):
 
 
     points = torus_forward(lattice)
-    nn = NearestNeighbors(n_neighbors=25,n_jobs=16)
+    nn = NearestNeighbors(n_neighbors=8,n_jobs=16)
     nn.fit(points)
 
     neighbor_graph = np.zeros((len(points),len(points)))
@@ -87,6 +87,21 @@ def run_dijkstra(lattice,node1_ind,node2_ind,graph):
 
     return dists[node2_ind],np.vstack(path)
 
+def get_linear_path(point_1,point_2,path_len):
 
+    d = point_1.shape[-1]
+    path = []
+    for ii in range(d):
+
+        p1,p2 = point_1[ii],point_2[ii]
+
+        if p1 - p2 < -0.5:
+            path.append(np.linspace(p1+1,p2,path_len)%1)
+        elif p1 - p2 > 0.5:
+            path.append(np.linspace(p1,p2+1,path_len)%1)
+        else:
+            path.append(np.linspace(p1,p2,path_len))
+
+    return np.stack(path,axis=-1)
 
 

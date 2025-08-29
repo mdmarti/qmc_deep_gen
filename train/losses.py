@@ -85,6 +85,8 @@ def binary_lp(samples,data,importance_weights=[]):
         #samples[samples <= 1e-6] = samples[samples <= 1e-6] - samples[samples <= 1e-6] + 1e-6
         #samples[samples >= 1 - 1e-6] = samples[samples >= 1 - 1e-6] - samples[samples >= 1 - 1e-6] + 1 - 1e-6
         #samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
+
+        ## should this be log2....
         t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
         t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
         #if torch.any(t1 == )
