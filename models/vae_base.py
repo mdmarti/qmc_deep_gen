@@ -4,6 +4,7 @@ import numpy as np
 from numpy.polynomial.hermite import hermgauss
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 import string
+from tqdm import tqdm
 
 class ae_dist():
 
@@ -81,7 +82,7 @@ class VAE(nn.Module):
         latents = []
         labels = [] 
         with torch.no_grad():
-            for (data,label) in loader:
+            for (data,label) in tqdm(loader,desc='embedding latents',total=len(loader)):
                 data = data.to(self.device).to(torch.float32)
                 if type(label) == tuple:
                     labels.append([string.ascii_lowercase.index(l.lower()[0]) for l in label])

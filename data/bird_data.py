@@ -80,16 +80,16 @@ def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=
     except:
         families = [families]
     specs_in_file = []
-    all_family_specs= []
-    all_family_ids = []
+    all_family_specs= {f:[] for f in families}
+    all_family_ids = {f:[] for f in families}
 
     for ii,family in enumerate(families):
         print(f"loading family{family}")
         spec_dir = os.path.join(gerbil_filepath,'processed-data',f"family{family}")
         spec_fns = glob.glob(os.path.join(spec_dir,'*.hdf5'))
-        all_family_specs += spec_fns
+        all_family_specs[family] += spec_fns
         
-        all_family_ids.append(family*np.ones((len(spec_fns),)))
+        all_family_ids[family].append(family*np.ones((len(spec_fns),)))
         
         if check:
             for spec_fn in tqdm(spec_fns,total=len(spec_fns)):
@@ -103,10 +103,22 @@ def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=
         if num_specs[0] != specs_per_file:
             print(f"expected {specs_per_file} specs per file, found {num_specs[0]}; updating")
             specs_per_file = num_specs[0]
-    all_family_ids = np.hstack(all_family_ids)
+    #all_family_ids = np.hstack(all_family_ids)
     #assert num_specs[0] == specs_per_file,print("num_specs,specs_per_file)
     if test_size > 0:
-        train_fns,test_fns,train_ids,test_ids = train_test_split(all_family_specs,all_family_ids,test_size=test_size,random_state=seed)
+        train_fns,test_fns,train_ids,test_ids = [],[],[],[]
+        for family in families:
+            specs,ids = all_family_specs[family],np.hstack(all_family_ids[family])
+            tr_fn,te_fn,tr_id,te_id = train_test_split(specs,ids,test_size=test_size,random_state=seed)
+            train_fns.append(tr_fn)
+            test_fns.append(te_fn)
+            train_ids.append(tr_id)
+            test_ids.append(te_id)
+        #train_fns,test_fns,train_ids,test_ids = train_test_split(all_family_specs,all_family_ids,test_size=test_size,random_state=seed)
+        train_fns = sum(train_fns,[])
+        test_fns = sum(test_fns,[])
+        train_ids = np.hstack(train_ids)
+        test_ids = np.hstack(test_ids)
     else:
         train_fns,test_fns = all_family_specs, all_family_specs
         train_ids,test_ids = all_family_ids,all_family_ids
