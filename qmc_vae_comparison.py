@@ -96,7 +96,6 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
             qmc_model.eval()
             qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
             qmc_model.to(device)
-            qmc_model.eval()
         print("making train plot...")
         vis2d.qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{dataset}_train_curve.svg'))
         print("done!")

@@ -89,7 +89,7 @@ def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=
         spec_fns = glob.glob(os.path.join(spec_dir,'*.hdf5'))
         all_family_specs += spec_fns
         
-        all_family_ids.append(ii*np.ones((len(spec_fns),)))
+        all_family_ids.append(family*np.ones((len(spec_fns),)))
         
         if check:
             for spec_fn in tqdm(spec_fns,total=len(spec_fns)):
