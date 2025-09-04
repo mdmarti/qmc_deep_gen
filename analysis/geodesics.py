@@ -101,7 +101,7 @@ def get_linear_path(point_1,point_2,path_len):
             path.append(np.linspace(p1,p2+1,path_len)%1)
         else:
             path.append(np.linspace(p1,p2,path_len))
-
+    path.reverse()
     return np.stack(path,axis=-1)
 
 
