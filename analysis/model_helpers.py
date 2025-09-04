@@ -5,11 +5,12 @@ import numpy as np
 def get_stacked_posterior(model,lattice,loader,lp):
 
     posteriors = []
+    lattice = lattice.to(model.device)
     model.eval()
     for batch in tqdm(loader,total=len(loader)):
         data = batch[0].to(model.device)
         with torch.no_grad():
-            posterior = model.posterior_probability(lattice.to(model.device),data,lp)
+            posterior = model.posterior_probability(lattice,data,lp)
         posteriors.append(posterior.detach().cpu().numpy())
     
     stacked_posteriors = np.vstack(posteriors)
