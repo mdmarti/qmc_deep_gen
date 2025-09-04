@@ -44,6 +44,7 @@ def run_annoying_test_samples():
                 'mocap_simple_10framespersample', # mocap
                 'shapes3d_3d']# 3dshapes
     for dataset in datasets:
+        print(f"now running for dataset {dataset}")
         dataloc = get_dataloc(dataset)
 
         base_path = '/mnt/home/mmartinez/ceph/qmc_experiments/qmc_vae_comparison'
@@ -177,6 +178,6 @@ def run_annoying_test_samples():
         plt.show()
         plt.close()
 
-    if __name__ == '__main__':
+if __name__ == '__main__':
 
-        run_annoying_test_samples()
+    run_annoying_test_samples()
