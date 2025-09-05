@@ -73,8 +73,9 @@ class bird_data(Dataset):
             return (spec,c,syll_id)
         return (spec,syll_id)
     
-def load_gerbils(gerbil_filepath,specs_per_file,families=[2],test_size=0.2,seed=92,check=True):
+def load_gerbils(gerbil_filepath,families=[2],test_size=0.2,seed=92,check=True):
 
+    specs_per_file = 100
     try:
         len(families)
     except:
