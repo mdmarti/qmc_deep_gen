@@ -43,6 +43,7 @@ def run_annoying_test_samples():
                 'finch', # finch
                 'mocap_simple_10framespersample', # mocap
                 'shapes3d_2d_layernorm']# 3dshapes
+    var = 0.1
     for dataset in datasets:
         print(f"now running for dataset {dataset}")
         dataloc = get_dataloc(dataset)
