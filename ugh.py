@@ -76,7 +76,7 @@ def run_annoying_test_samples():
             print("sorry your file doesnt exist you'd better rerung")
 
             ############# QMC #
-            qmc_latent_dim=3 if (('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower())) else 2
+            qmc_latent_dim=2 #3 if (('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower())) else 2
             device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
             latent_dims = [2**ii for ii in range(1,8)]
 
