@@ -62,12 +62,10 @@ def run_annoying_test_samples():
                                      frames_per_sample=10,
                                              families=[2,4,5])
         if os.path.isfile(all_stats_persample):
+
             print('loading stats')
-            plot_data = {
-            'qmc':qmc_test_losses.tolist(),
-            'vae':[l.tolist() for l in test_losses_dims_vae],
-            'iwae':[l.tolist() for l in test_losses_dims_iwae]}
             with open(all_stats_persample,'r') as f:
+
                 plot_data = json.load(f)
         
             qmc_test_losses = np.array(plot_data['qmc'])
