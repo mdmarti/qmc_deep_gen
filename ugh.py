@@ -39,10 +39,10 @@ def get_dataloc(dataset):
 def run_annoying_test_samples():
     datasets = ['gerbil_ava_binom_upsample_fam245', #gerbil
                 'mnist_simple', # mnist
-                'celeba_scaled_res', # celebA
+                'celeba_scaled_res_layernorm', # celebA
                 'finch', # finch
                 'mocap_simple_10framespersample', # mocap
-                'shapes3d_3d']# 3dshapes
+                'shapes3d_2d_layernorm']# 3dshapes
     for dataset in datasets:
         print(f"now running for dataset {dataset}")
         dataloc = get_dataloc(dataset)
