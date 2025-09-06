@@ -57,6 +57,7 @@ def run_annoying_test_samples():
         vae_stats = os.path.join(stats_path,f'vae_qmc_dim_comparison_stats_{dataset}.json')
         iwae_stats = os.path.join(stats_path,f'iwae_dim_comparison_stats_{dataset}.json')
         all_stats_persample = os.path.join(stats_path,f'comparison_test_rerun.json')
+        all_stats_persample = os.path.join(stats_path,f'comparison_test_rerun.json')
 
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=1,
                                      frames_per_sample=10,
@@ -95,7 +96,10 @@ def run_annoying_test_samples():
 
             qmc_loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
             qmc_lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
+            
             qmc_save_path = os.path.join(stats_path,f'qmc_train_{dataset}_dim_comparison.tar')
+            if not os.path.isfile(qmc_save_path):
+                qmc_save_path = os.path.join(stats_path,f'qmc_train_{dataset}_2_dim_comparison.tar')
 
             qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
             qmc_model,qmc_opt,_ = load(qmc_model,qmc_opt,qmc_save_path) 
