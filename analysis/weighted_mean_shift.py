@@ -159,10 +159,10 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
                 points_within = []
                 break
         weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
-        #if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
-        #    if verbose: print("weights less than volume of sphere")
-        #    points_within = []
-        #    break # if sum of weights i proportionally less than volume in space
+        if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
+            if verbose: print("weights less than volume of sphere")
+            points_within = []
+            break # if sum of weights i proportionally less than volume in space
         my_old_mean = my_mean  # save the old mean
         
         my_mean = np.sum(weights_within * points_within,axis=0) #np.mean(points_within*weights_within, axis=0)

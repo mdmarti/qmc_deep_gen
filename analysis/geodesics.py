@@ -91,9 +91,11 @@ def get_linear_path(point_1,point_2,path_len):
 
     d = point_1.shape[-1]
     path = []
+    #print(point_1,point_2)
     for ii in range(d):
 
         p1,p2 = point_1[ii],point_2[ii]
+        #print(p1,p2)
 
         if p1 - p2 < -0.5:
             path.append(np.linspace(p1+1,p2,path_len)%1)
@@ -101,7 +103,8 @@ def get_linear_path(point_1,point_2,path_len):
             path.append(np.linspace(p1,p2+1,path_len)%1)
         else:
             path.append(np.linspace(p1,p2,path_len))
-    path.reverse()
+    #print(path)
+    #path.reverse()
+    #print(path)
     return np.stack(path,axis=-1)
-
 
