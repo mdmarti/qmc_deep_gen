@@ -37,7 +37,7 @@ def get_dataloc(dataset):
         return '/mnt/home/zkadkhodaie/ceph/datasets/img_align_celeba'
     
 def run_annoying_test_samples():
-    datasets = ['gerbil_ava_binom_upsample_fam245', #gerbil
+    datasets = ['gerbil_ava_binom_upsample_fam245_full', #gerbil
                 'mnist_simple', # mnist
                 'celeba_scaled_res_layernorm', # celebA
                 'finch', # finch
@@ -169,15 +169,16 @@ def run_annoying_test_samples():
        
         ax = plt.gca()
         #ax.boxplot([qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]])
-        sns.violinplot(data=[qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]])
-        ax = vis2d.format_plot_axis(ax,ylabel='Model loss',xticks=(0,1,2,3,4),xticklabels=('Lattice-LVM (d=2)','VAE (d=2)','IWAE (d=2)','VAE (d=128)', 'IWAE (d=128)'))
+        #sns.violinplot(data=[qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]])
+        ax.boxplot([qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]],sym='')
+        ax = vis2d.format_plot_axis(ax,ylabel='Model test performance',xticks=(0,1,2,3,4),xticklabels=('Lattice-LVM (d=2)','VAE (d=2)','IWAE (d=2)','VAE (d=128)', 'IWAE (d=128)'))
         ax.tick_params('x',rotation=45)
         ##ax.boxplot(test_losses_dims_vae[0])
         #ax.boxplot(test_losses_dims_iwae[0])
         #ax.scatter(np.random.randn(*qmc_test_losses.shape)/8,qmc_test_losses)
         #ax.scatter(1+np.random.randn(*test_losses_dims_vae[0].shape)/8,test_losses_dims_vae[1])
         #ax.scatter(2+np.random.randn(*test_losses_dims_iwae[0].shape)/8,test_losses_dims_iwae[1])
-        plt.savefig(os.path.join(stats_path,f'test_loss_violin_{dataset}.svg'))
+        plt.savefig(os.path.join(stats_path,f'test_loss_violin_{dataset}_box.svg'))
         plt.show()
         plt.close()
 
