@@ -173,7 +173,7 @@ def run_annoying_test_samples():
         ax.boxplot([qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]],sym='')
         ax = vis2d.format_plot_axis(ax,ylabel='Model test performance',xticks=(1,2,3,4,5),xticklabels=('Lattice-LVM (d=2)','VAE (d=2)','IWAE (d=2)','VAE (d=128)', 'IWAE (d=128)'))
         ax.tick_params('x',rotation=45)
-        ax.set_yscale('log')
+        #ax.set_yscale('log')
         ##ax.boxplot(test_losses_dims_vae[0])
         #ax.boxplot(test_losses_dims_iwae[0])
         #ax.scatter(np.random.randn(*qmc_test_losses.shape)/8,qmc_test_losses)
