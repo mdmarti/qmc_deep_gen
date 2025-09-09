@@ -171,6 +171,11 @@ def run_annoying_test_samples():
         #ax.boxplot([qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]])
         #sns.violinplot(data=[qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]])
         ax.boxplot([qmc_test_losses,test_losses_dims_vae[0],test_losses_dims_iwae[0],test_losses_dims_vae[-1],test_losses_dims_iwae[-1]],sym='')
+        
+        #ax.scatter([1,2,3,4,5],
+        #           [np.nanmean(qmc_test_losses),np.nanmean(test_losses_dims_vae[0]),
+        #            np.nanmean(test_losses_dims_iwae[0]),np.nanmean(test_losses_dims_vae[-1]),
+        #            np.nanmean(test_losses_dims_iwae[-1])])
         ax = vis2d.format_plot_axis(ax,ylabel='Model test performance',xticks=(1,2,3,4,5),xticklabels=('Lattice-LVM (d=2)','VAE (d=2)','IWAE (d=2)','VAE (d=128)', 'IWAE (d=128)'))
         ax.tick_params('x',rotation=45)
         #ax.set_yscale('log')
@@ -179,7 +184,8 @@ def run_annoying_test_samples():
         #ax.scatter(np.random.randn(*qmc_test_losses.shape)/8,qmc_test_losses)
         #ax.scatter(1+np.random.randn(*test_losses_dims_vae[0].shape)/8,test_losses_dims_vae[1])
         #ax.scatter(2+np.random.randn(*test_losses_dims_iwae[0].shape)/8,test_losses_dims_iwae[1])
-        plt.savefig(os.path.join(stats_path,f'test_loss_violin_{dataset}_box.png'))
+        plt.savefig(os.path.join(stats_path,f'test_loss_{dataset}_box.svg'))
+        #plt.savefig(os.path.join(stats_path,f'test_loss_violin_{dataset}_means.svg'))
         plt.show()
         plt.close()
 
