@@ -179,7 +179,7 @@ def run_annoying_test_samples():
         #ax.scatter(np.random.randn(*qmc_test_losses.shape)/8,qmc_test_losses)
         #ax.scatter(1+np.random.randn(*test_losses_dims_vae[0].shape)/8,test_losses_dims_vae[1])
         #ax.scatter(2+np.random.randn(*test_losses_dims_iwae[0].shape)/8,test_losses_dims_iwae[1])
-        plt.savefig(os.path.join(stats_path,f'test_loss_violin_{dataset}_box.svg'))
+        plt.savefig(os.path.join(stats_path,f'test_loss_violin_{dataset}_box.png'))
         plt.show()
         plt.close()
 
