@@ -1,6 +1,7 @@
 from analysis.weighted_mean_shift import *
 from sklearn.cluster import MeanShift,KMeans  
 import os
+from analysis.model_helpers import torus_reverse
 
 import numpy as np
 #from sklearn.utils.validation import check_is_fitted, validate_data
@@ -24,12 +25,29 @@ def p_dist_theta_alternate(x,y,p=2):
     abs_dist = np.abs(x-y - b1*b2)
     return (abs_dist**p).sum()**(1/p)
 
-def run_mean_shift(latent_points,seeds,weights,bandwidth,n_jobs,p):
+def run_mean_shift(latent_points,seeds,weights,bandwidth,n_jobs,p,embedded=True,normal=False):
 
-    metric = lambda x,y: p_dist_theta(x,y,p=p)
-    wms = WeightedMeanShift(n_jobs=n_jobs,metric=metric,bandwidth=bandwidth,seeds=seeds)
-    wms.fit(latent_points,weights=weights)
+    #print(np.amax(seeds),np.amin(seeds))
+    #print(np.amax(latent_points),np.amin(latent_points))
+    if embedded:
+        metric = 'minkowski'
+        print('using normal wms')
+        wms = WeightedMeanShift(n_jobs=n_jobs,bandwidth=2*bandwidth,metric=metric,seeds=seeds)
+    else:
+        metric = lambda x,y: p_dist_theta(x,y,p=p)
+        print('using circular wms')
+        wms = WeightedMeanShiftCircular(n_jobs=n_jobs,bandwidth=bandwidth,metric=metric,seeds=seeds)
+    if normal:
+        wms.fit(latent_points)
+    else:
+        wms.fit(latent_points,weights=weights,verbose=False)
     centers = wms.cluster_centers_
+    if embedded:
+        #print(np.amax(centers),np.amin(centers))
+        
+        centers = torus_reverse(centers)
+        #print(np.amax(centers),np.amin(centers))
+        #print(centers.shape)
 
     return centers,wms
 
