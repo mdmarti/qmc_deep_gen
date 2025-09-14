@@ -124,7 +124,7 @@ def train_vae_model(stats_save_loc,
 
 
 def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
-                            nEpochs=300,train_lattice_m=15,test_lattice_m=18,
+                            nEpochs=300,train_lattice_m=15,test_lattice_m=17,
                             frames_per_sample=1,
                             var=0.1,families=[2],model='qmc',latent_dim=3,n_iters=5):
 
