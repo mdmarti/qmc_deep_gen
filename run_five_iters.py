@@ -165,7 +165,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
             loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
             lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
 
-            test_losses = train_qmc_model(save_location=stats_save_loc,
+            test_losses = train_qmc_model(stats_save_loc==stats_save_loc,
                                           model_save_loc=saveloc,
                                           train_lattice_m=train_lattice_m,test_lattice_m=test_lattice_m,
                                           nEpochs=nEpochs,
@@ -188,7 +188,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
 
         loss_func = binary_elbo if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda recons,distribution,data: gaussian_elbo(recons,distribution,data,recon_precision=1/var) #or ('gerbil' in dataset.lower()) 
         lp = binary_lp if ('mnist' in dataset.lower())  or ('gerbil' in dataset.lower()) else lambda target,recon: gaussian_lp(recon,target,var=var) #or ('gerbil' in dataset.lower())
-        test_losses = train_vae_model(save_location=stats_save_loc,
+        test_losses = train_vae_model(stats_save_loc=stats_save_loc,
                                           model_save_loc=saveloc,
                                           nEpochs=nEpochs,
                                           train_loader=train_loader,
