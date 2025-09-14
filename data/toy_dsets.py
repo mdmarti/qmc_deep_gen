@@ -174,7 +174,7 @@ def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
     order = gen.choice(B,B,replace=False)
     train_end = int(round(B * (1-test_size)))
 
-    return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
+    return shapes3dDset(dfile,valid_indices[order[:train_end]]), shapes3dDset(dfile,valid_indices[order[train_end:]])
 
 def get_factor_indices(fixed_factors,fixed_factor_values):
 
