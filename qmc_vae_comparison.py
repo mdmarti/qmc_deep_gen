@@ -54,7 +54,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
                                              families=families)
         train_lattice = gen_fib_basis(m=train_lattice_m)
-        test_lattice = gen_fib_basis(m=20)
+        test_lattice = gen_fib_basis(m=18 if 'finch' in dataset else 20)
     else:
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
                                              families=families)
