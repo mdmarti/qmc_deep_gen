@@ -79,7 +79,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
 
         if not os.path.isfile(qmc_save_path):
             qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
-                                                                nEpochs=nEpochs,verbose='celeba' in dataset.lower())
+                                                                nEpochs=nEpochs,
+                                                                verbose=('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower()))
             print("Done training!")
             qmc_model.eval()
             with torch.no_grad():

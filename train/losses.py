@@ -93,6 +93,7 @@ def binary_lp(samples,data,importance_weights=[]):
         assert not torch.any(t1 == torch.nan)
         assert not (torch.any(t2 == torch.nan))
     
+        ### returns: batch x n samples
         return (t1 + t2)*importance_weights
     except:
         print("shapes were probably weird: here's what they were:")
@@ -187,6 +188,9 @@ def gaussian_lp(samples,data,var,importance_weights=[]):
     B x 1 x D x D
     """
     K,C,H,W = samples.shape
+    if C == H:# if channels are in the wrong position
+        samples = samples.permute(0,3,1,2)
+        data = data.permute(0,3,1,2)
     if len(importance_weights) == 0:
         importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
     #lambda_lp = lambda samples,data: -torch.nn.functional.gaussian_nll_loss(samples,data,var=var,reduction='sum',full=True)
