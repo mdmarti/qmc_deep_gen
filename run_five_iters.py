@@ -48,9 +48,10 @@ def train_qmc_model(stats_save_loc,
         print(f"Now evaluating qmc {ii}")
         print('*'*25)
         tmp_save_path = model_save_loc.format(run=ii)
+        decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
+        model = QMCLVM(latent_dim=latent_dim,device=device,decoder=decoder)
         if not os.path.isfile(tmp_save_path):
-            decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
-            model = QMCLVM(latent_dim=latent_dim,device=device,decoder=decoder)
+            
 
             model,opt,train_loss = train_qmc.train_loop(model,train_loader,train_lattice.to(device),loss_fn,\
                                                                 nEpochs=nEpochs,verbose='celeba' in dataset.lower())
@@ -93,12 +94,13 @@ def train_vae_model(stats_save_loc,
         print(f"Now evaluating vae {ii}")
         print('*'*25)
         tmp_save_path = model_save_loc.format(run=ii)
-        if not os.path.isfile(tmp_save_path):
-            decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,arch='vae',n_per_sample=n_per_sample)
-            encoder = get_encoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
+        decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,arch='vae',n_per_sample=n_per_sample)
+        encoder = get_encoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
 
-            model = VAE(decoder=decoder,encoder=encoder,
-                            distribution=LowRankMultivariateNormal,device=device)
+        model = VAE(decoder=decoder,encoder=encoder,
+                        distribution=LowRankMultivariateNormal,device=device)
+        if not os.path.isfile(tmp_save_path):
+            
             
             model,opt,train_loss = train_vae.train_loop(model,train_loader,loss_fn,nEpochs=nEpochs)
             model.eval()
