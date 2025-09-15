@@ -44,7 +44,7 @@ def run_reconstructions(n_per_sample=10):
     var = 0.1
     plots_dir = '/mnt/home/mmartinez/ceph/qmc_experiments/fig2'
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    lattice =gen_fib_basis(m=20)
+    lattice =gen_fib_basis(m=19)
     for dataset in datasets:
         print(f"now running for dataset {dataset}")
         if 'finch' in dataset.lower():
@@ -89,8 +89,8 @@ def run_reconstructions(n_per_sample=10):
 
         vae_model = VAE(decoder=vae_decoder,encoder=vae_encoder,
                         distribution=LowRankMultivariateNormal,device=device)
-        vae_opt = Adam(iwae_model.parameters(),lr=1e-3)
-        vae_model,iwae_opt,iwae_run_info = load(iwae_model,iwae_opt,vae_model_file)
+        vae_opt = Adam(vae_model.parameters(),lr=1e-3)
+        vae_model,iwae_opt,iwae_run_info = load(vae_model,vae_opt,vae_model_file)
 
         vae_model.to(device)
         vae_model.eval()
@@ -113,19 +113,21 @@ def run_reconstructions(n_per_sample=10):
         plot_save_file_vae = os.path.join(plots_dir,f"{dataset}_vae_qmc_recons.svg")
         plot_save_file_iwae = os.path.join(plots_dir,f"{dataset}_iwae_qmc_recons.svg")
         plot_save_file_samples = os.path.join(plots_dir,f"{dataset}_iwae_vae_qmc_samples.svg")
-
+        print("running 2d vae vs 2d qmc recons...")
         vis2d.recon_comparison_plot(qmc_model,qmc_lp,vae_model,
                                     test_loader,lattice,
                                     n_samples_comparison=8,
                           save_path=plot_save_file_vae,
                           cm=cm,origin=origin,show=False,
                           recon_type='rqmc',n_samples_recon=5)
+        print("running 2d vae vs 2d iwae recons...")
         vis2d.recon_comparison_plot(qmc_model,qmc_lp,iwae_model,
                                     test_loader,lattice,
                                     n_samples_comparison=8,
                           save_path=plot_save_file_iwae,
                           cm=cm,origin=origin,show=False,
                           recon_type='rqmc',n_samples_recon=5)
+        print("running 2d vae, iwae, qmc sample comparisons....")
         vis2d.sample_comparison_plot(qmc_model,iwae_model,
                                     vae_model,
                                     n_samples_comparison=8,
