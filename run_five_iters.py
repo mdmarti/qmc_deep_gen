@@ -139,7 +139,7 @@ def train_iwae_model(stats_save_loc,
 
     for ii in range(n_iters):
         print("*"*25)
-        print(f"Now evaluating vae {ii}")
+        print(f"Now evaluating iwae {ii}")
         print('*'*25)
         tmp_save_path = model_save_loc.format(run=ii)
         decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,arch='vae',n_per_sample=n_per_sample)
