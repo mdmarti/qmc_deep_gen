@@ -191,10 +191,13 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
     mosaic = [[f"qmc {ii}" for ii in range(n_samples)],
               [f"sample {ii}" for ii in range(n_samples)],
              [f"vae {ii}" for ii in range(n_samples)]]  
+    
 
     fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.0})
     for ii,sample_ind in tqdm(enumerate(sample_inds),total=len(sample_inds)):
-
+        if 'mocap' in save_path:
+            base_motion = loader.dataset.motions[loader.dataset[sample_ind][1]]
+            joints = loader.dataset.joints
         #save_path_ind = save_path.format(sample_num = sample_ind)
         sample = torch.tensor(loader.dataset[sample_ind][0]).to(torch.float32).to(qmc_model.device)
         if sample.shape[0] == 1:
@@ -206,6 +209,8 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
         recon_vae = vae_model.round_trip(sample).detach().cpu()
         
         sample = sample.detach().cpu().numpy()
+        if 'mocap' in save_path:
+            pass ### fill in here!!
 
 
         #fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
