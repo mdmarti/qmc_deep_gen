@@ -237,7 +237,7 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
             axes[f'vae {ii}'] = plot_motion_on_ax(axes[f'vae {ii}'],vae_motion,joints)
 
         else:
-            assert False
+            
             
             axes[f"qmc {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
             #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
