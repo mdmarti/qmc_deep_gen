@@ -86,7 +86,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
             print("*"*25)
             print(f"Now evaluating rqmc {iter}")
             print('*'*25)
-            qmc_save_path = os.path.join(save_location,'rqmc_{iter}_2d_mnist_train.tar')
+            qmc_save_path = os.path.join(save_location,f'rqmc_{iter}_2d_mnist_train.tar')
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -128,7 +128,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
             print("*"*25)
             print(f"Now evaluating qmc {iter}")
             print('*'*25)
-            qmc_save_path = os.path.join(save_location,'qmc_{iter}_2d_mnist_train.tar')
+            qmc_save_path = os.path.join(save_location,f'qmc_{iter}_2d_mnist_train.tar')
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -171,7 +171,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
             print("*"*25)
             print(f"Now evaluating mc {iter}")
             print('*'*25)
-            qmc_save_path = os.path.join(save_location,'mc_{iter}_2d_mnist_train.tar')
+            qmc_save_path = os.path.join(save_location,f'mc_{iter}_2d_mnist_train.tar')
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
