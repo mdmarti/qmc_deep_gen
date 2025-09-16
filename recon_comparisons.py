@@ -129,10 +129,10 @@ def run_reconstructions(n_per_sample=10):
                           recon_type='rqmc',n_samples_recon=5)
         print("running 2d vae, iwae, qmc sample comparisons....")
         vis2d.sample_comparison_plot(qmc_model,iwae_model,
-                                    vae_model,
-                                    n_samples_comparison=8,
-                          save_path=plot_save_file_samples,
-                          cm=cm,origin=origin,show=False)
+                                vae_model,
+                                n_samples_comparison=8,
+                      save_path=plot_save_file_samples,
+                      cm=cm,origin=origin,show=True,loader=train_loader)
 
         
 
