@@ -144,8 +144,8 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
                 qmc_model.eval()
                 with torch.no_grad():
                     qmc_model.eval()
-                    qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
-                qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
+                    qmc_test_loss = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
+                qmc_run_info = {'train':qmc_losses,'test':qmc_test_loss}
                 save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
                 qmc_model.to(device)
                 
@@ -154,10 +154,10 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
                 qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
                 qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
                 qmc_model.eval()
-                qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
+                qmc_losses,qmc_test_loss = qmc_run_info['train'],qmc_run_info['test']
                 qmc_model.to(device)
 
-            qmc_test_losses.append(np.nanmean(qmc_test_losses))
+            qmc_test_losses.append(np.nanmean(qmc_test_loss))
         save_data = {'test_losses':qmc_test_losses}
         with open(qmc_save_loc,'w') as f:
                 json.dump(save_data,f)
