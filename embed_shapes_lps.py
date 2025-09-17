@@ -35,7 +35,7 @@ def embed_shapes_data(model_loc,data_loc,save_loc,batch_size=32):
 
     ### load shapes data
     dfile = os.path.join(data_loc,'3dshapes.h5')
-    dataset = h5py.File(dfile,'r')
+    dataset = h5py.File(dfile,'r',locking=False)
     #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
     (B,H,W,C) = dataset['images'].shape
     #posteriors = {}

@@ -98,7 +98,7 @@ class shapes3dDset(Dataset):
 
     def __init__(self,filepath,indices):
 
-        self.file = h5py.File(filepath)
+        self.file = h5py.File(filepath,locking=False)
         self.n_images, self.H,self.W,self.C = self.file['images'].shape
         self.indices = indices
         self.n_used = len(self.indices)
@@ -119,7 +119,7 @@ class shapes3dDset(Dataset):
 def get_3d_shapes(dpath,seed,test_size=0.2):
 
     dfile = os.path.join(dpath,'3dshapes.h5')
-    dataset = h5py.File(dfile,'r')
+    dataset = h5py.File(dfile,'r',locking=False)
     #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
     (B,H,W,C) = dataset['images'].shape
     #images /= 255
@@ -162,7 +162,7 @@ def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
 
     gen = np.random.default_rng(seed=seed)
     dfile = os.path.join(dpath,'3dshapes.h5')
-    dataset = h5py.File(dfile,'r')
+    dataset = h5py.File(dfile,'r',locking=False)
     #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
     (B,H,W,C) = dataset['images'].shape
 
