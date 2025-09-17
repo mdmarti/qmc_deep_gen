@@ -46,7 +46,7 @@ class bird_data(Dataset):
         load_fn = self.filenames[load_index]
         syll_id = self.syll_ids[load_index]
         
-        with h5py.File(load_fn,'r') as f:
+        with h5py.File(load_fn,'r',locking=False) as f:
             spec = f['specs'][spec_index]
 
             if self.conditional:
