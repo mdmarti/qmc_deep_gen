@@ -38,22 +38,30 @@ def embed_shapes_data(model_loc,data_loc,save_loc,batch_size=32):
     dataset = h5py.File(dfile,'r')
     #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
     (B,H,W,C) = dataset['images'].shape
-    posteriors = {}
+    #posteriors = {}
     for ii,factor in enumerate(_FACTORS_IN_ORDER):
-        posteriors[factor] = []
-        for jj, value in enumerate(range(1,_NUM_VALUES_PER_FACTOR[factor]+1)):
-            print(f"now gathering aggregated posterior for {factor}:{value}")
-            inds = get_factor_indices(fixed_factors =[ii],fixed_factor_values=[jj])
-            ds = shapes3dDset(dfile,inds)
-            dl = DataLoader(ds,num_workers=n_workers,shuffle=False,batch_size=batch_size)
+        #posteriors[factor] = []
+        factor_posteriors = []
+        save_file = os.path.join(save_loc,f'factor_{factor}_posteriors.json')
+        if not os.path.isfile(save_file):
+            
+            for jj, value in enumerate(range(1,_NUM_VALUES_PER_FACTOR[factor]+1)):
+                print(f"now gathering aggregated posterior for {factor}:{value}")
+                inds = get_factor_indices(fixed_factors =[ii],fixed_factor_values=[jj])
+                ds = shapes3dDset(dfile,inds)
+                dl = DataLoader(ds,num_workers=n_workers,shuffle=False,batch_size=batch_size)
 
-            stacked_posterior = get_stacked_posterior(model,test_lattice,dl,lp)
-            posteriors[factor].append(stacked_posterior.mean(axis=0).tolist())
+                stacked_posterior = get_stacked_posterior(model,test_lattice,dl,lp)
+                assert stacked_posterior.shape[0] == len(inds),print(len(inds),stacked_posterior.shape)
+                assert stacked_posterior.shape[1] == len(test_lattice), print(len(inds),stacked_posterior.shape)
+                factor_posteriors.append(stacked_posterior.mean(axis=0).tolist())
 
 
-    save_file = os.path.join(save_loc,'all_factor_posteriors.json')
-    with open(save_file,'w') as f:
-        json.dump(posteriors,f)
+            #save_file = os.path.join(save_loc,'all_factor_posteriors.json')
+            with open(save_file,'w') as f:
+                json.dump(factor_posteriors,f)
+        else:
+            print(save_file + ' already exists, skipping')
 
 if __name__ == '__main__':
 
