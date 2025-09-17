@@ -11,6 +11,9 @@ def get_stacked_posterior(model,lattice,loader,lp):
         data = batch[0].to(model.device)
         with torch.no_grad():
             posterior = model.posterior_probability(lattice,data,lp)
+            assert posterior.shape[0] == len(data),print(posterior.shape)
+            assert posterior.shape[1] == len(lattice),print(posterior.shape)
+            assert len(posterior.shape) == 2, print(posterior.shape)
         posteriors.append(posterior.detach().cpu().numpy())
     
     stacked_posteriors = np.vstack(posteriors)
