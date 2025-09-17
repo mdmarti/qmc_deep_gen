@@ -26,7 +26,7 @@ def embed_shapes_data(model_loc,data_loc,save_loc,batch_size=32):
     decoder = get_decoder_arch(dataset_name='shapes3d',latent_dim=2)
     model = QMCLVM(latent_dim=2,device=device,decoder=decoder)
     opt = Adam(model.parameters(),lr=1e-3)
-    lp = lambda target,recon: gaussian_lp(recon,target,var=0.1) #or ('gerbil' in dataset.lower())
+    lp = lambda recon,target: gaussian_lp(recon,target,var=0.1) #or ('gerbil' in dataset.lower())
 
     model,opt,run_info = load(model,opt,model_loc)
     model.eval()
