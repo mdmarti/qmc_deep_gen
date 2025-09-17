@@ -17,6 +17,7 @@ def train_epoch(model,optimizer,loader,loss_function):
         loss = neg_lp + kl
         loss.backward()
         train_loss += loss.item()
+        torch.nn.utils.clip_grad_norm_(model.parameters(),200)
         optimizer.step()
         epoch_nlps.append(neg_lp.item())
         epoch_kls.append(kl.item())
