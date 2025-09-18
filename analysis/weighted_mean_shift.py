@@ -75,6 +75,7 @@ class WeightedMeanShift(MeanShift):
         # parallel calls to _mean_shift_single_seed so there is no need for
         # for further parallelism.
         nbrs = NearestNeighbors(radius=bandwidth, n_jobs=1,metric=self.metric).fit(X)
+        self.nbrs = nbrs
 
         # execute iterations on all seeds in parallel
         print(f"running mean shift on {len(seeds)} seeds")
@@ -137,6 +138,81 @@ class WeightedMeanShift(MeanShift):
         self.cluster_centers_, self.labels_ = cluster_centers, labels
         return self
 
+    def predict(self, X, y=None,weights=None,verbose=False,tol=1e-2,max_iter=1000):
+
+        #print(X.shape)
+        nbrs = NearestNeighbors(radius=self.bandwidth, n_jobs=1,metric=self.metric).fit(X)
+        self.nbrs = nbrs
+
+        print(f"predicting {len(X)} points")
+        
+        #lab_1 = _predict_single_seed(X[0], X, nbrs, self.max_iter,self.cluster_centers_,weights,tol)
+        #print(lab_1)
+        #assert False
+        all_labels = Parallel(n_jobs=self.n_jobs)(
+            delayed(_predict_single_seed)(seed, X, nbrs, max_iter,self.cluster_centers_,weights,tol,verbose=verbose)
+            for seed in X
+        )
+        print("done!")
+        return all_labels
+
+def _predict_single_seed(my_mean,X,nbrs,max_iter,centers,weights=None,tol=1e-2,verbose=False):
+    #print("running predictions")
+    if weights is None:
+        weights = np.ones([X.shape[0],1])
+    bandwidth = nbrs.get_params()["radius"]
+    stop_thresh = tol * bandwidth
+    completed_iterations = 0
+    start_time = time.time()
+    n_points = X.shape[0]
+    
+    
+    while True:
+        # Find mean of points within bandwidth
+        i_nbrs = nbrs.radius_neighbors([my_mean], bandwidth, return_distance=False)[0]
+        points_within = X[i_nbrs]
+        weights_within_unnorm = weights[i_nbrs]
+        if len(points_within) == 0:
+            break  # Depending on seeding strategy this condition may occur
+        if np.sum(weights_within_unnorm) ==0:
+                if verbose: print("no density in ball")
+                label=-1
+                print("no density")
+                break
+        weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
+        #if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
+        #    if verbose: print("weights less than volume of sphere")
+        #    points_within = []
+        #    break # if sum of weights i proportionally less than volume in space
+        my_old_mean = my_mean  # save the old mean
+        
+        my_mean = np.sum(weights_within * points_within,axis=0) #np.mean(points_within*weights_within, axis=0)
+        #print(my_mean)
+        # If converged or at max_iter, adds the cluster
+        if (
+            np.any(np.linalg.norm(my_mean[None,:] - centers,axis=1) <= stop_thresh)
+            
+        ):
+            #print(completed_iterations)
+            label = np.argmin(np.linalg.norm(my_mean[None,:] - centers,axis=1)).squeeze()
+            break
+        if (
+            completed_iterations == max_iter
+        ):
+            #print("max iters reached")
+            label = np.argmin(np.linalg.norm(my_mean[None,:] - centers,axis=1)).squeeze()
+            break
+            
+        #my_mean = my_mean % 1
+        completed_iterations += 1
+    end_time = time.time()
+    time_len = round(end_time - start_time,3)
+    
+    if verbose: print(f"finished seed in {completed_iterations} iterations, {time_len}s")
+    #assert False
+
+    return label
+
 def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,verbose=False):
     # For each seed, climb gradient until convergence or max_iter
     if weights is None:
@@ -182,6 +258,7 @@ def _mean_shift_single_seed(my_mean, X, nbrs, max_iter,weights=None,seed_no=0,ve
     #assert False
 
     return tuple(my_mean), len(points_within), completed_iterations
+
 
 class WeightedMeanShiftCircular(WeightedMeanShift):
     """
