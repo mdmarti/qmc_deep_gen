@@ -76,8 +76,8 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
     
 
     rqmc_save_loc = os.path.join(save_location,f'rqmc_test_losses_{dataset}.json')
-    qmc_save_loc = os.path.join(save_location,f'qmc_test_losses_{dataset}.json')
-    mc_save_loc = os.path.join(save_location,f'mc_test_losses_{dataset}.json')
+    nonperiodic_save_loc = os.path.join(save_location,f'qmc_test_losses_{dataset}.json')
+    gaussian_save_loc = os.path.join(save_location,f'mc_test_losses_{dataset}.json')
 
     ############## Set up rqmc model, training ###################################
     rqmc_test_losses = []
@@ -122,8 +122,8 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
         print("already trained & evaled! passing")
 
     ############## Set up qmc model, training ###################################
-    qmc_test_losses = []
-    if not os.path.isfile(qmc_save_loc):
+    nonperiodic_test_losses = []
+    if not os.path.isfile(nonperiodic_save_loc):
         for iter in range(n_iters):
             print("*"*25)
             print(f"Now evaluating qmc {iter}")
@@ -159,14 +159,14 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
 
             qmc_test_losses.append(np.nanmean(qmc_test_loss))
         save_data = {'test_losses':qmc_test_losses}
-        with open(qmc_save_loc,'w') as f:
+        with open(nonperiodic_save_loc,'w') as f:
                 json.dump(save_data,f)
     else:
         print("already trained & evaled! passing")
 
     ############## Set up mc model, training ###################################
-    mc_test_losses = []
-    if not os.path.isfile(mc_save_loc):
+    gaussian_test_losses = []
+    if not os.path.isfile(gaussian_save_loc):
         for iter in range(n_iters):
             print("*"*25)
             print(f"Now evaluating mc {iter}")
@@ -201,7 +201,7 @@ def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=1
 
             mc_test_losses.append(np.nanmean(qmc_test_losses))
         save_data = {'test_losses': mc_test_losses}
-        with open(mc_save_loc,'w') as f:
+        with open(gaussian_save_loc,'w') as f:
                 json.dump(save_data,f)
     else:
         print("already trained & evaled! passing")

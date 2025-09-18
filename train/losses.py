@@ -195,7 +195,7 @@ def gaussian_lp(samples,data,var,importance_weights=[]):
         importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
     #lambda_lp = lambda samples,data: -torch.nn.functional.gaussian_nll_loss(samples,data,var=var,reduction='sum',full=True)
     vmapped_lp = torch.vmap(torch.vmap(gaussian_nll_loss,in_dims=(0,None)),in_dims=(None,0))
-    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True)*importance_weights
+    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True) + torch.log(importance_weights) # since this should be log(p(x|z)p(z))
 
 
 def gaussian_lp_old(samples,data,var=1):
