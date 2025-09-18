@@ -23,7 +23,7 @@ def mc_unif(n_points,dim):
 
     return torch.rand(n_points,dim,dtype=torch.float32)
 
-def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
+def run_qmc_mc_comparison_experiments(save_location,dataloc,dataset,batch_size=128,
                             nEpochs=300,rerun=False,train_lattice_m=15,
                             test_lattice_m=18,
                             frames_per_sample=1,
@@ -32,7 +32,7 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
 
 
     ############ shared model setup ###############################
-    assert False
+    
     #save_location += train_mode
     #############################
     print("loading data...")
@@ -86,7 +86,7 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
             print("*"*25)
             print(f"Now evaluating rqmc {iter}")
             print('*'*25)
-            qmc_save_path = os.path.join(save_location,'rqmc_{iter}_2d_mnist_train.tar')
+            qmc_save_path = os.path.join(save_location,f'rqmc_{iter}_2d_mnist_train.tar')
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -128,7 +128,7 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
             print("*"*25)
             print(f"Now evaluating qmc {iter}")
             print('*'*25)
-            qmc_save_path = os.path.join(save_location,'qmc_{iter}_2d_mnist_train.tar')
+            qmc_save_path = os.path.join(save_location,f'qmc_{iter}_2d_mnist_train.tar')
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -144,8 +144,8 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
                 qmc_model.eval()
                 with torch.no_grad():
                     qmc_model.eval()
-                    qmc_test_losses = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
-                qmc_run_info = {'train':qmc_losses,'test':qmc_test_losses}
+                    qmc_test_loss = train_qmc.test_epoch(qmc_model,test_loader,test_lattice.to(device),qmc_loss_func)
+                qmc_run_info = {'train':qmc_losses,'test':qmc_test_loss}
                 save(qmc_model.to('cpu'),qmc_opt,qmc_run_info,fn=qmc_save_path)
                 qmc_model.to(device)
                 
@@ -154,10 +154,10 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
                 qmc_opt = Adam(qmc_model.parameters(),lr=1e-3)
                 qmc_model,qmc_opt,qmc_run_info = load(qmc_model,qmc_opt,qmc_save_path)
                 qmc_model.eval()
-                qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
+                qmc_losses,qmc_test_loss = qmc_run_info['train'],qmc_run_info['test']
                 qmc_model.to(device)
 
-            qmc_test_losses.append(np.nanmean(qmc_test_losses))
+            qmc_test_losses.append(np.nanmean(qmc_test_loss))
         save_data = {'test_losses':qmc_test_losses}
         with open(qmc_save_loc,'w') as f:
                 json.dump(save_data,f)
@@ -171,7 +171,7 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
             print("*"*25)
             print(f"Now evaluating mc {iter}")
             print('*'*25)
-            qmc_save_path = os.path.join(save_location,'mc_{iter}_2d_mnist_train.tar')
+            qmc_save_path = os.path.join(save_location,f'mc_{iter}_2d_mnist_train.tar')
             qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder)
 
@@ -210,6 +210,6 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
 
 if __name__ == '__main__':
 
-    fire.Fire(run_qmc_ablation_experiments)
+    fire.Fire(run_qmc_mc_comparison_experiments)
 
 

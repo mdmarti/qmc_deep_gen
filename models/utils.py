@@ -275,7 +275,9 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
 
 
 def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
-
+    """
+    TO-DO: replace all L_nets with zero layers
+    """
 
     if 'mnist_simple' in dataset_name.lower():
         print("getting SHRIMPLE encoder")
