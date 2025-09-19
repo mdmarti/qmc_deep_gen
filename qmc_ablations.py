@@ -137,10 +137,10 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
     if not os.path.isfile(nonperiodic_save_loc):
         for iter in range(n_iters):
             print("*"*25)
-            print(f"Now evaluating qmc {iter}")
+            print(f"Now evaluating nonperiodic {iter}")
             print('*'*25)
             qmc_save_path = os.path.join(save_location,f'nonperiodic_{iter}_2d_mnist_train.tar')
-            qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
+            qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample,arch='qmc_nonperiodic')
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder,basis=IdentityBasis())
 
             qmc_loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
@@ -186,10 +186,10 @@ def run_qmc_ablation_experiments(save_location,dataloc,dataset,batch_size=128,
     if not os.path.isfile(gaussian_save_loc):
         for iter in range(n_iters):
             print("*"*25)
-            print(f"Now evaluating mc {iter}")
+            print(f"Now evaluating gaussian {iter}")
             print('*'*25)
             qmc_save_path = os.path.join(save_location,f'gauss_{iter}_2d_mnist_train.tar')
-            qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample)
+            qmc_decoder = get_decoder_arch(dataset_name=dataset,latent_dim=qmc_latent_dim,n_per_sample=frames_per_sample,arch='qmc_gauss')
             qmc_model = QMCLVM(latent_dim=qmc_latent_dim,device=device,decoder=qmc_decoder,basis=IdentityBasis())
 
             if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()):
