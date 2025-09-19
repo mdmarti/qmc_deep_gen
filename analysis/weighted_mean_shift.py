@@ -138,10 +138,16 @@ class WeightedMeanShift(MeanShift):
         self.cluster_centers_, self.labels_ = cluster_centers, labels
         return self
 
-    def predict(self, X, y=None,weights=None,verbose=False,tol=1e-2,max_iter=1000):
+    def predict(self, X, y=None,weights=None,weight_grid=None,verbose=False,tol=1e-2,max_iter=1000,bandwidth=0.1):
 
         #print(X.shape)
-        nbrs = NearestNeighbors(radius=self.bandwidth, n_jobs=1,metric=self.metric).fit(X)
+        if weights is not None:
+            if weight_grid is None:
+                assert X.shape[0] == len(weights), print("If you do not provide a weight grid, weights must be over X!")
+                weight_grid=X
+            else:
+                assert len(weights) == weight_grid.shape[0], print("Weight grid must have same length as weights!")
+        nbrs = NearestNeighbors(radius=bandwidth, n_jobs=1,metric=self.metric).fit(weight_grid)
         self.nbrs = nbrs
 
         print(f"predicting {len(X)} points")
@@ -150,7 +156,7 @@ class WeightedMeanShift(MeanShift):
         #print(lab_1)
         #assert False
         all_labels = Parallel(n_jobs=self.n_jobs)(
-            delayed(_predict_single_seed)(seed, X, nbrs, max_iter,self.cluster_centers_,weights,tol,verbose=verbose)
+            delayed(_predict_single_seed)(seed, weight_grid, nbrs, max_iter,self.cluster_centers_,weights,tol,verbose=verbose)
             for seed in X
         )
         print("done!")
@@ -173,11 +179,12 @@ def _predict_single_seed(my_mean,X,nbrs,max_iter,centers,weights=None,tol=1e-2,v
         points_within = X[i_nbrs]
         weights_within_unnorm = weights[i_nbrs]
         if len(points_within) == 0:
+            label=-1
             break  # Depending on seeding strategy this condition may occur
         if np.sum(weights_within_unnorm) ==0:
                 if verbose: print("no density in ball")
                 label=-1
-                print("no density")
+                
                 break
         weights_within = weights_within_unnorm/np.sum(weights_within_unnorm)
         #if np.sum(weights_within_unnorm) <= len(points_within)/n_points:
