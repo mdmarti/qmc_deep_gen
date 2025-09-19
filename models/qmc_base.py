@@ -64,7 +64,7 @@ class IdentityBasis(nn.Module):
         return data
     
 class QMCLVM(nn.Module):
-    def __init__(self, latent_dim=2,device=None,decoder=None,basis=TorusBasis()):
+    def __init__(self, latent_dim=2,device=None,decoder=None,basis=TorusBasis(),shift_function=torch.rand):
         super(QMCLVM, self).__init__()
         """
         if you want a fourier basis, you'd better put it in the gosh dang de coder!
@@ -73,6 +73,7 @@ class QMCLVM(nn.Module):
 
         self.latent_dim = latent_dim
         self.basis = basis
+        self.shift_function=shift_function
 
         self.decoder = nn.Sequential(
             nn.Linear(self.latent_dim,2048),
@@ -91,7 +92,7 @@ class QMCLVM(nn.Module):
         """
         
 
-        r = torch.rand(1, self.latent_dim, device=self.device) if random else torch.zeros((1,self.latent_dim),device=self.device)
+        r = self.shift_function(1, self.latent_dim, device=self.device) if random else torch.zeros((1,self.latent_dim),device=self.device)
         x = (r + eval_grid) % 1 if mod else r+eval_grid
         basis = self.basis(x)
         if len(c) > 0:
