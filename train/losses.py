@@ -94,7 +94,7 @@ def binary_lp(samples,data,importance_weights=[]):
         assert not (torch.any(t2 == torch.nan))
     
         ### returns: batch x n samples
-        return (t1 + t2) +np.log(importance_weights)
+        return (t1 + t2) +torch.log(importance_weights)
     except:
         print("shapes were probably weird: here's what they were:")
         print(f"samples: {samples.shape}")
