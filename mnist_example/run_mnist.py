@@ -1,10 +1,10 @@
 from torch import nn
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
-from mnist_example.data import *
-from mnist_example.losses import *
-from mnist_example.qlvm import *
-from mnist_example.vae import *
-from mnist_example.train import *
+from data import *
+from losses import *
+from qlvm import *
+from vae import *
+from train import *
 import matplotlib.pyplot as plt
 import os
 import fire 
