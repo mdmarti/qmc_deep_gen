@@ -218,3 +218,15 @@ def gen_fib_basis(m):
     z = torch.tensor([1.,fib(m-1)])
 
     return torch.arange(0,n)[:,None]*z[None,:]/n
+
+def get_qlvm(device):
+
+
+    qlvm_decoder = nn.Sequential(nn.Linear(4,500),
+                                nn.ReLU(),
+                                nn.Linear(500,28**2),
+                                nn.Sigmoid(),
+                                nn.Unflatten(1,(1,28,28)))
+    qlvm = QLVM(decoder=qlvm_decoder,device=device,latent_dim=2,basis=TorusBasis())
+
+    return qlvm

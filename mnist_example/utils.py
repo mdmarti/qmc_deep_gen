@@ -1,7 +1,7 @@
 from torch import nn
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
-from vae import *
-from qlvm import *
+from .vae import *
+from .qlvm import *
 
 
 def get_models(vae_latent_dim,iwae_latent_dim,device):
