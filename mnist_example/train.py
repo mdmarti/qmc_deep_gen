@@ -78,7 +78,7 @@ def train_epoch(model,optimizer,loader,base_sequence,
         optimizer.step()
         epoch_losses.append(loss.item())
 
-    return np.array(epoch_losses),model,optimizer
+    return epoch_losses,model,optimizer
 
 def test_epoch(model,loader,base_sequence,loss_function,
                random=True,mod=True):
@@ -115,4 +115,4 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,
 
         print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
 
-    return model, optimizer,losses
+    return model, optimizer,np.array(losses)
