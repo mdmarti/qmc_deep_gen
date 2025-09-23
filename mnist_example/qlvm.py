@@ -70,7 +70,7 @@ class QLVM(nn.Module):
         """
         
 
-        r = self.rand(1, self.latent_dim, device=self.device) if random else torch.zeros((1,self.latent_dim),device=self.device)
+        r = torch.rand(1, self.latent_dim, device=self.device) if random else torch.zeros((1,self.latent_dim),device=self.device)
         x = (r + lattice) % 1 if mod else r+lattice
         basis = self.basis(x)
         
@@ -202,3 +202,19 @@ class QLVM(nn.Module):
         latents = torch.vstack(latents).detach().cpu().numpy()
         labels = np.hstack(labels)
         return latents,labels
+    
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a+b
+    return a
+
+def gen_fib_basis(m):
+    """
+    Creates random numbers tiling a cube [0,1]^2 where m is element of the fibonacci sequence
+    """
+
+    n = fib(m)
+    z = torch.tensor([1.,fib(m-1)])
+
+    return torch.arange(0,n)[:,None]*z[None,:]/n

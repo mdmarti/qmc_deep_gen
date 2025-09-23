@@ -100,7 +100,7 @@ def test_epoch(model,loader,base_sequence,loss_function,
 
 
 def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,
-               random=True,mod=True,importance_weights=[]):
+               random=True,mod=True):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
