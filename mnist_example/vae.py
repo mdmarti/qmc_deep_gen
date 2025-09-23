@@ -93,3 +93,36 @@ class IWAE(VAE):
         recons = torch.vmap(self.decoder,in_dims=(1),out_dims=(1))(z).permute(1,0,2,3,4) # KxBxCxHxW->BxKxCxHxW
 
         return recons,(z,dist)
+    
+
+class Encoder(nn.Module):
+
+    def __init__(self,net,mu_net,l_net,d_net,latent_dim=2):
+
+
+        super(Encoder,self).__init__()
+        self.latent_dim=latent_dim
+
+        self.shared_net = net
+        self.mu_net = mu_net
+        self.l_net = l_net
+        self.d_net = d_net
+
+    def forward(self,data):
+        #print(data.shape)
+        intermediate = self.shared_net(data)
+        #assert False
+        mu = self.mu_net(intermediate)
+        l = self.mu_net(intermediate).unsqueeze(-1)
+        d = self.mu_net(intermediate).exp()
+
+        return (mu,l,d)
+    
+class ZeroLayer(nn.Module):
+    def __init__(self):
+
+        super(ZeroLayer,self).__init__()
+
+    def forward(self,x):
+
+        return 0 * x

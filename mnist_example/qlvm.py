@@ -41,9 +41,9 @@ class IdentityBasis(nn.Module):
 
         return data
     
-class QMCLVM(nn.Module):
+class QLVM(nn.Module):
     def __init__(self, decoder,device,latent_dim=2,basis=TorusBasis()):
-        super(QMCLVM, self).__init__()
+        super(QLVM, self).__init__()
         """
         requires:
             decoder (nn.Module): maps from latent space to data space
