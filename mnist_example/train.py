@@ -1,7 +1,9 @@
 import torch
 from tqdm import tqdm
 from torch.optim import Adam
+import numpy as np
 
+######### VAE training #################
 
 def train_epoch_vae(model,optimizer,loader,loss_function):
 
@@ -52,4 +54,64 @@ def train_loop_vae(model,loader,loss_function,nEpochs=100):
         kls += batch_kl
 
     losses = [recons,kls]
+    return model, optimizer,losses
+
+
+######## QLVM Training ###########
+
+def train_epoch(model,optimizer,loader,base_sequence,
+                loss_function,random=True,mod=True):
+
+    train_loss = 0
+    epoch_losses = []
+    for batch_idx,batch in enumerate(loader):
+        data= batch[0]
+        data = data.to(model.device)
+        optimizer.zero_grad()
+
+        samples = model(base_sequence,random,mod)
+
+        loss = loss_function(samples,data)
+        loss.backward()
+        train_loss += loss.item()
+        optimizer.step()
+        epoch_losses.append(loss.item())
+
+    return epoch_losses,model,optimizer
+
+def test_epoch(model,loader,base_sequence,loss_function,
+               random=True,mod=True,importance_weights=[]):
+
+    test_loss = 0
+    epoch_losses = []
+    with torch.no_grad():
+        for batch_idx, batch in enumerate(tqdm(loader)):
+            data = batch[0]
+            data = data.to(model.device)
+
+            samples = model(base_sequence,random=random,mod=mod)
+
+            loss = loss_function(samples, data)
+
+            test_loss += loss.item()
+            epoch_losses.append(loss.item())
+
+    return epoch_losses
+
+
+def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,
+               random=True,mod=True,importance_weights=[]):
+
+    optimizer = Adam(model.parameters(),lr=1e-3)
+    losses = []
+    for epoch in tqdm(range(nEpochs)):
+
+
+        batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,
+                                                random=random,mod=mod)
+
+        losses += batch_loss
+
+        print(f'Epoch {epoch + 1} Average loss: {np.sum(batch_loss)/len(loader.dataset):.4f}')
+
     return model, optimizer,losses
