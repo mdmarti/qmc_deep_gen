@@ -105,7 +105,7 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
-    for epoch in tqdm(range(nEpochs)):
+    for epoch in range(nEpochs):
 
 
         batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,

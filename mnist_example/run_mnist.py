@@ -30,12 +30,13 @@ def run_mnist(dataloc,
     vae_loss = binary_elbo
     iwae_loss = binary_iwae_elbo
 
+    print("Training QLVM")
     qlvm,qlvm_opt,qlvm_losses = train_loop(qlvm,train_loader,qmc_lattice.to(qlvm.device),qlvm_loss,nEpochs=20)
     qlvm_test_loss = test_epoch(qlvm,test_loader,qmc_lattice.to(qlvm.device),qlvm_loss)
-
+    print("Training VAE")
     vae,vae_opt,vae_losses = train_loop_vae(vae,train_loader,vae_loss,nEpochs=20)
     vae_test_loss = test_epoch_vae(vae,test_loader,vae_loss)
-    
+    print("Training IWAE")
     iwae,iwae_opt,iwae_losses = train_loop_vae(iwae,train_loader,iwae_loss,nEpochs=20)
     iwae_test_loss = test_epoch_vae(iwae,test_loader,iwae_loss)
 
