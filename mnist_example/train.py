@@ -40,7 +40,8 @@ def test_epoch_vae(model,loader,loss_function):
             epoch_nlps.append(neg_lp.item())
             epoch_kls.append(kl.item())
 
-    return epoch_nlps,epoch_kls
+    test_losses = [epoch_nlps,epoch_kls]
+    return np.array(test_losses)
 
 def train_loop_vae(model,loader,loss_function,nEpochs=100):
 
@@ -54,7 +55,7 @@ def train_loop_vae(model,loader,loss_function,nEpochs=100):
         kls += batch_kl
 
     losses = [recons,kls]
-    return model, optimizer,losses
+    return model, optimizer,np.array(losses)
 
 
 ######## QLVM Training ###########
@@ -77,10 +78,10 @@ def train_epoch(model,optimizer,loader,base_sequence,
         optimizer.step()
         epoch_losses.append(loss.item())
 
-    return epoch_losses,model,optimizer
+    return np.array(epoch_losses),model,optimizer
 
 def test_epoch(model,loader,base_sequence,loss_function,
-               random=True,mod=True,importance_weights=[]):
+               random=True,mod=True):
 
     test_loss = 0
     epoch_losses = []
@@ -96,7 +97,7 @@ def test_epoch(model,loader,base_sequence,loss_function,
             test_loss += loss.item()
             epoch_losses.append(loss.item())
 
-    return epoch_losses
+    return np.array(epoch_losses)
 
 
 def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,
