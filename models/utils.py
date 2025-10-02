@@ -274,7 +274,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
     return decoder 
 
 
-def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
+def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
     """
     TO-DO: replace all L_nets with zero layers
     """
@@ -285,7 +285,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         mu_net = nn.Sequential(nn.Linear(28**2,500),
                                nn.ReLU(),
                                nn.Linear(500,latent_dim))
-        L_net = ZeroLayer()
+        L_net = ZeroLayer(28**2,latent_dim)
         d_net = nn.Sequential(nn.Linear(28**2,500),
                                nn.ReLU(),
                                nn.Linear(500,latent_dim))
@@ -307,7 +307,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
                            nn.Linear(64*7*7,2048),
                           nn.Tanh())
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.Linear(2048,latent_dim)
+        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim) 
 
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
@@ -382,14 +382,37 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
                             nn.Tanh())
         """
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.Linear(2048,latent_dim)
+        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
         
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
 
     elif ('finch' in dataset_name.lower()):
-        enc = Encoder(latent_dim=latent_dim)
+
+        encoder_net = nn.Sequential(
+                nn.Conv2d(1,8,3,stride=2,padding=1), #B x  8 x 64 x 64
+                nn.Tanh(),
+                #Print(),
+                nn.Conv2d(8,16,3,stride=2,padding=1), #B x 16 x 32 x 32
+                nn.Tanh(),
+                #Print(),
+                nn.Conv2d(16,32,3,stride=2,padding=1), #B x 32 x 16 x 16
+                nn.Tanh(),
+                #Print(),
+                nn.Conv2d(32,64,3,stride=2,padding=1), #B x 64 x 8 x 8,
+                nn.Tanh(),
+                #Print(),
+                nn.Flatten(start_dim=1,end_dim=-1), # B x 8*8*64,
+                #Print(),
+                nn.Linear(8*8*64,2**11),
+                nn.Tanh(),
+                #Print(),
+            )
+        mu_net = nn.Linear(2**11,latent_dim)
+        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2**11,latent_dim)
+        d_net = nn.Linear(2**11,latent_dim) 
+        enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
     
     elif 'gerbil' in dataset_name.lower():
         """
@@ -414,7 +437,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
                                     nn.Linear(64*8*8,2048),
                                     nn.Tanh())
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.Linear(2048,latent_dim)
+        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
         
 
@@ -427,7 +450,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         mu_net = nn.Sequential(nn.Linear(n_per_sample*100,500),
                                nn.ReLU(),
                                nn.Linear(500,latent_dim))
-        L_net = ZeroLayer()
+        L_net = ZeroLayer(n_per_sample*100,latent_dim)
         d_net = nn.Sequential(nn.Linear(n_per_sample*100,500),
                                nn.ReLU(),
                                nn.Linear(500,latent_dim))
@@ -442,7 +465,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
                                     nn.ReLU()
                                     )
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.Linear(2048,latent_dim)
+        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
@@ -453,7 +476,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
                                     nn.Linear(1000,500)
                                     )
         mu_net = nn.Linear(500,latent_dim)
-        L_net = nn.Linear(500,latent_dim)
+        L_net = nn.ZeroLayer(500,latent_dim) if diag else nn.Linear(500,latent_dim)
         d_net = nn.Linear(500,latent_dim)
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
@@ -483,7 +506,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5):
         )
         
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.Linear(2048,latent_dim)
+        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)

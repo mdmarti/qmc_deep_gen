@@ -150,35 +150,35 @@ class Encoder(nn.Module):
         super(Encoder,self).__init__()
         self.latent_dim=latent_dim
 
-        if net is None:
-            #assuming a 1x128x128 input,
-            self.shared_net = nn.Sequential(
-                nn.Conv2d(1,8,3,stride=2,padding=1), #B x  8 x 64 x 64
-                nn.Tanh(),
-                #Print(),
-                nn.Conv2d(8,16,3,stride=2,padding=1), #B x 16 x 32 x 32
-                nn.Tanh(),
-                #Print(),
-                nn.Conv2d(16,32,3,stride=2,padding=1), #B x 32 x 16 x 16
-                nn.Tanh(),
-                #Print(),
-                nn.Conv2d(32,64,3,stride=2,padding=1), #B x 64 x 8 x 8,
-                nn.Tanh(),
-                #Print(),
-                nn.Flatten(start_dim=1,end_dim=-1), # B x 8*8*64,
-                #Print(),
-                nn.Linear(8*8*64,2**11),
-                nn.Tanh(),
-                #Print(),
-            )
-            self.mu_net = nn.Linear(2**11,latent_dim)
-            self.l_net = nn.Linear(2**11,latent_dim)
-            self.d_net = nn.Linear(2**11,latent_dim) 
-        else:
-            self.shared_net = net
-            self.mu_net = mu_net
-            self.l_net = l_net
-            self.d_net = d_net
+        #if net is None:
+        #    #assuming a 1x128x128 input,
+        #    self.shared_net = nn.Sequential(
+        #        nn.Conv2d(1,8,3,stride=2,padding=1), #B x  8 x 64 x 64
+        #        nn.Tanh(),
+        #        #Print(),
+        #        nn.Conv2d(8,16,3,stride=2,padding=1), #B x 16 x 32 x 32
+        #        nn.Tanh(),
+        #        #Print(),
+        #        nn.Conv2d(16,32,3,stride=2,padding=1), #B x 32 x 16 x 16
+        #        nn.Tanh(),
+        #        #Print(),
+        #        nn.Conv2d(32,64,3,stride=2,padding=1), #B x 64 x 8 x 8,
+        #        nn.Tanh(),
+        #        #Print(),
+        #        nn.Flatten(start_dim=1,end_dim=-1), # B x 8*8*64,
+        #        #Print(),
+        #        nn.Linear(8*8*64,2**11),
+        #        nn.Tanh(),
+        #        #Print(),
+        #    )
+        #    self.mu_net = nn.Linear(2**11,latent_dim)
+        #    self.l_net = nn.Linear(2**11,latent_dim)
+        #    self.d_net = nn.Linear(2**11,latent_dim) 
+        #else:
+        self.shared_net = net
+        self.mu_net = mu_net
+        self.l_net = l_net
+        self.d_net = d_net
 
 
     def forward(self,data):
