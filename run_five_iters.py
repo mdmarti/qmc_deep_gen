@@ -83,7 +83,8 @@ def train_vae_model(stats_save_loc,
                     n_iters,
                     dataset,
                     latent_dim,
-                    n_per_sample):
+                    n_per_sample,
+                    diag):
     
 
     test_losses = []
@@ -95,7 +96,7 @@ def train_vae_model(stats_save_loc,
         print('*'*25)
         tmp_save_path = model_save_loc.format(run=ii)
         decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,arch='vae',n_per_sample=n_per_sample)
-        encoder = get_encoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
+        encoder = get_encoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample,diag=diag)
 
         model = VAE(decoder=decoder,encoder=encoder,
                         distribution=LowRankMultivariateNormal,device=device)
@@ -131,6 +132,7 @@ def train_iwae_model(stats_save_loc,
                     dataset,
                     latent_dim,
                     n_per_sample,
+                    diag,
                     k_samples=10):
     
 
@@ -143,7 +145,7 @@ def train_iwae_model(stats_save_loc,
         print('*'*25)
         tmp_save_path = model_save_loc.format(run=ii)
         decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,arch='vae',n_per_sample=n_per_sample)
-        encoder = get_encoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
+        encoder = get_encoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample,diag=diag)
 
         model = IWAE(decoder=decoder,encoder=encoder,
                             distribution=LowRankMultivariateNormal,device=device,k_samples=k_samples)
@@ -177,7 +179,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                             nEpochs=300,train_lattice_m=15,test_lattice_m=17,
                             frames_per_sample=1,
                             var=0.1,families=[2],model='qmc',latent_dim=3,n_iters=5,
-                            k_samples=10):
+                            k_samples=10,diag=False):
 
 
 
@@ -249,7 +251,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                                           loss_fn=loss_func,
                                           lp=lp,
                                           n_iters=n_iters,
-                                          dataset=dataset,latent_dim=latent_dim,n_per_sample=frames_per_sample)
+                                          dataset=dataset,latent_dim=latent_dim,n_per_sample=frames_per_sample,
+                                          diag=diag)
             
         save_data = {'test_losses': test_losses}
         with open(stats_save_loc,'w') as f:
@@ -270,7 +273,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                                           lp=lp,
                                           n_iters=n_iters,
                                           k_samples=k_samples,
-                                          dataset=dataset,latent_dim=latent_dim,n_per_sample=frames_per_sample)
+                                          dataset=dataset,latent_dim=latent_dim,n_per_sample=frames_per_sample,
+                                          diag=diag)
             
         save_data = {'test_losses': test_losses}
         with open(stats_save_loc,'w') as f:
