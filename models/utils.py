@@ -307,7 +307,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                            nn.Linear(64*7*7,2048),
                           nn.Tanh())
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
+        L_net = ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim) 
 
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
@@ -382,7 +382,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                             nn.Tanh())
         """
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
+        L_net = ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
         
 
@@ -410,7 +410,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                 #Print(),
             )
         mu_net = nn.Linear(2**11,latent_dim)
-        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2**11,latent_dim)
+        L_net = ZeroLayer(2048,latent_dim) if diag else nn.Linear(2**11,latent_dim)
         d_net = nn.Linear(2**11,latent_dim) 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
     
@@ -437,7 +437,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                                     nn.Linear(64*8*8,2048),
                                     nn.Tanh())
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
+        L_net = ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
         
 
@@ -465,7 +465,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                                     nn.ReLU()
                                     )
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
+        L_net = ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
@@ -476,7 +476,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                                     nn.Linear(1000,500)
                                     )
         mu_net = nn.Linear(500,latent_dim)
-        L_net = nn.ZeroLayer(500,latent_dim) if diag else nn.Linear(500,latent_dim)
+        L_net = ZeroLayer(500,latent_dim) if diag else nn.Linear(500,latent_dim)
         d_net = nn.Linear(500,latent_dim)
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
@@ -506,7 +506,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
         )
         
         mu_net = nn.Linear(2048,latent_dim)
-        L_net = nn.ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
+        L_net = ZeroLayer(2048,latent_dim) if diag else nn.Linear(2048,latent_dim)
         d_net = nn.Linear(2048,latent_dim)
 
         enc = Encoder(encoder_net,mu_net,L_net,d_net,latent_dim)
