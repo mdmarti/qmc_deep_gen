@@ -102,13 +102,14 @@ class SE(nn.Module):
         return x * se
     
 class ZeroLayer(nn.Module):
-    def __init__(self):
+    def __init__(self,in_size,out_size):
 
         super(ZeroLayer,self).__init__()
+        self.net = nn.Linear(in_size,out_size,bias=False)
 
     def forward(self,x):
 
-        return 0 * x
+        return 0 * self.net(x)
     
 class PermutationLayer(nn.Module):
 

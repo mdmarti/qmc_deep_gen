@@ -5,7 +5,7 @@ import torch
 from train.losses import jacEnergy
 
 
-def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True,conditional=False):
+def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True,conditional=False,importance_weights=[]):
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loss = 0
@@ -19,7 +19,10 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,m
             samples = model(base_sequence,random,mod,c)
         else:
             samples = model(base_sequence,random,mod)
-        loss = loss_function(samples, data)
+        if len(importance_weights) == 0:
+            loss = loss_function(samples, data)
+        else:
+            loss = loss_function(samples,data,importance_weights)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -27,7 +30,7 @@ def train_epoch(model,optimizer,loader,base_sequence,loss_function,random=True,m
 
     return epoch_losses,model,optimizer
 
-def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True,conditional=False):
+def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,random=True,mod=True,conditional=False,importance_weights=[]):
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loss = 0
@@ -41,7 +44,10 @@ def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,rando
             samples = model(base_sequence,random,mod,c)
         else:
             samples = model(base_sequence,random,mod)
-        loss = loss_function(samples, data)
+        if len(importance_weights) == 0:
+            loss = loss_function(samples, data)
+        else:
+            loss = loss_function(samples,data,importance_weights)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -49,7 +55,7 @@ def train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,rando
 
     return epoch_losses,model,optimizer
 
-def test_epoch(model,loader,base_sequence,loss_function,conditional=False):
+def test_epoch(model,loader,base_sequence,loss_function,conditional=False,random=True,mod=True,importance_weights=[]):
 
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -65,14 +71,17 @@ def test_epoch(model,loader,base_sequence,loss_function,conditional=False):
             else:
                 samples = model(base_sequence,random=True,mod=True)
             #samples = model(base_sequence)
-            loss = loss_function(samples, data)
+            if len(importance_weights) == 0:
+                loss = loss_function(samples, data)
+            else:
+                loss = loss_function(samples,data,importance_weights)
             test_loss += loss.item()
             epoch_losses.append(loss.item())
 
     return epoch_losses
 
 def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,verbose=False,
-               random=True,mod=True,conditional=False):
+               random=True,mod=True,conditional=False,importance_weights=[]):
 
     optimizer = Adam(model.parameters(),lr=1e-3)
     losses = []
@@ -80,10 +89,10 @@ def train_loop(model,loader,base_sequence,loss_function,nEpochs=100,verbose=Fals
 
         if verbose:
             batch_loss,model,optimizer = train_epoch_verbose(model,optimizer,loader,base_sequence,loss_function,
-                                                 random=random,mod=mod,conditional=conditional)    
+                                                 random=random,mod=mod,conditional=conditional,importance_weights=importance_weights)    
         else:
             batch_loss,model,optimizer = train_epoch(model,optimizer,loader,base_sequence,loss_function,
-                                                 random=random,mod=mod,conditional=conditional)
+                                                 random=random,mod=mod,conditional=conditional,importance_weights=importance_weights)
 
         losses += batch_loss
         if verbose:

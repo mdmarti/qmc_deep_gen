@@ -3,6 +3,7 @@ import matplotlib as mpl
 import numpy as np
 from tqdm import tqdm
 import scipy.stats as stats #Normal
+from data.mocap import plot_motion_on_ax,sample2motion
 
 import torch
 import gc
@@ -191,10 +192,21 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
     mosaic = [[f"qmc {ii}" for ii in range(n_samples)],
               [f"sample {ii}" for ii in range(n_samples)],
              [f"vae {ii}" for ii in range(n_samples)]]  
-
-    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.0})
+    
+    subplot_kw={"projection": "3d"} if 'mocap' in save_path.lower() else {}
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,
+                                   gridspec_kw={'wspace':0.01,'hspace':0.0},
+                                   subplot_kw=subplot_kw)
     for ii,sample_ind in tqdm(enumerate(sample_inds),total=len(sample_inds)):
-
+        if 'mocap' in save_path.lower():
+            label = loader.dataset[ii][1]
+            frame_no = loader.dataset.frame_nos[ii]
+            if frame_no >= len(loader.dataset.motions[label]):
+                #print(frame_no,label,len(loader.dataset.motions[label]))
+                frame_no = len(loader.dataset.motions[label]) - 1
+            base_motion = loader.dataset.motions[label][frame_no]
+            conversion_key = loader.dataset.conversion_keys[label]
+            joints = loader.dataset.joints
         #save_path_ind = save_path.format(sample_num = sample_ind)
         sample = torch.tensor(loader.dataset[sample_ind][0]).to(torch.float32).to(qmc_model.device)
         if sample.shape[0] == 1:
@@ -206,21 +218,64 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
         recon_vae = vae_model.round_trip(sample).detach().cpu()
         
         sample = sample.detach().cpu().numpy()
+        if 'mocap' in save_path.lower():
+            #print("using this version")
+            sample = sample.squeeze().mean(axis=0,keepdims=True)
+            
+            motion = sample2motion(sample,[base_motion],conversion_key)[0]
+            
+            axes[f'sample {ii}'] = plot_motion_on_ax(axes[f'sample {ii}'],motion,joints)
+            
+            recon_qmc = recon_qmc.detach().cpu().numpy().squeeze().mean(axis=0,keepdims=True)
+            qmc_motion = sample2motion(recon_qmc,[base_motion],conversion_key)[0]
+            
+            axes[f'qmc {ii}'] = plot_motion_on_ax(axes[f'qmc {ii}'],qmc_motion,joints)
 
+            recon_vae = recon_vae.detach().cpu().numpy().squeeze().mean(axis=0,keepdims=True)
+            vae_motion = sample2motion(recon_vae,[base_motion],conversion_key)[0]
+            
+            axes[f'vae {ii}'] = plot_motion_on_ax(axes[f'vae {ii}'],vae_motion,joints)
 
-        #fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
-        axes[f"qmc {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
-        #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
-        axes[f"sample {ii}"].imshow(sample.squeeze(),cmap=cm,origin=origin)
-        axes[f"vae {ii}"].imshow(recon_vae.squeeze(),cmap=cm,origin=origin)
+        else:
+            
+            
+            axes[f"qmc {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
+            #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
+            axes[f"sample {ii}"].imshow(sample.squeeze(),cmap=cm,origin=origin)
+            axes[f"vae {ii}"].imshow(recon_vae.squeeze(),cmap=cm,origin=origin)
         
     #labels=['QMC reconstruction','Original image','VAE reconstruction'] #'QMC max prob point',
-    for key in axes.keys():
-        
-        axes[key] = format_img_axis(axes[key])
-    axes['qmc 0'].set_ylabel(f"{qmc_lattice.shape[1]}d Lattice-LVM Reconstructions")
-    axes['sample 0'].set_ylabel("Original samples")
-    axes['vae 0'].set_ylabel(f"{qmc_lattice.shape[1]}d VAE Reconstructions")
+        if 'mocap' in save_path.lower():
+                axes[f'sample {ii}'].set_yticks([])
+                axes[f'sample {ii}'].set_xticks([])
+                axes[f'sample {ii}'].set_zticks([])
+                axes[f'sample {ii}'].set_ylim([-10,20])
+                axes[f'sample {ii}'].set_xlim([-20,25])
+                axes[f'sample {ii}'].set_zlim([0,30])
+
+                axes[f'vae {ii}'].set_yticks([])
+                axes[f'vae {ii}'].set_xticks([])
+                axes[f'vae {ii}'].set_zticks([])
+                axes[f'vae {ii}'].set_ylim([-10,20])
+                axes[f'vae {ii}'].set_xlim([-20,25])
+                axes[f'vae {ii}'].set_zlim([0,30])
+
+                axes[f'qmc {ii}'].set_yticks([])
+                axes[f'qmc {ii}'].set_xticks([])
+                axes[f'qmc {ii}'].set_zticks([])
+                axes[f'qmc {ii}'].set_ylim([-10,20])
+                axes[f'qmc {ii}'].set_xlim([-20,25])
+                axes[f'qmc {ii}'].set_zlim([0,30])
+                
+                
+            
+    if 'mocap' not in save_path.lower():
+        for key in axes.keys():
+                
+            axes[key] = format_img_axis(axes[key])
+        axes['qmc 0'].set_ylabel(f"{qmc_lattice.shape[1]}d Lattice-LVM Reconstructions")
+        axes['sample 0'].set_ylabel("Original samples")
+        axes['vae 0'].set_ylabel(f"{qmc_lattice.shape[1]}d VAE Reconstructions")
     #plt.tight_layout()
     if show:
         plt.show()
@@ -229,6 +284,109 @@ def recon_comparison_plot(qmc_model,qmc_likelihood,vae_model,loader,qmc_lattice,
     plt.close()
 
     return
+
+def sample_comparison_plot(qmc_model,iwae_model,vae_model,n_samples_comparison=6,
+                          save_path='samples_{sample_num}.png',cm='gray',origin=None,
+                          show=False,loader=[]):
+    n_samples = n_samples_comparison
+    #n_samples = min(n_samples_comparison,len(loader.dataset))
+    #sample_inds = np.random.choice(len(loader.dataset),n_samples,replace=False).squeeze()
+    mosaic = [[f"qmc {ii}" for ii in range(n_samples)],
+              [f"iwae {ii}" for ii in range(n_samples)],
+             [f"vae {ii}" for ii in range(n_samples)]]  
+    
+    subplot_kw={"projection": "3d"} if 'mocap' in save_path.lower() else {}
+    fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,13),sharex=True,sharey=True,
+                                   gridspec_kw={'wspace':0.01,'hspace':0.0},
+                                   subplot_kw=subplot_kw)
+    for ii,sample_ind in tqdm(enumerate(range(n_samples)),total=n_samples):
+
+        if 'mocap' in save_path.lower():
+            label = loader.dataset[0][1]
+            frame_no = loader.dataset.frame_nos[0]
+            #print(frame_no)
+            
+            
+            base_motion = loader.dataset.motions[label][0]
+            #print(len(base_motion))
+            conversion_key = loader.dataset.conversion_keys[label]
+            joints = loader.dataset.joints
+        #save_path_ind = save_path.format(sample_num = sample_ind)
+        qmc_sample = torch.rand((1,qmc_model.latent_dim),device=qmc_model.device,dtype=torch.float32)
+        vae_sample = torch.normal(mean=0,std=1,size=(1,qmc_model.latent_dim)).to(torch.float32).to(vae_model.device)
+                
+        recon_qmc = qmc_model(qmc_sample,random=False,mod=False).detach().cpu()
+        recon_vae = vae_model.decode(vae_sample).detach().cpu()
+        recon_iwae = iwae_model.decode(vae_sample).detach().cpu()
+        
+        #sample = sample.detach().cpu().numpy()
+
+
+        #fig,axs = plt.subplots(nrows=1,ncols=3,figsize=(10,5),sharex=True,sharey=True)
+        if 'mocap' in save_path.lower():
+            #print("using this version")
+            recon_iwae = recon_iwae.detach().cpu().numpy().squeeze().mean(axis=0,keepdims=True)
+            motion = sample2motion(recon_iwae,[base_motion],conversion_key)[0]
+            
+            axes[f'iwae {ii}'] = plot_motion_on_ax(axes[f'iwae {ii}'],motion,joints)
+            
+            recon_qmc = recon_qmc.detach().cpu().numpy().squeeze().mean(axis=0,keepdims=True)
+            qmc_motion = sample2motion(recon_qmc,[base_motion],conversion_key)[0]
+            
+            axes[f'qmc {ii}'] = plot_motion_on_ax(axes[f'qmc {ii}'],qmc_motion,joints)
+
+            recon_vae = recon_vae.detach().cpu().numpy().squeeze().mean(axis=0,keepdims=True)
+            vae_motion = sample2motion(recon_vae,[base_motion],conversion_key)[0]
+            
+            axes[f'vae {ii}'] = plot_motion_on_ax(axes[f'vae {ii}'],vae_motion,joints)
+
+        else:
+            
+            axes[f"qmc {ii}"].imshow(recon_qmc.squeeze(),cmap=cm,origin=origin)
+            #axs[1].imshow(recon_qmc2.squeeze(),cmap='gray')
+            axes[f"iwae {ii}"].imshow(recon_iwae.squeeze(),cmap=cm,origin=origin)
+            axes[f"vae {ii}"].imshow(recon_vae.squeeze(),cmap=cm,origin=origin)
+
+        if 'mocap' in save_path.lower():
+                axes[f'iwae {ii}'].set_yticks([])
+                axes[f'iwae {ii}'].set_xticks([])
+                axes[f'iwae {ii}'].set_zticks([])
+                axes[f'iwae {ii}'].set_ylim([-10,20])
+                axes[f'iwae {ii}'].set_xlim([-20,25])
+                axes[f'iwae {ii}'].set_zlim([0,30])
+
+                axes[f'vae {ii}'].set_yticks([])
+                axes[f'vae {ii}'].set_xticks([])
+                axes[f'vae {ii}'].set_zticks([])
+                axes[f'vae {ii}'].set_ylim([-10,20])
+                axes[f'vae {ii}'].set_xlim([-20,25])
+                axes[f'vae {ii}'].set_zlim([0,30])
+
+                axes[f'qmc {ii}'].set_yticks([])
+                axes[f'qmc {ii}'].set_xticks([])
+                axes[f'qmc {ii}'].set_zticks([])
+                axes[f'qmc {ii}'].set_ylim([-10,20])
+                axes[f'qmc {ii}'].set_xlim([-20,25])
+                axes[f'qmc {ii}'].set_zlim([0,30])
+
+    if 'mocap' not in save_path.lower():
+        for key in axes.keys():
+            
+            axes[key] = format_img_axis(axes[key])
+        axes['qmc 0'].set_ylabel(f"{qmc_model.latent_dim}d Lattice-LVM Samples")
+        axes['iwae 0'].set_ylabel("IWAE Samples")
+        axes['vae 0'].set_ylabel(f"{qmc_model.latent_dim}d VAE Samples")
+    #plt.tight_layout()
+    if show:
+        plt.show()
+    else:
+        plt.savefig(save_path,transparent=True)
+    plt.close()
+
+    return
+
+    return
+
 
 def posterior_comparison_plot(vae_model,loader,log_prob,n_samples=20,n_points=50,show=False,save_path='posterior_{sample_num}.png'):
 

@@ -21,6 +21,7 @@ import json
 
 def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                             nEpochs=300,rerun=False,train_lattice_m=15,
+                            test_lattice_m=18,
                             make_comparison_plots=True,frames_per_sample=1,
                             var=0.1,families=[2]):
 
@@ -38,7 +39,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    qmc_latent_dim=3 if (('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower())) else 2
+    qmc_latent_dim=2#3 if (('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower())) else 2
 
     if 'finch' in dataset.lower():
         cm = 'viridis'
@@ -54,7 +55,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
                                              families=families)
         train_lattice = gen_fib_basis(m=train_lattice_m)
-        test_lattice = gen_fib_basis(m=20)
+        test_lattice = gen_fib_basis(m=test_lattice_m)
     else:
         train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
                                              families=families)
@@ -75,11 +76,12 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
 
         qmc_loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
         qmc_lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
-        qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_dim_comparison.tar')
+        qmc_save_path = os.path.join(save_location,f'qmc_train_{dataset}_{qmc_latent_dim}_dim_comparison.tar')
 
         if not os.path.isfile(qmc_save_path):
             qmc_model,qmc_opt,qmc_losses = train_qmc.train_loop(qmc_model,train_loader,train_lattice.to(device),qmc_loss_func,\
-                                                                nEpochs=nEpochs,verbose='celeba' in dataset.lower())
+                                                                nEpochs=nEpochs,
+                                                                verbose=('celeba' in dataset.lower()) or ('shapes3d' in dataset.lower()))
             print("Done training!")
             qmc_model.eval()
             with torch.no_grad():
@@ -96,7 +98,6 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
             qmc_model.eval()
             qmc_losses,qmc_test_losses = qmc_run_info['train'],qmc_run_info['test']
             qmc_model.to(device)
-            qmc_model.eval()
         print("making train plot...")
         vis2d.qmc_train_plot(qmc_losses,qmc_test_losses,save_fn=os.path.join(save_location,f'qmc_{dataset}_train_curve.svg'))
         print("done!")

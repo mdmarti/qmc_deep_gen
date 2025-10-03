@@ -85,13 +85,16 @@ def binary_lp(samples,data,importance_weights=[]):
         #samples[samples <= 1e-6] = samples[samples <= 1e-6] - samples[samples <= 1e-6] + 1e-6
         #samples[samples >= 1 - 1e-6] = samples[samples >= 1 - 1e-6] - samples[samples >= 1 - 1e-6] + 1 - 1e-6
         #samples = torch.clamp(samples,min=1e-6,max=1-1e-6)
+
+        ## should this be log2....
         t1 = torch.einsum('bjdl,sjdl->bs',data,torch.log(samples))
         t2 = torch.einsum('bjdl,sjdl->bs',1-data,torch.log(1-samples))
         #if torch.any(t1 == )
         assert not torch.any(t1 == torch.nan)
         assert not (torch.any(t2 == torch.nan))
     
-        return (t1 + t2)*importance_weights
+        ### returns: batch x n samples
+        return (t1 + t2) +torch.log(importance_weights)
     except:
         print("shapes were probably weird: here's what they were:")
         print(f"samples: {samples.shape}")
@@ -185,11 +188,14 @@ def gaussian_lp(samples,data,var,importance_weights=[]):
     B x 1 x D x D
     """
     K,C,H,W = samples.shape
+    if C == H:# if channels are in the wrong position
+        samples = samples.permute(0,3,1,2)
+        data = data.permute(0,3,1,2)
     if len(importance_weights) == 0:
         importance_weights = torch.ones((1,K),device=samples.device,dtype=torch.float32)
     #lambda_lp = lambda samples,data: -torch.nn.functional.gaussian_nll_loss(samples,data,var=var,reduction='sum',full=True)
     vmapped_lp = torch.vmap(torch.vmap(gaussian_nll_loss,in_dims=(0,None)),in_dims=(None,0))
-    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True)*importance_weights
+    return -vmapped_lp(samples,data,var=var,reduction='sum',full=True) + torch.log(importance_weights) # since this should be log(p(x|z)p(z))
 
 
 def gaussian_lp_old(samples,data,var=1):

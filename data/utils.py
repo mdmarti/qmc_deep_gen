@@ -49,7 +49,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
     elif 'conditional_gerbil' in dataset_name.lower():
 
         print("loading conditional gerbil")
-        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,families=families,
+        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,families=families,
                                                                                     seed=seed,check=False)
         train_data = bird_data(train_files,train_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),conditional=True)
         test_data = bird_data(test_files,test_ids,sylls_per_file,transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),conditional=True)
@@ -57,7 +57,7 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
     elif 'gerbil' in dataset_name.lower():
 
         print("loading gerbil")
-        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,specs_per_file=specs_per_file,families=families,
+        (train_files,test_files),(train_ids,test_ids),sylls_per_file = load_gerbils(dataset_loc,families=families,
                                                                                     seed=seed,check=False)
         train_data = bird_data(train_files,train_ids,sylls_per_file,
                                transform=lambda x: torch.from_numpy(x).to(torch.float32).unsqueeze(0),
