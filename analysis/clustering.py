@@ -31,16 +31,18 @@ def run_mean_shift(latent_points,seeds,weights,bandwidth,n_jobs,p,embedded=True,
     #print(np.amax(latent_points),np.amin(latent_points))
     if embedded:
         metric = 'minkowski'
-        print('using normal wms')
+        print('using L_p metrics')
         wms = WeightedMeanShift(n_jobs=n_jobs,bandwidth=2*bandwidth,metric=metric,seeds=seeds)
     else:
         metric = lambda x,y: p_dist_theta(x,y,p=p)
-        print('using circular wms')
+        print('using circular metric')
         wms = WeightedMeanShiftCircular(n_jobs=n_jobs,bandwidth=bandwidth,metric=metric,seeds=seeds)
     if normal:
+        print("fitting regular mean shift")
         wms.fit(latent_points)
         labels = wms.predict(latent_points)
     else:
+        print('fitting weighted mean shift')
         wms.fit(latent_points,weights=weights,verbose=False)
         labels = wms.predict(latent_points,weights=weights,verbose=False,max_iter=300,tol=1e-2)
     centers = wms.cluster_centers_
@@ -51,7 +53,7 @@ def run_mean_shift(latent_points,seeds,weights,bandwidth,n_jobs,p,embedded=True,
         #print(np.amax(centers),np.amin(centers))
         #print(centers.shape)
 
-    return centers,wms
+    return centers,wms,labels
 
 def run_kmeans(embeddings,n_clusters,norm_order=2):
 
