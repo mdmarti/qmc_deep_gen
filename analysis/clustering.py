@@ -39,8 +39,10 @@ def run_mean_shift(latent_points,seeds,weights,bandwidth,n_jobs,p,embedded=True,
         wms = WeightedMeanShiftCircular(n_jobs=n_jobs,bandwidth=bandwidth,metric=metric,seeds=seeds)
     if normal:
         wms.fit(latent_points)
+        labels = wms.predict(latent_points)
     else:
         wms.fit(latent_points,weights=weights,verbose=False)
+        labels = wms.predict(latent_points,weights=weights,verbose=False,max_iter=300,tol=1e-2)
     centers = wms.cluster_centers_
     if embedded:
         #print(np.amax(centers),np.amin(centers))
