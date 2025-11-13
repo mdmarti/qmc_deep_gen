@@ -21,9 +21,9 @@ import pickle
 from tqdm import tqdm
 
 
-def sample_loguniform(low,high):
+def sample_loguniform(low,high,generator):
 
-    return np.exp(np.random.uniform(np.log(low), np.log(high)))
+    return np.exp(generator.uniform(np.log(low), np.log(high)))
 
 def train_loop_with_opt(model,optimizer,loader,loss_function,nEpochs=100):
 
@@ -99,7 +99,7 @@ def get_vae_arch(n_hidden,latent_dim,hidden_dim,device):
     return model
 
 
-def vae_2d_hyperparam_cv(dataloc,save_path,n_models=50):
+def vae_2d_hyperparam_cv(dataloc,save_path,n_models=50,seed=92):
 
 
     hidden_layer_opts = [1,2,3,4,5]
@@ -123,14 +123,15 @@ def vae_2d_hyperparam_cv(dataloc,save_path,n_models=50):
 
     best_ind = -1
     best_loss = 1e5
+    gen = np.random.default_rng(seed=seed)
 
     for ii in range(n_models):
 
         ind = f'run {ii}'
 
-        n_hidden_layers = np.random.choice(hidden_layer_opts)
-        encoder_lr = sample_loguniform(low=min_lr,high=max_lr)
-        decoder_lr = sample_loguniform(low=min_lr,high=max_lr)
+        n_hidden_layers = gen.choice(hidden_layer_opts)
+        encoder_lr = sample_loguniform(low=min_lr,high=max_lr,generator=gen)
+        decoder_lr = sample_loguniform(low=min_lr,high=max_lr,generator=gen)
 
         print(f"Training model {ii+1} with {n_hidden_layers} hidden layers, encoder lr = {encoder_lr:.5f}, decoder lr = {decoder_lr:.5f}")
 
