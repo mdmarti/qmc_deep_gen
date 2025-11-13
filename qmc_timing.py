@@ -61,6 +61,10 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
 
     if not os.path.isdir(save_location):
         os.mkdir(save_location)
+
+    save_location = os.path.join(save_location,dataset)
+    if not os.path.isdir(save_location):
+        os.mkdir(save_location)
     
     test_lattice_m=18 if ('finch' in dataset.lower()) or ('gerbil' in dataset.lower()) else 20
 
@@ -75,7 +79,7 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
 
     for train_lattice_m in train_ms:
 
-        model_save_loc = os.path.join(save_path,f'qmc_m{train_lattice_m}.tar')
+        model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
         train_lattice = gen_fib_basis(m=train_lattice_m)
         decoder = get_decoder_arch(dataset_name=dataset,latent_dim=2,arch='qmc',n_per_sample=1)
         model = QMCLVM(latent_dim=2,device=device,decoder=decoder)
