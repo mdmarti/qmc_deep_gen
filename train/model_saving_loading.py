@@ -19,7 +19,7 @@ def save(model,optimizer,run_info,fn = ''):
 def load(model,optimizer,fn = ''):
 
 
-    checkpoint = torch.load(fn,weights_only=True)
+    checkpoint = torch.load(fn,weights_only=False)
     try:
         model.load_state_dict(checkpoint['model'])
     except:
