@@ -216,8 +216,8 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
     if 'qmc' in model:
         assert (latent_dim ==2) or (latent_dim == 3), print(f"If training qmc model, latent dim must be 2 or 3, got {latent_dim}")
 
-        saveloc = os.path.join(save_location,'qmc_train_' + str(dataset) + '_' +str(latent_dim) + '_dim_comparison_{run:n}.tar')
-        stats_save_loc = os.path.join(save_location,f'qmc_{latent_dim}_{n_iters}_test_stats.json')
+        saveloc = os.path.join(save_location,model +'_train_' + str(dataset) + '_' +str(latent_dim) + '_dim_comparison_{run:n}.tar')
+        stats_save_loc = os.path.join(save_location,f'{model}_{latent_dim}_{n_iters}_test_stats.json')
 
         test_lattice_m=18 if ('finch' in dataset.lower()) or ('gerbil' in dataset.lower()) else 20
         if not os.path.isfile(stats_save_loc):
