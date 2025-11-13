@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 def sample_loguniform(low,high):
 
-    return np.exp(np.random.uniform(low, high))
+    return np.exp(np.random.uniform(np.log(low), np.log(high)))
 
 def train_loop_with_opt(model,optimizer,loader,loss_function,nEpochs=100):
 
