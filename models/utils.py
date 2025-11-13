@@ -14,7 +14,7 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
     
     decoder.append(nn.Linear(latent_dim,2048))
 
-    if 'mnist_simple' in dataset_name.lower():
+    if ('mnist_simple' in dataset_name.lower()) or ('mnist_binarized' in dataset_name.lower()):
         print("getting SHRIMPLE decoder")
         decoder = nn.Sequential(nn.Linear(latent_dim,500))
         layers = [
