@@ -43,9 +43,9 @@ def get_vae_arch(n_hidden,latent_dim,hidden_dim,device):
 
     if n_hidden == 0:
         ### decoder ###
-        decoder = nn.Sequential(nn.Linear(latent_dim,28**2),
-                                nn.Sigmoid(),
-                                nn.Unflatten(1,(1,28,28)))
+        #decoder = nn.Sequential(nn.Linear(latent_dim,28**2),
+        #                        nn.Sigmoid(),
+        #                        nn.Unflatten(1,(1,28,28)))
         ### encoder ###
         encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
         mu_net = nn.Linear(28**2,latent_dim)
@@ -56,16 +56,16 @@ def get_vae_arch(n_hidden,latent_dim,hidden_dim,device):
         
     else:
         ### decoder ###
-        decoder = nn.Sequential(nn.Linear(latent_dim,hidden_dim))
-        hidden_layers = []
+        #decoder = nn.Sequential(nn.Linear(latent_dim,hidden_dim))
+        #hidden_layers = []
         
-        for _ in range(n_hidden - 1):
-            decoder.append(nn.ReLU())
-            decoder.append(nn.Linear(hidden_dim,hidden_dim))
-        decoder.append(nn.ReLU())
-        decoder.append(nn.Linear(hidden_dim,28**2))
-        decoder.append(nn.Sigmoid())
-        decoder.append(nn.Unflatten(1,(1,28,28)))
+        #for _ in range(n_hidden - 1):
+        #    decoder.append(nn.ReLU())
+        #    decoder.append(nn.Linear(hidden_dim,hidden_dim))
+        #decoder.append(nn.ReLU())
+        #decoder.append(nn.Linear(hidden_dim,28**2))
+        #decoder.append(nn.Sigmoid())
+        #decoder.append(nn.Unflatten(1,(1,28,28)))
 
         ### encoder ###
         encoder_net = nn.Flatten(start_dim=1,end_dim=-1)
@@ -83,7 +83,15 @@ def get_vae_arch(n_hidden,latent_dim,hidden_dim,device):
         d_net.append(nn.ReLU())
         d_net.append(nn.Linear(hidden_dim,latent_dim))
         encoder = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
-
+        decoder = nn.Sequential(nn.Linear(latent_dim,500))
+        layers = [
+                nn.Tanh(),
+                nn.Linear(500,28**2),
+                nn.Sigmoid(),
+                nn.Unflatten(1,(1,28,28))
+        ]
+        for l in layers:
+            decoder.append(l)
     model = VAE(decoder=decoder,encoder=encoder,
                     distribution=LowRankMultivariateNormal,device=device)
     
