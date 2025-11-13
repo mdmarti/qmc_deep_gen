@@ -15,7 +15,13 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
 
     n_workers = len(os.sched_getaffinity(0))
 
-    if 'mnist' in dataset_name.lower():
+    if 'binarized_mnist' in dataset_name.lower():
+
+        transform = lambda x: torch.from_numpy(x > 0.5).to(torch.float32)
+        train_data = datasets.MNIST(dataset_loc, train=True, download=True, transform=transform)
+        #train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,num_workers=n_workers)
+        test_data = datasets.MNIST(dataset_loc, train=False, download=True, transform=transform)
+    elif 'mnist' in dataset_name.lower():
 
         print("loading mnist...")
         transform = transforms.ToTensor()
