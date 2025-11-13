@@ -17,6 +17,7 @@ import plotting.visualize_3d as vis3d
 import matplotlib.pyplot as plt
 import fire
 import json
+import pickle
 from tqdm import tqdm
 
 
@@ -169,9 +170,9 @@ def vae_2d_hyperparam_cv(dataloc,save_path,n_models=50):
     print(f"Encoder lr = {stats['encoder lr']:.5f}")
     print(f"Decoder lr = {stats['decoder lr']:.5f}")
     print(f"test loss: {stats['test loss']}")
-    stats_save_loc = os.path.join(save_path,'vae_hyperparam_testlosses.json')
-    with open(stats_save_loc,'w') as f:
-        json.dump(model_dict,f)
+    stats_save_loc = os.path.join(save_path,'vae_hyperparam_testlosses.pkl')
+    with open(stats_save_loc,'wb') as f:
+        pickle.dump(model_dict,f)
 
 if __name__ == '__main__':
 
