@@ -44,7 +44,7 @@ def train_loop_timed(model,loader,base_sequence,loss_function,nEpochs=100,verbos
 
 def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
                             nEpochs=300,
-                            frames_per_sample=1,
+                            frames_per_sample=10,
                             var=0.1,families=[2,4,5]):
     
 
