@@ -6,7 +6,7 @@ from models.utils import *
 import train.train as train_qmc 
 import train.train_vae as train_vae
 from models.vae_base import VAE,IWAE
-from models.qmc_base import QMCLVM
+from models.qmc_base import QMCLVM,TorusBasis,GaussianICDFBasis
 from train.losses import *
 from train.model_saving_loading import *
 from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
@@ -28,7 +28,7 @@ def train_qmc_model(stats_save_loc,
                     n_iters,
                     dataset,
                     latent_dim,
-                    n_per_sample):
+                    n_per_sample,model_type='qmc'):
     
 
     test_losses = []
@@ -43,13 +43,18 @@ def train_qmc_model(stats_save_loc,
         train_lattice = gen_korobov_basis(a=76,num_dims=latent_dim,num_points=1021)
         test_lattice = gen_korobov_basis(a=1487,num_dims=latent_dim,num_points=2039)
 
+    if model_type =='qmc':
+        basis=TorusBasis()
+    elif model_type=='gaussian_qmc':
+        basis = GaussianICDFBasis()
+
     for ii in range(n_iters):
         print("*"*25)
         print(f"Now evaluating qmc {ii}")
         print('*'*25)
         tmp_save_path = model_save_loc.format(run=ii)
-        decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample)
-        model = QMCLVM(latent_dim=latent_dim,device=device,decoder=decoder)
+        decoder = get_decoder_arch(dataset_name=dataset,latent_dim=latent_dim,n_per_sample=n_per_sample,arch=model_type)
+        model = QMCLVM(latent_dim=latent_dim,device=device,decoder=decoder,basis=basis)
         if not os.path.isfile(tmp_save_path):
             
 
@@ -208,7 +213,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
     train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
                                              families=families)
 
-    if model == 'qmc':
+    if 'qmc' in model:
         assert (latent_dim ==2) or (latent_dim == 3), print(f"If training qmc model, latent dim must be 2 or 3, got {latent_dim}")
 
         saveloc = os.path.join(save_location,'qmc_train_' + str(dataset) + '_' +str(latent_dim) + '_dim_comparison_{run:n}.tar')
@@ -229,7 +234,7 @@ def run_qmc_vae_experiments(save_location,dataloc,dataset,batch_size=256,
                                           loss_fn=loss_func,
                                           lp=lp,
                                           n_iters=n_iters,
-                                          dataset=dataset,latent_dim=latent_dim,n_per_sample=frames_per_sample)
+                                          dataset=dataset,latent_dim=latent_dim,n_per_sample=frames_per_sample,model_type=model)
             
             save_data = {'test_losses': test_losses}
             with open(stats_save_loc,'w') as f:
