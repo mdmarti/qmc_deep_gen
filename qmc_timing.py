@@ -76,7 +76,7 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
     avg_times = []
     avg_losses = []
 
-    if not os.path.file(stats_save_loc):
+    if not os.path.isfile(stats_save_loc):
         for train_lattice_m in train_ms:
 
             model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
