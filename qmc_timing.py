@@ -96,7 +96,7 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
             model.to(device)
             #vis2d.vae_train_plot(train_loss,test_loss,save_fn=os.path.join(save_path,f'iwae_{k}k_{ii}_train_curve.svg'))
         else:
-            opt = Adam(model.parameters,lr=1e-3)
+            opt = Adam(model.parameters(),lr=1e-3)
             model,opt,run_info = load(model,opt,model_save_loc)
             model.eval()
             train_loss,test_loss,timing = run_info['train'],run_info['test']
