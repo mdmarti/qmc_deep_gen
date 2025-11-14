@@ -76,15 +76,15 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
     avg_times = []
     avg_losses = []
 
+    if not os.path.file(stats_save_loc):
+        for train_lattice_m in train_ms:
 
-    for train_lattice_m in train_ms:
+            model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
+            train_lattice = gen_fib_basis(m=train_lattice_m)
+            decoder = get_decoder_arch(dataset_name=dataset,latent_dim=2,arch='qmc',n_per_sample=1)
+            model = QMCLVM(latent_dim=2,device=device,decoder=decoder)
 
-        model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
-        train_lattice = gen_fib_basis(m=train_lattice_m)
-        decoder = get_decoder_arch(dataset_name=dataset,latent_dim=2,arch='qmc',n_per_sample=1)
-        model = QMCLVM(latent_dim=2,device=device,decoder=decoder)
-
-        if not os.path.isfile(model_save_loc):
+            #if not os.path.isfile(model_save_loc):
             model,opt,train_loss,times =  train_loop_timed(model,train_loader,train_lattice.to(device),loss_func,\
                                                                     nEpochs=nEpochs)
             timing = np.nanmean(times)
@@ -95,20 +95,15 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
             save(model.to('cpu'),opt,vae_run_info,fn=model_save_loc)
             model.to(device)
             #vis2d.vae_train_plot(train_loss,test_loss,save_fn=os.path.join(save_path,f'iwae_{k}k_{ii}_train_curve.svg'))
-        else:
-            opt = Adam(model.parameters(),lr=1e-3)
-            model,opt,run_info = load(model,opt,model_save_loc)
-            model.eval()
-            train_loss,test_loss,timing = run_info['train'],run_info['test']
-        
-        avg_times.append(timing)    #test_losses.append(np.sum(test_loss)/len(test_loader))
-        avg_losses.append(np.sum(test_loss)/len(test_loader))
+            
+            avg_times.append(timing)    #test_losses.append(np.sum(test_loss)/len(test_loader))
+            avg_losses.append(np.sum(test_loss)/len(test_loader))
 
-    results_dict_qmc= {'timing': avg_times,
-                    'losses': avg_losses}
-    
-    with open(stats_save_loc,'w') as f:
-        json.dump(results_dict_qmc,f)
+        results_dict_qmc= {'timing': avg_times,
+                        'losses': avg_losses}
+        
+        with open(stats_save_loc,'w') as f:
+            json.dump(results_dict_qmc,f)
 
 if __name__ =='__main__':
 
