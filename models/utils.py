@@ -285,7 +285,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
                                     nn.Linear(28**2,500),
                                     nn.Tanh())
         mu_net = nn.Linear(500,latent_dim)
-        L_net = ZeroLayer(28**2,latent_dim)
+        L_net = ZeroLayer(500,latent_dim)
         d_net = nn.Linear(500,latent_dim)
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
         #print(list(enc.named_parameters()))
