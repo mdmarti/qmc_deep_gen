@@ -45,11 +45,12 @@ def train_loop_timed(model,loader,base_sequence,loss_function,nEpochs=100,verbos
 def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
                             nEpochs=300,
                             frames_per_sample=10,
-                            var=0.1,families=[2,4,5]):
+                            var=0.1,families=[2,4,5],
+                            min_m=10,max_m=17):
     
 
     
-    train_ms = range(10,17)
+    train_ms = range(min_m,max_m)
 
     train_loader,test_loader = load_data(dataset,dataloc,batch_size=batch_size,frames_per_sample=frames_per_sample,
                                              families=families)
