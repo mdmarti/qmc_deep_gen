@@ -69,7 +69,7 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
     
     test_lattice_m=18 if ('finch' in dataset.lower()) or ('gerbil' in dataset.lower()) else 20
 
-    stats_save_loc = os.path.join(save_location,f'qmc_test_timing_stats.json')
+    stats_save_loc = os.path.join(save_location,f'qmc_test_timing_stats_{min_m}min_{max_m}max.json')
     loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
     lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
 
