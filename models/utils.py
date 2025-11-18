@@ -31,7 +31,6 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
             nn.ELU(),
             nn.Linear(512,512),
             nn.ELU(),
-            nn.Linear(512,512),
             nn.Linear(512,28**2),
             nn.Sigmoid(),
             nn.Unflatten(1,(1,28,28))
