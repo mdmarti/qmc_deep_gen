@@ -23,6 +23,20 @@ def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5):
                 nn.Sigmoid(),
                 nn.Unflatten(1,(1,28,28))
         ]
+
+    elif 'mnist_iterative_comparison' in dataset_name.lower():
+
+        decoder = nn.Sequential(nn.Linear(latent_dim,256))
+        layers = [
+            nn.ELU(),
+            nn.Linear(256,512),
+            nn.ELU(),
+            nn.Linear(256,512),
+            nn.Linear(512,28**2),
+            nn.Sigmoid(),
+            nn.Unflatten(1,(1,28,28))
+        ]
+
     elif 'mnist' in dataset_name.lower():
 
         layers = [nn.ReLU(),
@@ -289,6 +303,7 @@ def get_encoder_arch(dataset_name,latent_dim,n_per_sample=5,diag=False):
         d_net = nn.Linear(500,latent_dim)
         enc = Encoder(net=encoder_net,mu_net=mu_net,l_net=L_net,d_net=d_net,latent_dim=latent_dim)
         #print(list(enc.named_parameters()))
+        
     elif 'mnist' in dataset_name.lower():
 
         encoder_net =nn.Sequential(nn.Conv2d(1,16,1),
