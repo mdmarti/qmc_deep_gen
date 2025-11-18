@@ -1,7 +1,7 @@
 import torch
 import os
 from data.utils import load_data
-from models.sampling import gen_fib_basis, gen_korobov_basis
+from models.sampling import gen_fib_basis, gen_korobov_basis,fib
 from models.utils import *
 import train.train as train_qmc 
 import train.train_vae as train_vae
@@ -79,6 +79,7 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
 
     if not os.path.isfile(stats_save_loc):
         for train_lattice_m in train_ms:
+            print(f"now training qmc model using {fib(train_lattice_m)} point lattice")
 
             model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
             train_lattice = gen_fib_basis(m=train_lattice_m)
