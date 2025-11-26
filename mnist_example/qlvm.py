@@ -41,6 +41,24 @@ class IdentityBasis(nn.Module):
 
         return data
     
+class GaussianICDFBasis(nn.Module):
+
+    def __init__(self,device='cuda'):
+
+        super(GaussianICDFBasis,self).__init__()
+        self.device=device
+        self.dist = torch.distributions.Normal(torch.tensor([[0.,]],device=device),torch.tensor([[1.,]],device=device))
+        self.icdf = lambda x: self.dist.icdf(torch.clip(x,min=1e-4,max=1-1e-4))
+        self.cdf = self.dist.cdf
+        
+    def forward(self,data):
+        
+        return self.icdf(data)
+    
+    def reverse(self,data):
+
+        return self.cdf(data)
+    
 class QLVM(nn.Module):
     def __init__(self, decoder,device,latent_dim=2,basis=TorusBasis()):
         super(QLVM, self).__init__()
