@@ -23,7 +23,7 @@ def jacEnergy(predictions):
 
     return jacE.pow(2).sum(dim=-1)
 
-def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[]):
+def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[],full=True):
 
 
     #,calc_device=torch.device('cuda')
@@ -43,6 +43,8 @@ def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[
             recon_loss,
             axis=1
         )
+    if full:
+        recon_loss = recon_loss - np.log(B)
     if reduce:
         return -1 * torch.mean(recon_loss)
 
@@ -121,7 +123,7 @@ def binary_lp_old(samples,data):
                     reduction="none"
                 )
 
-def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weights=[]):
+def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weights=[],full=True):
 
     B = samples.shape[0]
     if batch_size == -1:
@@ -138,6 +140,9 @@ def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weig
             recon_loss,
             axis=1
         )
+    if full:
+        recon_loss = recon_loss - np.log(B)
+        
     if reduce:
         return -1 * torch.mean(recon_loss)
 
