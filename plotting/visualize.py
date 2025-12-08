@@ -37,7 +37,7 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey',mo
     inds = np.arange(n_samples)
     cs = cmap(norm(inds))
 
-    mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]                
+    mosaic = np.flipud([[f"sample {jj*n_samples_dim + ii}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)])              
 
     fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.01})
 
@@ -56,7 +56,7 @@ def model_grid_plot(model,n_samples_dim,fn='',show=True,origin=None,cm='grey',mo
         plt.savefig(fn)
     plt.close()
 
-def conditional_qmc_grid_plot(model,n_samples_dim,c,fn='',show=True,origin=None,cm='grey',):
+def conditional_qmc_grid_plot(model,n_samples_dim,c,fn='',show=True,origin=None,cm='grey'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #n_samples_dim = 10
@@ -77,7 +77,7 @@ def conditional_qmc_grid_plot(model,n_samples_dim,c,fn='',show=True,origin=None,
     inds = np.arange(n_samples)
     cs = cmap(norm(inds))
 
-    mosaic = [[f"sample {ii*n_samples_dim + jj}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)]                
+    mosaic = np.flipud([[f"sample {jj*n_samples_dim + ii}" for ii in range(n_samples_dim)] for jj in range(n_samples_dim)])                
 
     fig, axes = plt.subplot_mosaic(mosaic,figsize=(20,20),sharex=True,sharey=True,gridspec_kw={'wspace':0.01,'hspace':0.01})
 
