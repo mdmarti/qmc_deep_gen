@@ -129,6 +129,7 @@ def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weig
     if batch_size == -1:
         batch_size=B
 
+    recon_loss = []
     for batch_start in range(0,samples.shape[0],batch_size):
         batch_end = min(B,batch_start + batch_size)
         rl =  gaussian_lp(samples[batch_start:batch_end],data,var,importance_weights=importance_weights) 
@@ -142,7 +143,7 @@ def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weig
         )
     if full:
         recon_loss = recon_loss - np.log(B)
-        
+
     if reduce:
         return -1 * torch.mean(recon_loss)
 
