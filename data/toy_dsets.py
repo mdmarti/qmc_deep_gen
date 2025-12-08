@@ -6,6 +6,7 @@ import numpy as np
 import h5py
 import os
 from torchvision import transforms
+from torch.nn.functional import one_hot
 
 ##### Factors for shapes3d ######
 _FACTORS_IN_ORDER = ['floor_hue', 'wall_hue', 'object_hue', 'scale', 'shape',
@@ -114,6 +115,23 @@ class shapes3dDset(Dataset):
 
         return (image.astype(np.float32)/255,label.astype(np.float32))
     
+class conditionalShapesDset(shapes3dDset):
+
+    def __init__(self,filepath,indices,conditional_factor='floor_hue'):
+
+        super(conditionalShapesDset,self).__init__(filepath,indices)
+        self.conditional_factor = conditional_factor
+
+    def __getitem__(self,index):
+
+        idx = self.indices[index]
+        image, label = self.file['images'][idx],self.file['labels'][idx]
+
+        if self.conditional_factor == 'shape':
+            c = one_hot()
+
+        return (image.astype(np.float32)/255,label.astype(np.float32))
+    
 
 
 def get_3d_shapes(dpath,seed,test_size=0.2):
@@ -137,6 +155,28 @@ def get_3d_shapes(dpath,seed,test_size=0.2):
     #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
     
     return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
+
+def get_3d_shapes_conditional(dpath,seed,test_size=0.2,conditional_factor='floor_hue'):
+
+    dfile = os.path.join(dpath,'3dshapes.h5')
+    dataset = h5py.File(dfile,'r',locking=False)
+    #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
+    (B,H,W,C) = dataset['images'].shape
+    #images /= 255
+    #images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
+    #images = np.swapaxes(images.astype(np.float32),axis1=2,axis2=3) # B C H W
+    
+    gen = np.random.default_rng(seed=seed)
+
+    order = gen.choice(B,B,replace=False)
+    train_end = int(round(B * (1-test_size)))
+
+    #train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
+    #transform = lambda x: torch.from_numpy(x).permute(2,0,1)
+
+    #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
+    
+    return conditionalShapesDset(dfile,order[:train_end],conditional_factor=conditional_factor), conditionalShapesDset(dfile,order[train_end:],conditional_factor=conditional_factor)
 
 
 def get_index(factors):

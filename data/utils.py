@@ -91,6 +91,8 @@ def load_data(dataset_name,dataset_loc,batch_size=256,
     elif 'blobs' in dataset_name.lower():
         train_data,test_data= generate_blobs(n_samples=1000,dim=3,seed=92,noise_sd_in=0.1,noise_sd_out=0.05,test_size=0.2)
 
+    elif 'conditional_shapes3d' in dataset_name.lower():
+        train_data,test_data = get_3d_shapes_conditional(dpath=dataset_loc,seed=92,test_size=0.2,factor=conditional_factor)
     elif 'shapes3d' in dataset_name.lower():
         train_data,test_data = get_3d_shapes(dpath=dataset_loc,seed=92,test_size=0.2)
 
