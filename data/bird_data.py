@@ -72,7 +72,71 @@ class bird_data(Dataset):
         if self.conditional:
             return (spec,c,syll_id)
         return (spec,syll_id)
-    
+
+class hdf5_data_general(Dataset):
+
+    def __init__(self,filenames,syll_ids,transform=transforms.ToTensor(),
+                 conditional=False,conditional_factor='fm'):
+        
+        self.filenames=filenames
+        self.syll_ids = syll_ids
+        self.transform = transform
+        self.conditional=conditional
+        self.conditional_factor = conditional_factor
+        total, file_lens = self._get_len()
+
+        self.length = total
+        self.cumulative_file_nums = np.cumsum(file_lens).astype(np.int32)
+
+    def _get_len(self):
+       
+        file_lens = []
+        for fn in self.filenames:
+            with h5py.File(fn,'r',locking=False) as f:
+                file_lens.append(f['num_specs'])
+
+        total_len = np.sum(file_lens)
+
+        return total_len,file_lens
+
+    def __len__(self):
+        return self.length
+
+
+    def __getitem__(self,index):
+
+        load_index = np.argwhere(self.cumulative_file_nums >= index)[0].squeeze()
+        spec_index = index - load_index
+        load_fn = self.filenames[load_index]
+        syll_id = self.syll_ids[load_index]
+        
+        with h5py.File(load_fn,'r',locking=False) as f:
+            spec = f['specs'][spec_index]
+
+            if self.conditional:
+                if self.conditional_factor == 'fm':
+                    c = calc_fm(spec)
+                elif self.conditional_factor == 'entropy':
+                    c = calc_ent(spec)
+                elif self.conditional_factor =='length':
+                    c = f['offsets'][spec_index] - f['onsets'][spec_index]
+                elif self.conditional_factor == 'locations':
+                    ### this should ONLY be used for analysis and NOT for training
+        
+                    c = f['locations'][spec_index].decode('ASCII')
+                elif self.conditional_factor == 'file':
+                    ### this should ALSO only be used for analysis and NOT for training
+                    c = f['audio_filenames'][spec_index].decode('ASCII')
+                else:
+                    raise NotImplementedError
+        
+        
+        spec = self.transform(spec)
+
+        if self.conditional:
+            return (spec,c,syll_id)
+        return (spec,syll_id)
+  
 def load_gerbils(gerbil_filepath,families=[2],test_size=0.2,seed=92,check=True):
 
     specs_per_file = 100
