@@ -120,28 +120,12 @@ def sample_from_grid(grid,posterior,num_samples=1000):
     a weighting on those centers (based on some posterior),
     """
 
-    #print(grid_len)
-    #print(posterior.shape)
-    #gen = np.random.default_rng()
-    #fn = lambda posterior: gen.choice(grid_len,n_samples,replace=True,p=posterior)
-    #print(fn(posterior.detach().cpu().numpy()).shape)
-    #assert False
-    #sample_fnc = np.vectorize(fn)
-    #print(posterior.shape)
     (B1,N) = posterior.shape
     n = len(grid)
     samples = torch.multinomial(posterior,num_samples,replacement=True).to(grid.device)
     (B2,K) = samples.shape
     assert B1 == B2
-    #for ii,s in enumerate(samples): 
-    #    assert torch.all(s >= ii * N) and torch.all(s < (ii+1)*N)
-    #samples = sample_fnc(posterior[None,:].detach().cpu().numpy()) #gen.choice(grid_len,n_samples,replace=True,p=posterior.detach().cpu().numpy()).squeeze()
-    
-    #assert False
-    #posterior_weights = posterior[samples.view(np.prod]
-    #print(posterior_weights.shape)
-    #print(num_samples)
-    #shifted_samples = samples + (torch.arange(0,B1)*N)[:,None]
+
     posterior_weights = [] #posterior.view(np.prod(posterior.shape))
     
     samples = samples.view(np.prod(samples.shape))
@@ -152,21 +136,9 @@ def sample_from_grid(grid,posterior,num_samples=1000):
     if len(posterior_weights.shape) == 1:
         posterior_weights = posterior_weights[None,:]
     importance_weights = torch.mean(posterior_weights,axis=0,keepdims=True) # is this correct here? yes
-    #end = time.time() - start
-    #print(f"got weights in {end*1000:.2f}ms")
-    #shifted_samples = shifted_samples.view(np.prod(samples.shape))
-    
-    
-    #posterior_weights = posterior_weights[shifted_samples]
-    #posterior_weights = posterior_weights.view(B1,K)
+
     assert (importance_weights.shape[0]) == 1 and (importance_weights.shape[1] == B2*K),print(importance_weights.shape)
-    #print(posterior_weights.shape)
-    #print(posterior_weights.shape)
-    #print(grid.shape)
-    #assert False
-    #print(grid.shape)
-    #print(samples.shape)
-    #print(grid[samples].shape)
+
     return grid[samples],importance_weights
 
 def sample_from_cells(cell_centers,cell_bounds):
@@ -195,13 +167,11 @@ def sample_from_cells(cell_centers,cell_bounds):
     #print(samples.shape)
     return samples
 
-def gen_samples_batch(grid,model,lp,samples,n_samples_total):
+def gen_samples_batch(grid,model,lp,samples,n_samples_total,centered_cell):
 
     n_per_s = n_samples_total // samples.shape[0] 
     with torch.no_grad():
         posterior=model.posterior_probability(grid.to(model.device),samples.to(model.device),lp)
-
-        centered_cell = get_default_voronoi(grid)
     
         sampled_shifts,importance_weights = sample_from_grid(grid,posterior,num_samples=n_per_s)
     
