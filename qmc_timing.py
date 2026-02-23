@@ -46,7 +46,7 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
                             nEpochs=300,
                             frames_per_sample=10,
                             var=0.1,families=[2,4,5],
-                            min_m=10,max_m=17):
+                            min_m=10,max_m=17,n_models=1):
     
 
     
@@ -74,32 +74,32 @@ def run_qmc_timing(save_location,dataloc,dataset,batch_size=256,
     lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
 
     test_lattice = gen_fib_basis(m=test_lattice_m)
-    avg_times = []
-    avg_losses = []
+    avg_times = {str(m):[] for m in train_ms}
+    avg_losses = {str(m):[] for m in train_ms}
 
     if not os.path.isfile(stats_save_loc):
         for train_lattice_m in train_ms:
-            print(f"now training qmc model using {fib(train_lattice_m)} point lattice")
-
-            model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
+            print(f"now training {n_models} qmc model{'s' if n_models > 1 else ''} using {fib(train_lattice_m)} point lattice")
             train_lattice = gen_fib_basis(m=train_lattice_m)
-            decoder = get_decoder_arch(dataset_name=dataset,latent_dim=2,arch='qmc',n_per_sample=1)
-            model = QMCLVM(latent_dim=2,device=device,decoder=decoder)
+            for model in range(n_models):
 
-            #if not os.path.isfile(model_save_loc):
-            model,opt,train_loss,times =  train_loop_timed(model,train_loader,train_lattice.to(device),loss_func,\
-                                                                    nEpochs=nEpochs)
-            timing = np.nanmean(times)
-            model.eval()
-            with torch.no_grad():
-                test_loss = train_qmc.test_epoch(model,test_loader,test_lattice.to(device),loss_func)
-            vae_run_info = {'train':train_loss,'test':test_loss}
-            save(model.to('cpu'),opt,vae_run_info,fn=model_save_loc)
-            model.to(device)
-            #vis2d.vae_train_plot(train_loss,test_loss,save_fn=os.path.join(save_path,f'iwae_{k}k_{ii}_train_curve.svg'))
-            
-            avg_times.append(timing)    #test_losses.append(np.sum(test_loss)/len(test_loader))
-            avg_losses.append(np.sum(test_loss)/len(test_loader))
+                model_save_loc = os.path.join(save_location,f'qmc_m{train_lattice_m}.tar')
+                decoder = get_decoder_arch(dataset_name=dataset,latent_dim=2,arch='qmc',n_per_sample=1)
+                model = QMCLVM(latent_dim=2,device=device,decoder=decoder)
+
+                model,opt,train_loss,times =  train_loop_timed(model,train_loader,train_lattice.to(device),loss_func,\
+                                                                        nEpochs=nEpochs)
+                timing = np.nanmean(times)
+                model.eval()
+                with torch.no_grad():
+                    test_loss = train_qmc.test_epoch(model,test_loader,test_lattice.to(device),loss_func)
+                vae_run_info = {'train':train_loss,'test':test_loss}
+                save(model.to('cpu'),opt,vae_run_info,fn=model_save_loc)
+                #model.to(device)
+                #vis2d.vae_train_plot(train_loss,test_loss,save_fn=os.path.join(save_path,f'iwae_{k}k_{ii}_train_curve.svg'))
+                
+                avg_times[str(train_lattice_m)].append(timing)    #test_losses.append(np.sum(test_loss)/len(test_loader))
+                avg_losses[str(train_lattice_m)].append(np.sum(test_loss)/len(test_loader))
 
         results_dict_qmc= {'timing': avg_times,
                         'losses': avg_losses}
