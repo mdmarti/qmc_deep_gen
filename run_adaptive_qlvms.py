@@ -95,7 +95,7 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
                 save(model.to('cpu'),opt,run_info,fn=tmp_save_path)
                 model.to(device)
                 test_losses.append(np.sum(test_loss)/len(test_loader))
-                vis2d.qmc_train_plot(train_loss,test_loss,save_fn=os.path.join(stats_save_loc,f'asqmc_{latent_dim}d_{dataset}_{model_num}_train_curve.svg'))
+                vis2d.qmc_train_plot(train_loss,test_loss,save_fn=os.path.join(save_location,f'asqmc_{latent_dim}d_{dataset}_{model_num}_train_curve.svg'))
             else:
                 opt = Adam(model.parameters(),lr=1e-3)
                 model,opt,run_info = load(model,opt,tmp_save_path)
