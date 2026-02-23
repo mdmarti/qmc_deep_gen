@@ -71,7 +71,7 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
         
         loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
         lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
-
+        ### update here for importance weights
         for model_num in range(n_models):
             print("*"*25)
             print(f"Now evaluating asqlvm {model_num}")
