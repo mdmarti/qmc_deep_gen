@@ -86,7 +86,7 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
             
                 start = time.time()
                 model,opt,train_loss = train_asqlvm.train_loop_adaptive(model,train_loader,train_lattice.to(device),loss_func,lp,\
-                                                                    nEpochs=nEpochs,verbose='celeba' in dataset.lower(),n_samples_batch=adaptive_samples)
+                                                                    nEpochs=nEpochs,verbose=True,n_samples_batch=adaptive_samples)
                 end = time.time()
                 avg_per_update = (end - start)/len(np.array(train_loss))
                 print("Done training!")
