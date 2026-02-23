@@ -12,6 +12,7 @@ import plotting.visualize as vis2d # recon_comparison_plot,posterior_comparison_
 import fire
 import json
 from tqdm import tqdm
+import time
 
 def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
                             nEpochs=1,train_lattice_m=15,test_lattice_m=17,
@@ -69,8 +70,8 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
     test_losses = []
     if not os.path.isfile(stats_save_loc):
         
-        loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data: gaussian_evidence(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
-        lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data: gaussian_lp(samples,data,var=var) #or ('gerbil' in dataset.lower()) 
+        loss_func = binary_evidence if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower()) else lambda samples,data,importance_weights=[]: gaussian_evidence(samples,data,var=var,importance_weights=importance_weights) #or ('gerbil' in dataset.lower()) 
+        lp = binary_lp if ('mnist' in dataset.lower()) or ('gerbil' in dataset.lower())  else lambda samples,data,importance_weights=[]: gaussian_lp(samples,data,var=var,importance_weights=importance_weights) #or ('gerbil' in dataset.lower()) 
         ### update here for importance weights
         for model_num in range(n_models):
             print("*"*25)
@@ -83,11 +84,14 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
 
             if not os.path.isfile(tmp_save_path):
             
-
+                start = time.time()
                 model,opt,train_loss = train_asqlvm.train_loop_adaptive(model,train_loader,train_lattice.to(device),loss_func,lp,\
                                                                     nEpochs=nEpochs,verbose='celeba' in dataset.lower(),n_samples_batch=adaptive_samples)
+                end = time.time()
+                avg_per_update = (end - start)/len(np.array(train_loss))
                 print("Done training!")
                 model.eval()
+                ## add timing
                 with torch.no_grad():
                     
                     test_loss = train_asqlvm.val_epoch_adaptive(model,test_loader,test_lattice.to(device),loss_func,lp)
@@ -103,7 +107,8 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
                 train_loss,test_loss = run_info['train'],run_info['test']
                 test_losses.append(np.sum(test_loss)/len(test_loader))
    
-        save_data = {'test_losses': test_losses}
+        save_data = {'test_losses': test_losses,
+                     'time_per_batch': avg_per_update}
         with open(stats_save_loc,'w') as f:
             json.dump(save_data,f)
     else:
