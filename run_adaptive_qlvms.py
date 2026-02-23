@@ -60,7 +60,7 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
 
     assert (latent_dim ==2) or (latent_dim == 3), print(f"If training qmc model, latent dim must be 2 or 3, got {latent_dim}")
 
-    saveloc = os.path.join(save_location, +'qmc_train_' + str(dataset) + '_' +str(latent_dim) + '_dim_comparison_{run:n}.tar')
+    saveloc = os.path.join(save_location, 'qmc_train_' + str(dataset) + '_' +str(latent_dim) + '_dim_comparison_{run:n}.tar')
     print(f"saving to {saveloc}")
     stats_save_loc = os.path.join(save_location,f'qmc_{latent_dim}_{n_models}_test_stats.json')
 
