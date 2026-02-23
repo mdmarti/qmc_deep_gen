@@ -84,13 +84,13 @@ def run_qmc_experiments(save_location,dataloc,dataset,batch_size=1,
             if not os.path.isfile(tmp_save_path):
             
 
-                model,opt,train_loss = train_asqlvm.train_loop_adaptive(model,train_loader,train_lattice.to(device),loss_func,\
+                model,opt,train_loss = train_asqlvm.train_loop_adaptive(model,train_loader,train_lattice.to(device),loss_func,lp,\
                                                                     nEpochs=nEpochs,verbose='celeba' in dataset.lower(),n_samples_batch=adaptive_samples)
                 print("Done training!")
                 model.eval()
                 with torch.no_grad():
                     
-                    test_loss = train_asqlvm.val_epoch_adaptive(model,test_loader,test_lattice.to(device),loss_func)
+                    test_loss = train_asqlvm.val_epoch_adaptive(model,test_loader,test_lattice.to(device),loss_func,lp)
                 run_info = {'train':train_loss,'test':test_loss}
                 save(model.to('cpu'),opt,run_info,fn=tmp_save_path)
                 model.to(device)
