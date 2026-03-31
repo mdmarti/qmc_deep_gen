@@ -113,8 +113,8 @@ class Encoder(nn.Module):
         intermediate = self.shared_net(data)
         #assert False
         mu = self.mu_net(intermediate)
-        l = self.mu_net(intermediate).unsqueeze(-1)
-        d = self.mu_net(intermediate).exp()
+        l = self.l_net(intermediate).unsqueeze(-1)
+        d = self.d_net(intermediate).exp()
 
         return (mu,l,d)
     

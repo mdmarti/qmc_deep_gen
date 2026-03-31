@@ -23,7 +23,7 @@ def jacEnergy(predictions):
 
     return jacE.pow(2).sum(dim=-1)
 
-def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[]):
+def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[],full=True):
 
 
     #,calc_device=torch.device('cuda')
@@ -33,15 +33,23 @@ def binary_evidence(samples, data,reduce=True,batch_size=-1,importance_weights=[
     # (should be sum for full, joint evidence)
     # but we can also do expected evidence per sample
 
-    recon_loss = binary_lp(samples,data,importance_weights=importance_weights) #torch.cat(recon_loss,axis=1) 
+    recon_loss = []
+    for batch_start in range(0,samples.shape[0],batch_size):
+        batch_end = min(B,batch_start + batch_size)
+        rl =  binary_lp(samples[batch_start:batch_end],data,importance_weights=importance_weights) 
+        recon_loss.append(rl)
+    recon_loss =torch.cat(recon_loss,axis=1) 
     recon_loss = torch.special.logsumexp(
             recon_loss,
             axis=1
         )
+    if full:
+        recon_loss = recon_loss - np.log(B)
     if reduce:
         return -1 * torch.mean(recon_loss)
 
     return -1* recon_loss
+
 
 def binary_evidence_old(samples, data,reduce=True,batch_size=-1):
 
@@ -115,18 +123,27 @@ def binary_lp_old(samples,data):
                     reduction="none"
                 )
 
-def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weights=[]):
+def gaussian_evidence(samples,data,var,reduce=True,batch_size=-1,importance_weights=[],full=True):
 
     B = samples.shape[0]
     if batch_size == -1:
         batch_size=B
 
-    recon_loss = gaussian_lp(samples,data,var,importance_weights=importance_weights)
+    recon_loss = []
+    for batch_start in range(0,samples.shape[0],batch_size):
+        batch_end = min(B,batch_start + batch_size)
+        rl =  gaussian_lp(samples[batch_start:batch_end],data,var,importance_weights=importance_weights) 
+        recon_loss.append(rl)
+    recon_loss =torch.cat(recon_loss,axis=1) 
+    #recon_loss = gaussian_lp(samples,data,var,importance_weights=importance_weights)
 
     recon_loss = torch.special.logsumexp(
             recon_loss,
             axis=1
         )
+    if full:
+        recon_loss = recon_loss - np.log(B)
+
     if reduce:
         return -1 * torch.mean(recon_loss)
 
