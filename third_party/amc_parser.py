@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 """
 The below functions & Class are from https://github.com/CalciferZh/AMCParser, a package for 
 parsing and visualizing asf/amc files from the CMU MoCap dataset
+These are included in case you need to analyze any mocap data in asf/amc format.
 """
 
 class Joint:
