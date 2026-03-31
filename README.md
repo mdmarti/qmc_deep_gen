@@ -16,7 +16,7 @@ branch for cleaning up code. this will be the final version
 - [ ] create type specs and docstrings for all files
   - [ ] analysis
     - [x] geodesics
-    - [ ] clustering
+    - [x] clustering
     - [ ] jacobians
     - [ ] weighted_mean_shift
   - [ ] data
