@@ -19,6 +19,7 @@ branch for cleaning up code. this will be the final version
     - [x] clustering
     - [x] jacobians
     - [ ] weighted_mean_shift
+    - [x] model helpers
   - [ ] data
     - [ ] bird_data
     - [ ] dynamics
