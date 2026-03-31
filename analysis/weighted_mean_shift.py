@@ -5,7 +5,14 @@ import time
 
 from sklearn.cluster._mean_shift import *
 import numpy as np
+from typing import Union
 #from sklearn.utils.validation import check_is_fitted, validate_data
+
+### the majority of this code comes from sklearn's MeanShift class, which uses 
+### a flat kernel to estimate densities and creates clusters by climbing a local
+### density gradient. Here, we adapt that method to allow us to use a uniform lattice with 
+### an already estimated density over it. This should result in similar points,
+### as we are still climbing the density gradient.
 
 class WeightedMeanShift(MeanShift):
     """
@@ -13,13 +20,32 @@ class WeightedMeanShift(MeanShift):
     to estimate density from samples, move modes to centers of mass 
     of your samples. Here, we have probability densities and uniform grid,
     so we want to move modes to centers of mass using those densities on the grid
+
+    key parameters are same as in MeanShift:
+
+    bandwidth: flat kernel width
+    seeds: initial centroid guesses
+    bin_seeding: whether initial kernels are all points, or instead seeds given by binning
+    data points. ignored if seeds provided
+    min_bin_freq: minimum seeds in bin, ignores those with only one seed
+    cluster_all: whether to cluster all points, or ignore outliers
+    n_jobs: number of jobs for parallelization
+    max_iter: number of mean-shift iterations per seed point
     """
 
+    bandwidth:float 
+    seeds:np.ndarray
+    bin_seeding:bool
+    min_bin_freq:int
+    cluster_all:bool
+    n_jobs:Union[None,int]
+    max_iter:int
+    metric:str
 
     def __init__(
         self,
         *,
-        bandwidth=None,
+        bandwidth=None, 
         seeds=None,
         bin_seeding=False,
         min_bin_freq=1,
@@ -41,7 +67,7 @@ class WeightedMeanShift(MeanShift):
         self.metric=metric
         
 
-    def fit(self, X, y=None,weights=None,verbose=False):
+    def fit(self, X:np.ndarray, y:None=None,weights:Union[None,np.ndarray]=None,verbose:str=False):
         """Perform clustering.
 
         Parameters
@@ -51,6 +77,11 @@ class WeightedMeanShift(MeanShift):
 
         y : Ignored
             Not used, present for API consistency by convention.
+
+        weights: array-like of shape (n_samples,)
+            weights on samples X. ignored if weights are None
+        
+        verbose : bool, whether to print stuff
 
         Returns
         -------
@@ -138,9 +169,43 @@ class WeightedMeanShift(MeanShift):
         self.cluster_centers_, self.labels_ = cluster_centers, labels
         return self
 
-    def predict(self, X, y=None,weights=None,weight_grid=None,verbose=False,tol=1e-2,max_iter=1000,bandwidth=0.1):
+    def predict(self, X:np.ndarray, y=None,weights:Union[None,np.ndarray]=None,
+                weight_grid:Union[None,np.ndarray]=None,verbose:bool=False,
+                tol:float=1e-2,max_iter:int=1000,bandwidth:float=0.1):
 
-        #print(X.shape)
+        """Perform cluster points using trained mean-shift model.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Samples to cluster.
+
+        y : Ignored
+            Not used, present for API consistency by convention.
+
+        weights: array-like of shape (n_samples,)
+            weights on samples X. ignored if weights are None
+        
+        weight_grid: array_like of shape (n_samples,n_features)
+                    grid on which weights are defined. should be ignored 
+                    if weights are None
+        
+        verbose : bool, whether to print stuff    
+
+        tol: float, convergence tolerance. 
+            we will classify a point if its flowed representation 
+            gets within this distance of a centroid
+
+        max_iter: int, number of flow iterations
+
+        bandwidth: float,
+            flat kernel bandwidth for classification.
+
+        Returns
+        -------
+        all_labels : ndarray
+               labels for each point in X.
+        """
         if weights is not None:
             if weight_grid is None:
                 assert X.shape[0] == len(weights), print("If you do not provide a weight grid, weights must be over X!")
@@ -273,6 +338,11 @@ class WeightedMeanShiftCircular(WeightedMeanShift):
     to estimate density from samples, move modes to centers of mass 
     of your samples. Here, we have probability densities and uniform grid,
     so we want to move modes to centers of mass using those densities on the grid
+
+    This is the same as WeightedMeanShift, but accounts for circular boundary conditions.
+    This should be used to cluster the original latent space;
+    the other should be used to cluster the torus basis embedded data. This version is much
+    slower but should give the same results, so I recommend using the torus embedded version.
     """
 
 

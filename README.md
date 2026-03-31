@@ -18,7 +18,7 @@ branch for cleaning up code. this will be the final version
     - [x] geodesics
     - [x] clustering
     - [x] jacobians
-    - [ ] weighted_mean_shift
+    - [x] weighted_mean_shift (except I was lazy with the info for circular version)
     - [x] model helpers
   - [ ] data
     - [ ] bird_data
