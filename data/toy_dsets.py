@@ -7,6 +7,7 @@ import h5py
 import os
 from torchvision import transforms
 from torch.nn.functional import one_hot
+from typing import Union,Callable,Tuple
 
 ##### Factors for shapes3d ######
 _FACTORS_IN_ORDER = ['floor_hue', 'wall_hue', 'object_hue', 'scale', 'shape',
@@ -19,7 +20,8 @@ class CelebADsetIms(Dataset):
 
     """
     assumes that you're using data loaded directly in all at once,
-    rather than loading 1 image at a time
+    rather than loading 1 image at a time. there are no labels for this dataset
+    i do not believe this was used; I just used GeneralToyDset 
     """
 
     def __init__(self,ims):
@@ -39,10 +41,20 @@ class GeneralToyDset(Dataset):
 
     """
     assumes data come from an sklearn dataset,
-    but really encompasses anything that's a data/label pair
+    but really encompasses anything that's a data/label pair. I use this for
+    every toy dataset in the paper.
+
+    ims: data. we will attempt to learn the structure of these
+    labels: either class labels or factors. we can use these to 
+    condition our QLVMs on additional information
+    indices: data indices that we'll sample from
+    transform: transform applied to data before returning from the dataloader
     """
 
-    def __init__(self,ims,labels,indices=[],transform = torch.from_numpy):
+    def __init__(self,ims:Union[list,np.ndarray],labels:Union[list,np.ndarray],
+                 indices:Union[list,np.ndarray]=[],transform:Callable = torch.from_numpy):
+        
+
 
         self.ims = ims
         self.labels = labels
@@ -62,7 +74,8 @@ class GeneralToyDset(Dataset):
         index = self.indices[index]
 
         return (self.transform(self.ims[index]),self.labels[index])
-    
+
+ #### Some unused datasets   
 
 def generate_moons(n_samples,seed,noise_sd_in,noise_sd_out,test_size=0.2):
     
@@ -95,9 +108,20 @@ def generate_blobs(n_samples,dim,seed,noise_sd_in,noise_sd_out,test_size=0.2):
 
     return GeneralToyDset(train_x,train_y,transform=torch.from_numpy), GeneralToyDset(test_x,test_y,transform=torch.from_numpy)
 
-class shapes3dDset(Dataset):
+#########################################
 
-    def __init__(self,filepath,indices):
+class shapes3dDset(Dataset):
+    """
+    dataset for processing the 3dShapes dataset: https://github.com/google-deepmind/3d-shapes
+
+    filepath: path to the h5 file containing all of the 3dshapes images
+    indices: indices of the data, from get_index() function. we use this 
+    in the lower functions to pick a train-test split. we can also use this
+    to sample on fixed conditions
+
+    """
+
+    def __init__(self,filepath:str,indices:Union[list,np.ndarray]):
 
         self.file = h5py.File(filepath,locking=False)
         self.n_images, self.H,self.W,self.C = self.file['images'].shape
@@ -108,7 +132,7 @@ class shapes3dDset(Dataset):
 
         return self.n_used 
     
-    def __getitem__(self,index):
+    def __getitem__(self,index:int):
 
         idx = self.indices[index]
         image, label = self.file['images'][idx],self.file['labels'][idx]
@@ -117,24 +141,34 @@ class shapes3dDset(Dataset):
     
 class conditionalShapesDset(shapes3dDset):
 
-    def __init__(self,filepath,indices,conditional_factor='floor_hue'):
+    def __init__(self,filepath:str,indices:Union[list,np.ndarray],conditional_factor:str='floor_hue'):
 
         super(conditionalShapesDset,self).__init__(filepath,indices)
         self.conditional_factor = conditional_factor
 
-    def __getitem__(self,index):
+    def __getitem__(self,index:int)->Tuple[np.ndarray,np.ndarray]:
 
         idx = self.indices[index]
         image, label = self.file['images'][idx],self.file['labels'][idx]
 
         if self.conditional_factor == 'shape':
-            c = one_hot()
+            c = one_hot() ### fix this
 
         return (image.astype(np.float32)/255,label.astype(np.float32))
     
 
 
-def get_3d_shapes(dpath,seed,test_size=0.2):
+def get_3d_shapes(dpath:str,seed:int,test_size:float=0.2)->Tuple[Dataset,Dataset]:
+    """
+    loads 3dshapes dataset and creates train-test split. returns the train and test dataset objects.
+
+    dpath: location of 3dshapes h5 file
+    seed: random seed for reproducibility
+    test_size: portion of dataset held out for testing
+
+    returns:
+        train dataset, test dataset
+    """
 
     dfile = os.path.join(dpath,'3dshapes.h5')
     dataset = h5py.File(dfile,'r',locking=False)
@@ -157,6 +191,17 @@ def get_3d_shapes(dpath,seed,test_size=0.2):
     return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
 
 def get_3d_shapes_conditional(dpath,seed,test_size=0.2,conditional_factor='floor_hue'):
+    """
+    loads 3dshapes dataset and creates train-test split. returns the train and test dataset objects.
+    here, it does this conditioned on a random value of a single conditional factor.
+
+    dpath: location of 3dshapes h5 file
+    seed: random seed for reproducibility
+    test_size: portion of dataset held out for testing
+
+    returns:
+        train dataset, test dataset
+    """
 
     dfile = os.path.join(dpath,'3dshapes.h5')
     dataset = h5py.File(dfile,'r',locking=False)
@@ -198,6 +243,17 @@ def get_index(factors):
   return indices
 
 def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
+    """
+    loads 3dshapes dataset and creates train-test split. returns the train and test dataset objects.
+    here, it does this conditioned on a random value of a single conditional factor.
+
+    dpath: location of 3dshapes h5 file
+    seed: random seed for reproducibility
+    test_size: portion of dataset held out for testing
+
+    returns:
+        train dataset, test dataset
+    """
 
 
     gen = np.random.default_rng(seed=seed)

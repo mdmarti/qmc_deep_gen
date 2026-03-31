@@ -14,7 +14,7 @@ branch for cleaning up code. this will be the final version
 
 - [ ] clean instructions for data loading
 - [ ] create type specs and docstrings for all files
-  - [ ] analysis
+  - [x] analysis
     - [x] geodesics
     - [x] clustering
     - [x] jacobians
