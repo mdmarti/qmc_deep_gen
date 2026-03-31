@@ -17,7 +17,7 @@ branch for cleaning up code. this will be the final version
   - [ ] analysis
     - [x] geodesics
     - [x] clustering
-    - [ ] jacobians
+    - [x] jacobians
     - [ ] weighted_mean_shift
   - [ ] data
     - [ ] bird_data
