@@ -6,54 +6,69 @@ import numpy as np
 import h5py
 import os
 from torch.nn.functional import one_hot
-from typing import Union,Callable,Tuple
+from typing import Union, Callable, Tuple
 
 ##### Factors for shapes3d ######
-_FACTORS_IN_ORDER = ['floor_hue', 'wall_hue', 'object_hue', 'scale', 'shape',
-                     'orientation']
-_NUM_VALUES_PER_FACTOR = {'floor_hue': 10, 'wall_hue': 10, 'object_hue': 10, 
-                        'scale': 8, 'shape': 4, 'orientation': 15}
+_FACTORS_IN_ORDER = [
+    "floor_hue",
+    "wall_hue",
+    "object_hue",
+    "scale",
+    "shape",
+    "orientation",
+]
+_NUM_VALUES_PER_FACTOR = {
+    "floor_hue": 10,
+    "wall_hue": 10,
+    "object_hue": 10,
+    "scale": 8,
+    "shape": 4,
+    "orientation": 15,
+}
 #########
 
-class CelebADsetIms(Dataset):
 
+class CelebADsetIms(Dataset):
     """
     assumes that you're using data loaded directly in all at once,
     rather than loading 1 image at a time. there are no labels for this dataset
-    i do not believe this was used; I just used GeneralToyDset 
+    i do not believe this was used; I just used GeneralToyDset
     """
 
-    def __init__(self,ims):
+    def __init__(self, ims):
 
         self.ims = ims
         self.len = ims.shape[0]
-    
+
     def __len__(self):
 
         return self.len
 
-    def __getitem__(self,index):
+    def __getitem__(self, index):
 
-        return (self.ims[index],[])
-    
+        return (self.ims[index], [])
+
+
 class GeneralToyDset(Dataset):
-
     """
     assumes data come from an sklearn dataset,
     but really encompasses anything that's a data/label pair. I use this for
     every toy dataset in the paper.
 
     ims: data. we will attempt to learn the structure of these
-    labels: either class labels or factors. we can use these to 
+    labels: either class labels or factors. we can use these to
     condition our QLVMs on additional information
     indices: data indices that we'll sample from
     transform: transform applied to data before returning from the dataloader
     """
 
-    def __init__(self,ims:Union[list,np.ndarray],labels:Union[list,np.ndarray],
-                 indices:Union[list,np.ndarray]=[],transform:Callable = torch.from_numpy):
-        
-
+    def __init__(
+        self,
+        ims: Union[list, np.ndarray],
+        labels: Union[list, np.ndarray],
+        indices: Union[list, np.ndarray] = [],
+        transform: Callable = torch.from_numpy,
+    ):
 
         self.ims = ims
         self.labels = labels
@@ -67,97 +82,112 @@ class GeneralToyDset(Dataset):
     def __len__(self):
 
         return self.len
-    
-    def __getitem__(self,index):
+
+    def __getitem__(self, index):
 
         index = self.indices[index]
 
-        return (self.transform(self.ims[index]),self.labels[index])
-
- #### Some unused datasets   
-
-def generate_moons(n_samples,seed,noise_sd_in,noise_sd_out,test_size=0.2):
-    
-    noisy_moons = datasets.make_moons(n_samples=n_samples, noise=noise_sd_in, random_state=seed)
-    z,y = noisy_moons
-
-    gen = np.random.default_rng(seed=seed)
-
-    w = gen.standard_normal(size=(2,1000))
-    x = z @ w + gen.standard_normal(size=(z.shape[0],))*noise_sd_out
-
-    train_x,test_x,train_y,test_y = train_test_split(x,y,test_size=test_size)
-
-    return GeneralToyDset(train_x,train_y), GeneralToyDset(test_x,test_y)
+        return (self.transform(self.ims[index]), self.labels[index])
 
 
+#### Some unused datasets
 
-def generate_blobs(n_samples,dim,seed,noise_sd_in,noise_sd_out,test_size=0.2):
 
-    noisy_blobs = datasets.make_blobs(n_samples=n_samples,n_features=dim,random_state=seed,cluster_std = noise_sd_in)
+def generate_moons(n_samples, seed, noise_sd_in, noise_sd_out, test_size=0.2):
 
-    z,y = noisy_blobs
+    noisy_moons = datasets.make_moons(
+        n_samples=n_samples, noise=noise_sd_in, random_state=seed
+    )
+    z, y = noisy_moons
 
     gen = np.random.default_rng(seed=seed)
 
-    w = gen.standard_normal(size=(dim,1000))
-    x = z @ w + gen.standard_normal(size=(z.shape[0],))*noise_sd_out
+    w = gen.standard_normal(size=(2, 1000))
+    x = z @ w + gen.standard_normal(size=(z.shape[0],)) * noise_sd_out
 
-    train_x,test_x,train_y,test_y = train_test_split(x,y,test_size=test_size)
+    train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=test_size)
 
-    return GeneralToyDset(train_x,train_y,transform=torch.from_numpy), GeneralToyDset(test_x,test_y,transform=torch.from_numpy)
+    return GeneralToyDset(train_x, train_y), GeneralToyDset(test_x, test_y)
+
+
+def generate_blobs(n_samples, dim, seed, noise_sd_in, noise_sd_out, test_size=0.2):
+
+    noisy_blobs = datasets.make_blobs(
+        n_samples=n_samples, n_features=dim, random_state=seed, cluster_std=noise_sd_in
+    )
+
+    z, y = noisy_blobs
+
+    gen = np.random.default_rng(seed=seed)
+
+    w = gen.standard_normal(size=(dim, 1000))
+    x = z @ w + gen.standard_normal(size=(z.shape[0],)) * noise_sd_out
+
+    train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=test_size)
+
+    return GeneralToyDset(train_x, train_y, transform=torch.from_numpy), GeneralToyDset(
+        test_x, test_y, transform=torch.from_numpy
+    )
+
 
 #########################################
+
 
 class shapes3dDset(Dataset):
     """
     dataset for processing the 3dShapes dataset: https://github.com/google-deepmind/3d-shapes
 
     filepath: path to the h5 file containing all of the 3dshapes images
-    indices: indices of the data, from get_index() function. we use this 
+    indices: indices of the data, from get_index() function. we use this
     in the lower functions to pick a train-test split. we can also use this
     to sample on fixed conditions
 
     """
 
-    def __init__(self,filepath:str,indices:Union[list,np.ndarray]):
+    def __init__(self, filepath: str, indices: Union[list, np.ndarray]):
 
-        self.file = h5py.File(filepath,locking=False)
-        self.n_images, self.H,self.W,self.C = self.file['images'].shape
+        self.file = h5py.File(filepath, locking=False)
+        self.n_images, self.H, self.W, self.C = self.file["images"].shape
         self.indices = indices
         self.n_used = len(self.indices)
 
     def __len__(self):
 
-        return self.n_used 
-    
-    def __getitem__(self,index:int):
+        return self.n_used
+
+    def __getitem__(self, index: int):
 
         idx = self.indices[index]
-        image, label = self.file['images'][idx],self.file['labels'][idx]
+        image, label = self.file["images"][idx], self.file["labels"][idx]
 
-        return (image.astype(np.float32)/255,label.astype(np.float32))
-    
+        return (image.astype(np.float32) / 255, label.astype(np.float32))
+
+
 class conditionalShapesDset(shapes3dDset):
+    def __init__(
+        self,
+        filepath: str,
+        indices: Union[list, np.ndarray],
+        conditional_factor: str = "floor_hue",
+    ):
 
-    def __init__(self,filepath:str,indices:Union[list,np.ndarray],conditional_factor:str='floor_hue'):
-
-        super(conditionalShapesDset,self).__init__(filepath,indices)
+        super(conditionalShapesDset, self).__init__(filepath, indices)
         self.conditional_factor = conditional_factor
 
-    def __getitem__(self,index:int)->Tuple[np.ndarray,np.ndarray]:
+    def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
 
         idx = self.indices[index]
-        image, label = self.file['images'][idx],self.file['labels'][idx]
+        image, label = self.file["images"][idx], self.file["labels"][idx]
 
-        if self.conditional_factor == 'shape':
-            c = one_hot() ### fix this
+        if self.conditional_factor == "shape":
+            c = one_hot()  ### fix this
 
-        return (image.astype(np.float32)/255,label.astype(np.float32))
-    
+        return (image.astype(np.float32) / 255, label.astype(np.float32))
 
 
-def get_3d_shapes(dpath:str,seed:int,test_size:float=0.2)->Tuple[Dataset,Dataset]:
+def get_3d_shapes(
+    dpath: str, seed: int, test_size: float = 0.2
+) -> Tuple[Dataset, Dataset]:
     """
     loads 3dshapes dataset and creates train-test split. returns the train and test dataset objects.
 
@@ -169,27 +199,32 @@ def get_3d_shapes(dpath:str,seed:int,test_size:float=0.2)->Tuple[Dataset,Dataset
         train dataset, test dataset
     """
 
-    dfile = os.path.join(dpath,'3dshapes.h5')
-    dataset = h5py.File(dfile,'r',locking=False)
-    #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
-    (B,H,W,C) = dataset['images'].shape
-    #images /= 255
-    #images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
-    #images = np.swapaxes(images.astype(np.float32),axis1=2,axis2=3) # B C H W
-    
+    dfile = os.path.join(dpath, "3dshapes.h5")
+    dataset = h5py.File(dfile, "r", locking=False)
+    # images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
+    (B, H, W, C) = dataset["images"].shape
+    # images /= 255
+    # images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
+    # images = np.swapaxes(images.astype(np.float32),axis1=2,axis2=3) # B C H W
+
     gen = np.random.default_rng(seed=seed)
 
-    order = gen.choice(B,B,replace=False)
-    train_end = int(round(B * (1-test_size)))
+    order = gen.choice(B, B, replace=False)
+    train_end = int(round(B * (1 - test_size)))
 
-    #train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
-    #transform = lambda x: torch.from_numpy(x).permute(2,0,1)
+    # train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
+    # transform = lambda x: torch.from_numpy(x).permute(2,0,1)
 
-    #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
-    
-    return shapes3dDset(dfile,order[:train_end]), shapes3dDset(dfile,order[train_end:])
+    # test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
 
-def get_3d_shapes_conditional(dpath,seed,test_size=0.2,conditional_factor='floor_hue'):
+    return shapes3dDset(dfile, order[:train_end]), shapes3dDset(
+        dfile, order[train_end:]
+    )
+
+
+def get_3d_shapes_conditional(
+    dpath, seed, test_size=0.2, conditional_factor="floor_hue"
+):
     """
     loads 3dshapes dataset and creates train-test split. returns the train and test dataset objects.
     here, it does this conditioned on a random value of a single conditional factor.
@@ -202,46 +237,51 @@ def get_3d_shapes_conditional(dpath,seed,test_size=0.2,conditional_factor='floor
         train dataset, test dataset
     """
 
-    dfile = os.path.join(dpath,'3dshapes.h5')
-    dataset = h5py.File(dfile,'r',locking=False)
-    #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
-    (B,H,W,C) = dataset['images'].shape
-    #images /= 255
-    #images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
-    #images = np.swapaxes(images.astype(np.float32),axis1=2,axis2=3) # B C H W
-    
+    dfile = os.path.join(dpath, "3dshapes.h5")
+    dataset = h5py.File(dfile, "r", locking=False)
+    # images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
+    (B, H, W, C) = dataset["images"].shape
+    # images /= 255
+    # images = np.swapaxes(images.astype(np.float32),axis1=1,axis2=3) # B C W H
+    # images = np.swapaxes(images.astype(np.float32),axis1=2,axis2=3) # B C H W
+
     gen = np.random.default_rng(seed=seed)
 
-    order = gen.choice(B,B,replace=False)
-    train_end = int(round(B * (1-test_size)))
+    order = gen.choice(B, B, replace=False)
+    train_end = int(round(B * (1 - test_size)))
 
-    #train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
-    #transform = lambda x: torch.from_numpy(x).permute(2,0,1)
+    # train_x,train_y = images[order[:train_end]],labels[order[:train_end]]
+    # transform = lambda x: torch.from_numpy(x).permute(2,0,1)
 
-    #test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
-    
-    return conditionalShapesDset(dfile,order[:train_end],conditional_factor=conditional_factor), conditionalShapesDset(dfile,order[train_end:],conditional_factor=conditional_factor)
+    # test_x,test_y = images[order[train_end:]],labels[order[train_end:]]
+
+    return conditionalShapesDset(
+        dfile, order[:train_end], conditional_factor=conditional_factor
+    ), conditionalShapesDset(
+        dfile, order[train_end:], conditional_factor=conditional_factor
+    )
 
 
 def get_index(factors):
-  """ from the 3dShapes Github
-  Converts factors to indices in range(num_data)
-  Args:
-    factors: np array shape [6,batch_size].
-             factors[i]=factors[i,:] takes integer values in 
-             range(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[i]]).
+    """from the 3dShapes Github
+    Converts factors to indices in range(num_data)
+    Args:
+      factors: np array shape [6,batch_size].
+               factors[i]=factors[i,:] takes integer values in
+               range(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[i]]).
 
-  Returns:
-    indices: np array shape [batch_size].
-  """
-  indices = 0
-  base = 1
-  for factor, name in reversed(list(enumerate(_FACTORS_IN_ORDER))):
-    indices += factors[factor] * base
-    base *= _NUM_VALUES_PER_FACTOR[name]
-  return indices
+    Returns:
+      indices: np array shape [batch_size].
+    """
+    indices = 0
+    base = 1
+    for factor, name in reversed(list(enumerate(_FACTORS_IN_ORDER))):
+        indices += factors[factor] * base
+        base *= _NUM_VALUES_PER_FACTOR[name]
+    return indices
 
-def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
+
+def get_3d_shapes_fixed_factors(dpath, seed, fixed_factors, test_size=0.2):
     """
     loads 3dshapes dataset and creates train-test split. returns the train and test dataset objects.
     here, it does this conditioned on a random value of a single conditional factor.
@@ -254,38 +294,49 @@ def get_3d_shapes_fixed_factors(dpath,seed,fixed_factors,test_size=0.2):
         train dataset, test dataset
     """
 
-
     gen = np.random.default_rng(seed=seed)
-    dfile = os.path.join(dpath,'3dshapes.h5')
-    dataset = h5py.File(dfile,'r',locking=False)
-    #images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
-    (B,H,W,C) = dataset['images'].shape
+    dfile = os.path.join(dpath, "3dshapes.h5")
+    dataset = h5py.File(dfile, "r", locking=False)
+    # images,labels = np.asarray(dataset['images']).astype(np.float32),np.asarray(dataset['labels'])
+    (B, H, W, C) = dataset["images"].shape
 
     ### turn this into the same factor value for each run -- that way we can actually make meaningful plots
-    fixed_factor_values = [int(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[f]]//2) for  f in fixed_factors]
+    fixed_factor_values = [
+        int(_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[f]] // 2) for f in fixed_factors
+    ]
 
-    valid_indices = get_factor_indices(fixed_factors,fixed_factor_values)
+    valid_indices = get_factor_indices(fixed_factors, fixed_factor_values)
     B = len(valid_indices)
-    order = gen.choice(B,B,replace=False)
-    train_end = int(round(B * (1-test_size)))
+    order = gen.choice(B, B, replace=False)
+    train_end = int(round(B * (1 - test_size)))
 
-    return shapes3dDset(dfile,valid_indices[order[:train_end]]), shapes3dDset(dfile,valid_indices[order[train_end:]])
+    return shapes3dDset(dfile, valid_indices[order[:train_end]]), shapes3dDset(
+        dfile, valid_indices[order[train_end:]]
+    )
 
-def get_factor_indices(fixed_factors,fixed_factor_values):
 
+def get_factor_indices(fixed_factors, fixed_factor_values):
     """
     expects fixed factors and factor values to be in the same order.
     also expects them to be in numerical order (factor 1 comes before factor 2, etc.)
     """
-    assert len(fixed_factors) == len(fixed_factor_values), print("each fixed factor must have a fixed value!")
+    assert len(fixed_factors) == len(fixed_factor_values), print(
+        "each fixed factor must have a fixed value!"
+    )
 
-    n_indices = np.prod([_NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[ii]] for ii in range(6) if ii not in fixed_factors])
-    
+    n_indices = np.prod(
+        [
+            _NUM_VALUES_PER_FACTOR[_FACTORS_IN_ORDER[ii]]
+            for ii in range(6)
+            if ii not in fixed_factors
+        ]
+    )
+
     print(f"there should be {n_indices} indices by the end of this function")
 
     factor_inds = []
     fixed_index = 0
-    for factor,name in enumerate(_FACTORS_IN_ORDER):
+    for factor, name in enumerate(_FACTORS_IN_ORDER):
         if factor in fixed_factors:
             factor_inds.append([fixed_factor_values[fixed_index]])
             fixed_index += 1
@@ -293,11 +344,11 @@ def get_factor_indices(fixed_factors,fixed_factor_values):
             factor_inds.append(list(range(_NUM_VALUES_PER_FACTOR[name])))
 
     factor_grid = np.meshgrid(*factor_inds)
-    factor_grid = np.stack([f.flatten() for f in factor_grid],axis=0)
+    factor_grid = np.stack([f.flatten() for f in factor_grid], axis=0)
     assert factor_grid.shape[0] == 6, print(factor_grid.shape)
-    assert factor_grid.shape[1] == n_indices,print(factor_grid.shape)
+    assert factor_grid.shape[1] == n_indices, print(factor_grid.shape)
 
     inds = get_index(factor_grid)
-    assert len(inds) == n_indices,print(n_indices.shape)
+    assert len(inds) == n_indices, print(n_indices.shape)
 
     return inds
