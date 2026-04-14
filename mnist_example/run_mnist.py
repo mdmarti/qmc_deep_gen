@@ -1,5 +1,3 @@
-from torch import nn
-from torch.distributions.lowrank_multivariate_normal import LowRankMultivariateNormal
 from data import *
 from losses import *
 from qlvm import *

@@ -1,11 +1,10 @@
 import torch
-from torch.utils.data import Dataset,DataLoader
+from torch.utils.data import Dataset
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 import numpy as np
 import h5py
 import os
-from torchvision import transforms
 from torch.nn.functional import one_hot
 from typing import Union,Callable,Tuple
 

@@ -1,5 +1,4 @@
 import torch
-import copy
 from collections import OrderedDict
 
 def save(model,optimizer,run_info,fn = ''):
@@ -42,7 +41,7 @@ def convert_qmc_dict(checkpoint,model):
         model.load_state_dict(checkpoint['model'])
 
     except:
-        print(f"weights mismatch; converting")
+        print("weights mismatch; converting")
         dict_copy = OrderedDict()
 
         keylist = checkpoint['model'].keys()

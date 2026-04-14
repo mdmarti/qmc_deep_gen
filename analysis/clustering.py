@@ -1,6 +1,5 @@
 from analysis.weighted_mean_shift import *
-from sklearn.cluster import MeanShift,KMeans  
-import os
+from sklearn.cluster import KMeans  
 from typing import Union,Tuple
 from analysis.model_helpers import torus_reverse
 

@@ -1,9 +1,8 @@
-from torch.autograd.functional import jacobian
-from torch.func import jacfwd,vmap,jacrev
+from torch.func import jacfwd
 from tqdm import tqdm
 import torch
 import numpy as np
-from typing import Tuple,Union
+from typing import Tuple
 from scipy import ndimage
 
 def get_norms_lattice(model:torch.nn.Module,lattice:torch.FloatTensor) -> Tuple[np.ndarray,np.ndarray]:

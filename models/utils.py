@@ -1,7 +1,6 @@
 import torch
-from models.layers import ResCellNVAESimple,ZeroLayer,PermutationLayer,PrintLayer,AVADecodeLayer,AVAEncodeLayer
+from models.layers import ResCellNVAESimple,ZeroLayer,PermutationLayer,AVADecodeLayer
 import torch.nn as nn
-from models.qmc_base import TorusBasis
 from models.vae_base import Encoder
 
 def get_decoder_arch(dataset_name,latent_dim,arch='qmc',n_per_sample=5,n_conditional=1):

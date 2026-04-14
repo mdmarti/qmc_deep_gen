@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from scipy.spatial import Voronoi, voronoi_plot_2d
+from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 
 

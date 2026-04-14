@@ -1,12 +1,10 @@
 from stochman.manifold import Manifold
-from stochman.geodesic import geodesic_minimizing_energy
-from stochman.curves import CubicSpline
 import torch
 from scipy.interpolate import LSQBivariateSpline as LSQ
 import numpy as np
-from analysis.model_helpers import torus_forward,torus_reverse
+from analysis.model_helpers import torus_forward
 from sklearn.neighbors import NearestNeighbors
-from scipy.sparse.csgraph import shortest_path,dijkstra 
+from scipy.sparse.csgraph import shortest_path 
 from typing import Tuple
 
 

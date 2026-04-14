@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import DataLoader,Dataset
+from torch.utils.data import DataLoader
 from data.bird_data import *
 from data.toy_dsets import *
 from torchvision import transforms, datasets

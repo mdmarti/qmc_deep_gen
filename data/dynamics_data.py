@@ -2,14 +2,8 @@ from abc import ABC,abstractmethod
 import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
-from scipy.io import wavfile
-from scipy.signal import stft
-from scipy.interpolate import interp2d
-import warnings
-from scipy.io.wavfile import WavFileWarning
 import sys
 sys.path.append('/hdd/miles/AMCParser')
-import amc_parser as amc
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.ndimage import gaussian_filter
